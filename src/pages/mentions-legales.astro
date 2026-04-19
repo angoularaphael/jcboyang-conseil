@@ -1,26 +1,17 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 ---
 <Layout
   title="Mentions Légales | JCBO Conseil"
   description="Mentions légales du site JCBO Conseil. Informations sur l'éditeur, la propriété intellectuelle, la protection des données et les cookies."
   noindex={true}
 >
-  <header class="fixed top-0 left-0 w-full z-[1000] py-3 bg-navy/95 backdrop-blur-xl shadow-lg">
-    <nav class="max-w-[1200px] mx-auto px-6 flex items-center justify-between">
-      <a href="/" aria-label="JCBO Conseil" class="group">
-        <svg viewBox="0 0 120 140" width="50" height="58">
-          <rect x="5" y="5" width="110" height="130" rx="4" fill="none" stroke="#d4a762" stroke-width="2"/>
-          <text x="60" y="62" text-anchor="middle" font-family="'Playfair Display', serif" font-size="30" fill="#d4a762" font-weight="600">JC</text>
-          <text x="60" y="95" text-anchor="middle" font-family="'Playfair Display', serif" font-size="30" fill="#d4a762" font-weight="600">BO</text>
-          <text x="98" y="118" text-anchor="middle" font-family="'Cormorant Garamond', serif" font-size="14" fill="#d4a762" font-style="italic">Conseil</text>
-        </svg>
-      </a>
-      <a href="/" class="text-gold font-medium text-sm hover:text-gold-light transition-colors">Retour à l'accueil</a>
-    </nav>
-  </header>
+  <Header />
+  <div class="pt-24"></div>
 
-  <main class="pt-36 pb-20 bg-offwhite min-h-screen">
+  <main class="pb-20 bg-offwhite min-h-screen">
     <div class="max-w-[800px] mx-auto px-6">
       <div class="bg-white rounded-2xl p-8 md:p-12 border border-gold/10 shadow-sm">
         <a href="/" class="inline-flex items-center gap-2 text-gold-dark text-sm font-medium hover:text-gold transition-colors mb-8">
@@ -39,12 +30,12 @@ import Layout from '../layouts/Layout.astro';
           <strong class="text-gray-700">Propriétaire du site :</strong> BOYANG-TSANG Jean-Christophe<br>
           <strong class="text-gray-700">Contact :</strong> <a href="mailto:jcboyang@gmail.com" class="text-gold-dark hover:text-gold">jcboyang@gmail.com</a><br>
           <strong class="text-gray-700">Téléphone :</strong> <a href="tel:+33615630938" class="text-gold-dark hover:text-gold">+33 6 15 63 09 38</a> (France) / +237 6 95 88 65 59 (Cameroun)<br>
-          <strong class="text-gray-700">Adresse :</strong> 25, Chemin du Séminaire, Bâtiment B — 31200 Toulouse, France
+          <strong class="text-gray-700">Adresse :</strong> 87 Rue Achille Viadieu — 31400 Toulouse, France
         </p>
         <p class="text-sm text-gray-500 leading-relaxed mb-3">
           <strong class="text-gray-700">Identification de l'entreprise :</strong> Entrepreneur Individuel<br>
           <strong class="text-gray-700">SIREN :</strong> 832324974<br>
-          <strong class="text-gray-700">Adresse postale :</strong> 25, Chemin du Séminaire, Bâtiment B — 31200 Toulouse
+          <strong class="text-gray-700">Adresse postale :</strong> 87 Rue Achille Viadieu — 31400 Toulouse
         </p>
         <p class="text-sm text-gray-500 leading-relaxed mb-3">
           <strong class="text-gray-700">Directeur de la publication :</strong> Jean-Christophe BOYANG-TSANG — <a href="mailto:jcboyang@gmail.com" class="text-gold-dark hover:text-gold">jcboyang@gmail.com</a><br>
@@ -107,14 +98,5 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </main>
 
-  <footer class="bg-navy-dark border-t border-white/5">
-    <div class="max-w-[1200px] mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/30">
-      <p>&copy; 2025 JCBO Conseil — Jean-Christophe Boyang-Tsang. Tous droits réservés.</p>
-      <div class="flex items-center gap-3">
-        <a href="/" class="hover:text-gold transition-colors">Accueil</a>
-        <span class="text-white/10">|</span>
-        <span>SIREN : 832324974</span>
-      </div>
-    </div>
-  </footer>
+  <Footer />
 </Layout>

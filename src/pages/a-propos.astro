@@ -1,0 +1,24 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import About from '../components/About.astro';
+import Method from '../components/Method.astro';
+import Footer from '../components/Footer.astro';
+---
+<Layout title="À propos — JCBO Conseil | Jean-Christophe Boyang-Tsang" description="Découvrez le parcours de Jean-Christophe Boyang-Tsang, consultant expert en business development avec 30 ans d'expérience terrain.">
+  <Header />
+  <div class="pt-24"></div>
+  <About />
+  <Method />
+
+  <!-- CTA -->
+  <section class="py-16 bg-navy text-center">
+    <div class="max-w-[700px] mx-auto px-6">
+      <h2 class="font-heading text-2xl font-bold text-white mb-4">Envie d'en <span class="text-gold">discuter</span> ?</h2>
+      <p class="text-white/50 mb-8">Chaque situation est unique. Parlons de la vôtre.</p>
+      <a href="/contact" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3.5 px-8 rounded-full hover:bg-gold-light transition-all">Être recontacté</a>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

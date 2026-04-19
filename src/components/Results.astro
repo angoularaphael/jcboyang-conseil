@@ -1,0 +1,58 @@
+---
+const images = [
+  { src: '/images/2019/Forum AKOMCA 2019_1.jpg', alt: 'Forum AKOMCA 2019', label: 'Forum AKOMCA 2019', cat: '2019' },
+  { src: '/images/2019/Forum AKOMCA 2019_2.jpeg', alt: 'Forum AKOMCA 2019 - Networking', label: 'Networking AKOMCA', cat: '2019' },
+  { src: '/images/2019/Forum AKOMCA 2019_3.jpeg', alt: 'Forum AKOMCA 2019 - Business', label: 'Business Development', cat: '2019' },
+  { src: '/images/aout2025/Séminaire août 2025 3.jpeg', alt: 'Séminaire international août 2025', label: 'Séminaire Août 2025', cat: 'aout25', large: true },
+  { src: '/images/aout2025/Séminaire août 2025 1.jpeg', alt: 'Session de formation août 2025', label: 'Formation', cat: 'aout25' },
+  { src: '/images/aout2025/P1160890.JPG', alt: 'Moments forts séminaire août 2025', label: 'Team Building', cat: 'aout25' },
+  { src: '/images/dec2025/P1170148.JPG', alt: 'Événement décembre 2025', label: 'Événement Déc 2025', cat: 'dec25', large: true },
+  { src: '/images/dec2025/P1170240.JPG', alt: 'Networking décembre 2025', label: 'Networking', cat: 'dec25' },
+  { src: '/images/dec2025/P1170274.JPG', alt: 'Conférences décembre 2025', label: 'Conférences', cat: 'dec25' },
+  { src: '/images/dec2025/P1170329.JPG', alt: 'Clôture événement décembre 2025', label: 'Clôture annuelle', cat: 'dec25' },
+  { src: '/images/dec2025/P1170344.JPG', alt: 'Équipe décembre 2025', label: 'Cohésion', cat: 'dec25' },
+  { src: '/images/2022/1744134541505.jpg', alt: 'Événement JCBO 2022', label: 'Événement 2022', cat: '2022' },
+];
+---
+<section class="py-20 md:py-28 bg-navy text-white" id="resultats">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-14" data-animate="fade-up">
+      <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Preuves terrain</span>
+      <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-white mb-4">Nos <span class="text-gold">Résultats</span> en images</h2>
+      <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+      <p class="text-white/50 max-w-lg mx-auto">Séminaires, formations et événements internationaux — la preuve par l'action.</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex justify-center gap-3 flex-wrap mb-10" data-animate="fade-up">
+      <button class="filter-btn active bg-gold text-navy px-5 py-2 rounded-full text-xs font-semibold transition-all" data-filter="all">Tous</button>
+      <button class="filter-btn border border-gold/30 text-white/50 px-5 py-2 rounded-full text-xs font-semibold hover:bg-gold hover:text-navy transition-all" data-filter="2019">AKOMCA 2019</button>
+      <button class="filter-btn border border-gold/30 text-white/50 px-5 py-2 rounded-full text-xs font-semibold hover:bg-gold hover:text-navy transition-all" data-filter="aout25">Août 2025</button>
+      <button class="filter-btn border border-gold/30 text-white/50 px-5 py-2 rounded-full text-xs font-semibold hover:bg-gold hover:text-navy transition-all" data-filter="dec25">Déc 2025</button>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="galleryGrid">
+      {images.map((img, i) => (
+        <div class:list={[
+          "gallery-item group relative rounded-xl overflow-hidden cursor-pointer aspect-square",
+          img.large && "md:col-span-2 md:row-span-2"
+        ]} data-category={img.cat}>
+          <img src={img.src} alt={img.alt} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+          <div class="absolute inset-0 bg-gradient-to-t from-navy/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+            <span class="text-gold text-xs font-bold uppercase tracking-wider">{img.cat.replace('25','')}</span>
+            <span class="text-white text-sm font-heading">{img.label}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="fixed inset-0 bg-navy/95 z-[10000] flex items-center justify-center opacity-0 invisible transition-all">
+    <button class="lightbox-close absolute top-5 right-5 text-white text-4xl hover:text-gold transition-colors" aria-label="Fermer">&times;</button>
+    <button class="lightbox-prev absolute left-5 top-1/2 -translate-y-1/2 text-white text-3xl hover:text-gold transition-colors" aria-label="Précédent">&#10094;</button>
+    <button class="lightbox-next absolute right-5 top-1/2 -translate-y-1/2 text-white text-3xl hover:text-gold transition-colors" aria-label="Suivant">&#10095;</button>
+    <img id="lightboxImg" src="" alt="" class="max-w-[90%] max-h-[85vh] rounded-xl object-contain" />
+  </div>
+</section>

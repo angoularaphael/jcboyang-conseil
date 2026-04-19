@@ -1,0 +1,51 @@
+---
+const pains = [
+  {
+    icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+    title: 'Votre CA stagne ou baisse',
+    text: 'Malgré vos efforts, vous ne franchissez pas le palier. Vos actions commerciales manquent de structure et de ROI mesurable.',
+  },
+  {
+    icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`,
+    title: 'Vous perdez des clients',
+    text: "Votre positionnement est flou. Vos prospects ne comprennent pas pourquoi vous choisir plutôt qu'un concurrent.",
+  },
+  {
+    icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    title: 'Vous manquez de méthode',
+    text: 'Pas de process commercial structuré, pas de suivi des leads, pas de stratégie à moyen terme. Vous courez sans cap.',
+  },
+  {
+    icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>`,
+    title: 'Vos équipes ne vendent pas assez',
+    text: 'Taux de conversion faible, cycles de vente trop longs, manque de compétences ou de motivation de vos commerciaux.',
+  },
+];
+---
+<section class="py-20 md:py-28 bg-offwhite" id="probleme">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-14" data-animate="fade-up">
+      <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Le constat</span>
+      <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-navy mb-4">Vous vous <span class="text-gold">reconnaissez</span>&nbsp;?</h2>
+      <div class="w-14 h-0.5 bg-gold mx-auto"></div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      {pains.map((pain, i) => (
+        <div class="bg-white border border-red-100 rounded-2xl p-7 hover:border-red-300 hover:shadow-lg transition-all group" data-animate="fade-up" data-delay={String(i * 100)}>
+          <div class="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center mb-4 group-hover:bg-red-100 transition-colors" set:html={pain.icon} />
+          <h3 class="font-heading text-lg font-semibold text-navy mb-2">{pain.title}</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">{pain.text}</p>
+        </div>
+      ))}
+    </div>
+
+    <div class="text-center mt-14" data-animate="fade-up">
+      <p class="text-lg md:text-xl text-gray-600 mb-6 max-w-xl mx-auto">
+        Si vous avez coché au moins <strong class="text-navy">2 cases</strong>, votre problème n'est pas un manque de travail.<br>
+        <span class="text-gold font-semibold">C'est un manque de stratégie.</span>
+      </p>
+      <a href="#methode" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3.5 px-8 rounded-full hover:bg-gold-light hover:-translate-y-0.5 transition-all">Découvrir la solution</a>
+    </div>
+  </div>
+</section>

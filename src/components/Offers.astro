@@ -1,0 +1,68 @@
+---
+const offers = [
+  {
+    num: '01',
+    title: 'Conseil Stratégique',
+    target: 'Pour les dirigeants qui veulent une feuille de route claire',
+    features: ['Audit commercial complet', 'Analyse marché & concurrence', 'Plan stratégique 12 mois', 'Recommandations opérationnelles', 'Suivi trimestriel des KPIs'],
+    featured: false,
+  },
+  {
+    num: '02',
+    title: 'Formations',
+    target: "Pour les équipes qui doivent monter en compétences",
+    features: ['Techniques de vente avancées', 'Leadership & management', 'Communication commerciale', 'Marketing opérationnel', 'Certification à la clé'],
+    featured: true,
+    badge: 'Le + demandé',
+  },
+  {
+    num: '03',
+    title: 'Coaching Dirigeant',
+    target: "Pour le dirigeant qui veut accélérer sa prise de décision",
+    features: ['Sessions individuelles sur mesure', 'Stratégie de croissance', 'Développement du leadership', 'Gestion du changement', 'Accountability & suivi'],
+    featured: false,
+  },
+];
+---
+<section class="py-20 md:py-28 bg-offwhite" id="offres">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-14" data-animate="fade-up">
+      <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Nos offres</span>
+      <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-navy mb-4">Choisissez votre levier de <span class="text-gold">Croissance</span></h2>
+      <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+      <p class="text-gray-500 max-w-lg mx-auto">Trois formats complémentaires. Un seul objectif : des résultats concrets et mesurables.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
+      {offers.map((offer, i) => (
+        <article class:list={[
+          "relative rounded-2xl p-8 transition-all hover:-translate-y-2 hover:shadow-xl",
+          offer.featured ? "bg-navy text-white border-2 border-gold/30" : "bg-white border border-gold/10 hover:border-gold/30"
+        ]} data-animate="fade-up" data-delay={String(i * 150)}>
+          {offer.badge && (
+            <span class="absolute top-5 right-5 bg-gold text-navy text-[0.65rem] font-bold uppercase tracking-wider px-3 py-1 rounded-full">{offer.badge}</span>
+          )}
+          <span class:list={["block font-heading text-5xl font-bold leading-none mb-4", offer.featured ? "text-gold/15" : "text-gold/10"]}>{offer.num}</span>
+          <h3 class:list={["font-heading text-xl font-semibold mb-2", offer.featured ? "text-gold" : "text-navy"]}>{offer.title}</h3>
+          <p class:list={["text-sm mb-5 italic", offer.featured ? "text-white/50" : "text-gray-400"]}>{offer.target}</p>
+          <ul class="mb-7 space-y-2.5">
+            {offer.features.map(f => (
+              <li class:list={["flex items-start gap-2 text-sm", offer.featured ? "text-white/60" : "text-gray-500"]}>
+                <span class="w-1.5 h-1.5 rounded-full bg-gold mt-1.5 flex-shrink-0"></span>
+                {f}
+              </li>
+            ))}
+          </ul>
+          <a href="#diagnostic" class:list={[
+            "block text-center font-bold py-3 rounded-full transition-all text-sm",
+            offer.featured ? "bg-gold text-navy hover:bg-gold-light" : "border-2 border-gold text-gold hover:bg-gold hover:text-navy"
+          ]}>
+            Demander un devis
+          </a>
+        </article>
+      ))}
+    </div>
+
+    <p class="text-center text-xs text-gray-400 mt-8">Chaque offre est adaptée à votre contexte. Tarifs sur devis après l'appel découverte gratuit.</p>
+  </div>
+</section>

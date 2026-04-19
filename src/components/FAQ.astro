@@ -1,0 +1,51 @@
+---
+const faqs = [
+  {
+    q: "Combien de temps pour voir des résultats concrets ?",
+    a: "Les premiers résultats sont visibles <strong>dès les 30 premiers jours</strong> grâce à notre méthode d'audit-action. En moyenne, nos clients constatent +35% de CA dans les 12 mois suivant l'accompagnement."
+  },
+  {
+    q: "L'audit stratégique est-il vraiment gratuit ?",
+    a: "Oui, le premier appel de 30 minutes est <strong>100% gratuit et sans engagement</strong>. Il permet d'identifier vos leviers de croissance et de déterminer si un accompagnement JCBO Conseil répond à vos enjeux."
+  },
+  {
+    q: "À qui s'adresse JCBO Conseil ?",
+    a: "Aux <strong>dirigeants de PME/TPE</strong>, responsables commerciaux et entrepreneurs qui veulent structurer leur stratégie commerciale et accélérer leur croissance. Nos clients opèrent en France et à l'international."
+  },
+  {
+    q: "Quelle différence entre conseil, formation et coaching ?",
+    a: "Le <strong>conseil</strong> vous apporte une stratégie clé en main. La <strong>formation</strong> transmet des compétences concrètes à vos équipes. Le <strong>coaching</strong> accompagne individuellement le dirigeant. Les trois peuvent se combiner."
+  },
+  {
+    q: "Intervenez-vous en dehors de Toulouse ?",
+    a: "Oui — toute la France, Cameroun, Afrique. Nous organisons des séminaires à l'international et proposons un <strong>accompagnement en visioconférence</strong> pour les clients distants."
+  },
+  {
+    q: "Comment se déroule un accompagnement type ?",
+    a: "4 étapes : 1) Appel découverte gratuit, 2) Audit stratégique, 3) Plan d'action personnalisé avec objectifs mesurables, 4) <strong>Accompagnement terrain</strong> et suivi des résultats."
+  },
+];
+---
+<section class="py-20 md:py-28 bg-offwhite" id="faq">
+  <div class="max-w-[800px] mx-auto px-6">
+    <div class="text-center mb-14" data-animate="fade-up">
+      <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Vos questions</span>
+      <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-navy mb-4">Questions <span class="text-gold">fréquentes</span></h2>
+      <div class="w-14 h-0.5 bg-gold mx-auto"></div>
+    </div>
+
+    <div class="space-y-3">
+      {faqs.map((faq, i) => (
+        <div class="faq-item border border-gold/15 rounded-xl overflow-hidden bg-white hover:border-gold/30 transition-all" data-animate="fade-up" data-delay={String(i * 80)}>
+          <button class="faq-question w-full flex items-center justify-between p-5 md:p-6 text-left font-semibold text-navy text-[0.95rem] hover:text-gold-dark transition-colors" aria-expanded="false">
+            <span>{faq.q}</span>
+            <svg class="faq-chevron w-5 h-5 text-gold flex-shrink-0 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-answer max-h-0 overflow-hidden transition-[max-height] duration-400">
+            <p class="px-5 md:px-6 pb-5 md:pb-6 text-sm text-gray-500 leading-relaxed" set:html={faq.a} />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

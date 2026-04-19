@@ -1,0 +1,54 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  noindex?: boolean;
+}
+const { title, description, noindex = false } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="keywords" content="JCBO Conseil, conseil stratégie commerciale Toulouse, formation vente entreprise, coaching dirigeant PME, business development, Jean-Christophe Boyang-Tsang, audit commercial gratuit, formation leadership, accompagnement croissance" />
+  <meta name="author" content="Jean-Christophe Boyang-Tsang - JCBO Conseil" />
+  <meta name="robots" content={noindex ? "noindex, follow" : "index, follow, max-snippet:-1, max-image-preview:large"} />
+  <link rel="canonical" href="https://jcbo-conseil.com/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://jcbo-conseil.com/" />
+  <meta property="og:title" content="Votre entreprise mérite une stratégie qui convertit | JCBO Conseil" />
+  <meta property="og:description" content="+35% de CA en moyenne. Conseil, formations et coaching sur mesure. Audit stratégique offert." />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="JCBO Conseil" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Accélérez votre croissance | JCBO Conseil" />
+  <meta name="twitter:description" content="30+ ans d'expertise terrain. Résultats mesurables." />
+
+  <meta name="geo.region" content="FR-OCC" />
+  <meta name="geo.placename" content="Toulouse" />
+  <meta name="geo.position" content="43.6047;1.4442" />
+  <meta name="ICBM" content="43.6047, 1.4442" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230b1f3a' width='100' height='100' rx='12'/><text x='50' y='62' font-family='serif' font-size='40' fill='%23d4a762' text-anchor='middle' font-weight='bold'>JC</text></svg>" />
+</head>
+<body class="font-body text-gray-800 bg-white overflow-x-hidden">
+  <!-- Custom Cursor -->
+  <div id="cursorDot" class="fixed top-0 left-0 w-2 h-2 bg-gold rounded-full pointer-events-none z-[99999] -translate-x-1/2 -translate-y-1/2 transition-[width,height,background] duration-200 hidden md:block"></div>
+  <div id="cursorRing" class="fixed top-0 left-0 w-9 h-9 border border-gold rounded-full pointer-events-none z-[99998] -translate-x-1/2 -translate-y-1/2 opacity-50 hidden md:block"></div>
+
+  <slot />
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>

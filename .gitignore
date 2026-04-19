@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Astro build
+dist/
+.astro/
+
+# Environment
+.env
+.env.*
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+
+# Public image junctions (local symlinks to media folders)
+public/images/

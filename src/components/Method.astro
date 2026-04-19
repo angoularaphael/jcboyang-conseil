@@ -1,0 +1,44 @@
+---
+const steps = [
+  { num: '01', title: 'Appel Découverte', desc: '30 minutes pour comprendre votre situation, vos objectifs et identifier les premiers leviers de croissance. <strong>Sans engagement.</strong>', badge: 'Gratuit' },
+  { num: '02', title: 'Audit Stratégique', desc: 'Analyse approfondie de votre positionnement, processus commerciaux, marché et concurrence. Diagnostic chiffré avec recommandations prioritaires.' },
+  { num: '03', title: "Plan d'Action Sur Mesure", desc: "Feuille de route opérationnelle avec objectifs SMART, actions prioritaires, calendrier de déploiement et KPIs." },
+  { num: '04', title: 'Accompagnement & Résultats', desc: "Exécution terrain avec vous. Formation des équipes, coaching du dirigeant, suivi des KPIs et ajustements en continu. <strong>On mesure tout.</strong>" },
+];
+---
+<section class="py-20 md:py-28 bg-navy text-white" id="methode">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-14" data-animate="fade-up">
+      <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Notre approche</span>
+      <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-white mb-4">Une méthode en <span class="text-gold">4 étapes</span> éprouvée</h2>
+      <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+      <p class="text-white/50 max-w-lg mx-auto">Pas de bla-bla. Un processus clair, des livrables concrets, des résultats mesurables.</p>
+    </div>
+
+    <div class="relative max-w-3xl mx-auto">
+      <!-- Vertical line -->
+      <div class="absolute left-6 md:left-8 top-0 bottom-0 w-px bg-gold/20 hidden md:block"></div>
+
+      {steps.map((step, i) => (
+        <div class="relative flex gap-5 md:gap-8 mb-10 last:mb-0" data-animate="fade-up" data-delay={String(i * 150)}>
+          <div class="relative z-10 flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-full bg-navy-light border-2 border-gold/40 flex items-center justify-center">
+            <span class="font-heading text-gold font-bold text-lg md:text-xl">{step.num}</span>
+          </div>
+          <div class="bg-navy-light border border-gold/10 rounded-2xl p-6 md:p-8 flex-1 hover:border-gold/30 transition-colors">
+            {step.badge && (
+              <span class="inline-block bg-green-500/20 text-green-400 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-3">{step.badge}</span>
+            )}
+            <h3 class="font-heading text-xl font-semibold text-gold mb-2">{step.title}</h3>
+            <p class="text-white/60 text-sm leading-relaxed" set:html={step.desc} />
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="text-center mt-14" data-animate="fade-up">
+      <a href="#diagnostic" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-4 px-10 rounded-full text-base hover:bg-gold-light hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(212,167,98,0.3)] transition-all">
+        Commencer par l'étape 1 — C'est gratuit
+      </a>
+    </div>
+  </div>
+</section>

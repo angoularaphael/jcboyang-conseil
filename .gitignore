@@ -23,5 +23,8 @@ Desktop.ini
 # Logs
 npm-debug.log*
 
-# Public image junctions (local symlinks to media folders)
-public/images/
+# Large media files
+*.mp4
+*.MP4
+*.mov
+*.avi

@@ -1,0 +1,128 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const steps = [
+  {
+    num: '01',
+    title: 'Diagnostic complet',
+    desc: 'On analyse votre situation actuelle : votre offre, votre marché, vos forces et vos blocages. Pas de devinette, que des faits.',
+    detail: 'Audit commercial, analyse concurrentielle, cartographie du parcours client, identification des quick wins.',
+    icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2|M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2|M9 14l2 2 4-4',
+  },
+  {
+    num: '02',
+    title: 'Stratégie sur mesure',
+    desc: 'On construit ensemble un plan d\'action clair, chiffré et réaliste. Vous savez exactement quoi faire, dans quel ordre, et pourquoi.',
+    detail: 'Positionnement, structuration d\'offre, plan d\'acquisition, objectifs SMART, KPIs à suivre.',
+    icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z',
+  },
+  {
+    num: '03',
+    title: 'Mise en œuvre accompagnée',
+    desc: 'On ne vous laisse pas seul. Chaque semaine, on avance ensemble, on ajuste, on accélère. Le résultat, c\'est maintenant.',
+    detail: 'Coaching individuel, revue hebdomadaire, tableaux de bord, support direct par téléphone.',
+    icon: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z',
+  },
+  {
+    num: '04',
+    title: 'Résultats mesurables',
+    desc: 'Plus de CA, plus de clients, plus de clarté. On mesure tout pour que vous voyiez concrètement votre progression.',
+    detail: 'Reporting mensuel, suivi des conversions, optimisation continue, plan de scaling.',
+    icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
+  },
+];
+
+const guarantees = [
+  { title: 'Pas de théorie creuse', desc: '30 ans de terrain, pas de slides PowerPoint. Des solutions qui marchent.' },
+  { title: 'Résultats ou on ajuste', desc: 'Si ça ne fonctionne pas, on change de stratégie. Votre succès est notre objectif.' },
+  { title: 'Confidentialité totale', desc: 'Tout ce qui se dit reste entre nous. Secret professionnel garanti.' },
+  { title: 'Disponibilité réelle', desc: 'Accès direct à votre consultant. Pas de standard, pas d\'attente.' },
+];
+---
+<Layout title="Notre Méthode — JCBO Conseil | Approche Terrain" description="Découvrez la méthode JCBO Conseil : diagnostic, stratégie sur mesure, accompagnement et résultats mesurables. 30 ans d'expertise terrain au service de votre croissance.">
+  <Header />
+  <div class="pt-24"></div>
+
+  <!-- Hero -->
+  <section class="py-20 bg-offwhite">
+    <div class="max-w-[800px] mx-auto px-6 text-center">
+      <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Notre approche</span>
+      <h1 class="font-heading text-[clamp(2rem,4.5vw,3rem)] font-bold text-navy mb-4">Une méthode <span class="text-gold">qui a fait ses preuves</span></h1>
+      <div class="w-14 h-0.5 bg-gold mx-auto mb-6"></div>
+      <p class="text-gray-500 text-lg">Pas de formule magique. Un processus rigoureux, adapté à votre réalité, qui transforme votre stratégie commerciale en résultats concrets.</p>
+    </div>
+  </section>
+
+  <!-- Reassurance -->
+  <section class="py-6 bg-navy">
+    <div class="max-w-[1200px] mx-auto px-6 flex items-center justify-center gap-8 flex-wrap text-white/60 text-sm">
+      <span class="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> 500+ pros accompagnés</span>
+      <span class="text-white/20">|</span>
+      <span class="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> +35% de CA moyen</span>
+      <span class="text-white/20">|</span>
+      <span class="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> 98% de satisfaction</span>
+    </div>
+  </section>
+
+  <!-- Steps -->
+  <section class="py-20 bg-white">
+    <div class="max-w-[1000px] mx-auto px-6">
+      <div class="space-y-16">
+        {steps.map((s, i) => (
+          <div class:list={["flex flex-col md:flex-row gap-8 items-start", i % 2 !== 0 && "md:flex-row-reverse"]}>
+            <div class="flex-shrink-0 w-20 h-20 bg-navy rounded-2xl flex items-center justify-center">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2">{s.icon.split('|').map(d => <path d={d} />)}</svg>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3">
+                <span class="font-heading text-4xl font-bold text-gold/20">{s.num}</span>
+                <h3 class="font-heading text-2xl font-bold text-navy">{s.title}</h3>
+              </div>
+              <p class="text-gray-600 mb-3 text-lg leading-relaxed">{s.desc}</p>
+              <p class="text-gray-400 text-sm italic">{s.detail}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Guarantees -->
+  <section class="py-20 bg-navy text-white">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-14">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Nos engagements</span>
+        <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-white">Pourquoi nous <span class="text-gold">faire confiance</span></h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {guarantees.map(g => (
+          <div class="flex gap-4 items-start bg-white/5 border border-gold/10 rounded-2xl p-6">
+            <div class="flex-shrink-0 w-10 h-10 bg-gold/10 rounded-xl flex items-center justify-center mt-0.5">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div>
+              <h3 class="font-heading font-bold text-white mb-1">{g.title}</h3>
+              <p class="text-white/50 text-sm">{g.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 bg-offwhite text-center">
+    <div class="max-w-[700px] mx-auto px-6">
+      <h2 class="font-heading text-2xl font-bold text-navy mb-4">Convaincu ? <span class="text-gold">Passons à l'action.</span></h2>
+      <p class="text-gray-500 mb-8">Réservez un appel stratégique gratuit ou consultez nos prestations.</p>
+      <div class="flex items-center justify-center gap-4 flex-wrap">
+        <a href="/reserver" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3.5 px-8 rounded-full hover:bg-gold-light transition-all">Réserver une séance</a>
+        <a href="/prestations" class="inline-flex items-center gap-2 border-2 border-gold text-gold font-bold py-3.5 px-8 rounded-full hover:bg-gold hover:text-navy transition-all">Voir les prestations</a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

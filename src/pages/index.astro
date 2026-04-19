@@ -16,30 +16,38 @@ import Footer from '../components/Footer.astro';
     <div class="max-w-[1200px] mx-auto px-6 text-center">
       <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Ce que nous faisons</span>
       <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-navy mb-12">Nos <span class="text-gold">Solutions</span></h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <a href="/offres" class="group bg-offwhite rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:-translate-y-1 transition-all">
-          <div class="w-14 h-14 bg-navy rounded-xl flex items-center justify-center mx-auto mb-5">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <a href="/prestations" class="group bg-offwhite rounded-2xl p-7 border border-gold/10 hover:border-gold/30 hover:-translate-y-1 transition-all">
+          <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center mx-auto mb-4">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           </div>
-          <h3 class="font-heading text-lg font-bold text-navy mb-3">Conseil & Coaching</h3>
-          <p class="text-gray-500 text-sm mb-4">Accompagnement stratégique personnalisé et coaching en ligne pour dirigeants et entrepreneurs.</p>
+          <h3 class="font-heading text-base font-bold text-navy mb-2">Conseil & Coaching</h3>
+          <p class="text-gray-500 text-sm mb-3">Accompagnement stratégique et coaching en ligne.</p>
+          <span class="text-gold font-semibold text-sm group-hover:underline">Nos prestations →</span>
+        </a>
+        <a href="/seminaires" class="group bg-offwhite rounded-2xl p-7 border border-gold/10 hover:border-gold/30 hover:-translate-y-1 transition-all">
+          <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center mx-auto mb-4">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 class="font-heading text-base font-bold text-navy mb-2">Séminaires Mindset</h3>
+          <p class="text-gray-500 text-sm mb-3">Programmes de groupe pour entreprises et PME.</p>
           <span class="text-gold font-semibold text-sm group-hover:underline">Découvrir →</span>
         </a>
-        <a href="/seminaires" class="group bg-offwhite rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:-translate-y-1 transition-all">
-          <div class="w-14 h-14 bg-navy rounded-xl flex items-center justify-center mx-auto mb-5">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <a href="/actualites" class="group bg-offwhite rounded-2xl p-7 border border-gold/10 hover:border-gold/30 hover:-translate-y-1 transition-all">
+          <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center mx-auto mb-4">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           </div>
-          <h3 class="font-heading text-lg font-bold text-navy mb-3">Séminaires Mindset</h3>
-          <p class="text-gray-500 text-sm mb-4">Séminaires de groupe sur mesure pour entreprises et chefs d'entreprise PME.</p>
-          <span class="text-gold font-semibold text-sm group-hover:underline">Découvrir →</span>
+          <h3 class="font-heading text-base font-bold text-navy mb-2">Actualités</h3>
+          <p class="text-gray-500 text-sm mb-3">Articles, conseils et Vendeur Attitude.</p>
+          <span class="text-gold font-semibold text-sm group-hover:underline">Lire →</span>
         </a>
-        <a href="/resultats" class="group bg-offwhite rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:-translate-y-1 transition-all">
-          <div class="w-14 h-14 bg-navy rounded-xl flex items-center justify-center mx-auto mb-5">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <a href="/ressources" class="group bg-offwhite rounded-2xl p-7 border border-gold/10 hover:border-gold/30 hover:-translate-y-1 transition-all">
+          <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center mx-auto mb-4">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </div>
-          <h3 class="font-heading text-lg font-bold text-navy mb-3">Résultats prouvés</h3>
-          <p class="text-gray-500 text-sm mb-4">Événements internationaux, formations terrain et témoignages clients concrets.</p>
-          <span class="text-gold font-semibold text-sm group-hover:underline">Voir nos résultats →</span>
+          <h3 class="font-heading text-base font-bold text-navy mb-2">Guides gratuits</h3>
+          <p class="text-gray-500 text-sm mb-3">PDF et templates à télécharger.</p>
+          <span class="text-gold font-semibold text-sm group-hover:underline">Télécharger →</span>
         </a>
       </div>
     </div>
@@ -51,8 +59,11 @@ import Footer from '../components/Footer.astro';
   <section class="py-20 bg-navy text-center">
     <div class="max-w-[700px] mx-auto px-6" data-animate="fade-up">
       <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-white mb-4">Prêt à <span class="text-gold">transformer</span> votre activité ?</h2>
-      <p class="text-white/50 mb-8">Chaque demande est analysée avec rigueur. Remplissez notre formulaire et recevez une réponse personnalisée.</p>
-      <a href="/contact" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-4 px-10 rounded-full text-lg hover:bg-gold-light hover:-translate-y-0.5 transition-all">Être recontacté</a>
+      <p class="text-white/50 mb-8">Réservez une séance en ligne ou contactez-nous pour un échange personnalisé.</p>
+      <div class="flex items-center justify-center gap-4 flex-wrap">
+        <a href="/reserver" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-4 px-10 rounded-full text-lg hover:bg-gold-light hover:-translate-y-0.5 transition-all">Réserver une séance</a>
+        <a href="/contact" class="inline-flex items-center gap-2 border border-white/30 text-white font-bold py-4 px-10 rounded-full text-lg hover:border-gold hover:text-gold transition-all">Nous contacter</a>
+      </div>
     </div>
   </section>
 

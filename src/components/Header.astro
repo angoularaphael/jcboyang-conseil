@@ -7,7 +7,8 @@ const navLinks = [
   { href: '/resultats', label: 'Résultats' },
   { href: '/faq', label: 'FAQ' },
 ];
-const currentPath = Astro.url.pathname;
+const rawPath = Astro.url.pathname;
+const currentPath = rawPath === '/' ? '/' : rawPath.replace(/\/$/, '');
 ---
 <header id="header" class="fixed top-0 left-0 w-full z-[1002] py-3 transition-all duration-300 bg-navy/95 backdrop-blur-xl shadow-lg">
   <nav class="max-w-[1200px] mx-auto px-6 flex items-center justify-between">

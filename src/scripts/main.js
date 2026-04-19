@@ -16,10 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const header = document.getElementById('header');
   const backToTop = document.getElementById('backToTop');
   const stickyCta = document.getElementById('stickyCta');
+  const isHome = window.location.pathname === '/' || window.location.pathname === '';
   function onScroll() {
     const y = window.scrollY;
     if (header) {
-      if (y > 80) { header.style.background = 'rgba(11,31,58,0.95)'; header.style.backdropFilter = 'blur(20px)'; header.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; header.style.paddingTop = '10px'; header.style.paddingBottom = '10px'; }
+      if (y > 80 || !isHome) { header.style.background = 'rgba(11,31,58,0.95)'; header.style.backdropFilter = 'blur(20px)'; header.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; header.style.paddingTop = '10px'; header.style.paddingBottom = '10px'; }
       else { header.style.background = 'transparent'; header.style.backdropFilter = 'none'; header.style.boxShadow = 'none'; header.style.paddingTop = ''; header.style.paddingBottom = ''; }
     }
     if (backToTop) { const show = y > 500; backToTop.style.opacity = show ? '1' : '0'; backToTop.style.visibility = show ? 'visible' : 'hidden'; backToTop.style.transform = show ? 'translateY(0)' : 'translateY(20px)'; }

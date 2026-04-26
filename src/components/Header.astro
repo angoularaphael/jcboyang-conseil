@@ -39,7 +39,7 @@ const isActive = (href: string) => currentPath === href;
 </header>
 
 <!-- Mobile fullscreen overlay menu -->
-<div id="mobileMenu" class="fixed inset-0 z-[1001] bg-navy flex flex-col items-center justify-center gap-1 transition-all duration-300 opacity-0 invisible lg:hidden overflow-y-auto py-20">
+<div id="mobileMenu" class="fixed inset-0 z-[1001] bg-navy flex flex-col items-center justify-start gap-1 transition-all duration-300 opacity-0 invisible lg:hidden overflow-y-auto pt-[140px] pb-10">
   {navLinks.map(link => (
     <a href={link.href} class:list={["mobile-nav-link text-xl font-heading font-semibold py-3 px-8 rounded-lg transition-colors", isActive(link.href) ? "text-gold" : "text-white hover:text-gold"]}>{link.label}</a>
   ))}

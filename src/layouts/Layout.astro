@@ -5,6 +5,37 @@ interface Props {
   noindex?: boolean;
 }
 const { title, description, noindex = false } = Astro.props;
+const currentUrl = new URL(Astro.url.pathname, 'https://jcbo-conseil.com').href;
+
+// JSON-LD AEO & SEO Structure
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "JCBO Conseil",
+  "founder": {
+    "@type": "Person",
+    "name": "Jean-Christophe Boyang-Tsang",
+    "jobTitle": "Consultant Expert en Business Development"
+  },
+  "description": "Expert en stratégie commerciale et marketing avec plus de 30 ans d'expérience. Conseil, formations et coaching pour PME/TPE à Toulouse et à l'international.",
+  "url": "https://jcbo-conseil.com",
+  "logo": "https://jcbo-conseil.com/images/logo.png",
+  "image": "https://jcbo-conseil.com/images/2022/IMG-20240503-WA0065.jpg",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Toulouse",
+    "addressRegion": "Occitanie",
+    "addressCountry": "FR"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "43.6047",
+    "longitude": "1.4442"
+  },
+  "areaServed": ["Toulouse", "France", "International"],
+  "priceRange": "$$",
+  "knowsAbout": ["Business Development", "Sales Training", "Coaching Dirigeant", "Stratégie Commerciale", "Mindset Entrepreneurial"]
+};
 ---
 <!DOCTYPE html>
 <html lang="fr" class="scroll-smooth">
@@ -18,23 +49,26 @@ const { title, description, noindex = false } = Astro.props;
   <meta name="keywords" content="JCBO Conseil, conseil stratégie commerciale Toulouse, formation vente entreprise, coaching dirigeant PME, business development, Jean-Christophe Boyang-Tsang, audit commercial gratuit, formation leadership, accompagnement croissance" />
   <meta name="author" content="Jean-Christophe Boyang-Tsang - JCBO Conseil" />
   <meta name="robots" content={noindex ? "noindex, follow" : "index, follow, max-snippet:-1, max-image-preview:large"} />
-  <link rel="canonical" href="https://jcbo-conseil.com/" />
+  <link rel="canonical" href={currentUrl} />
 
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://jcbo-conseil.com/" />
-  <meta property="og:title" content="Votre entreprise mérite une stratégie qui convertit | JCBO Conseil" />
-  <meta property="og:description" content="+35% de CA en moyenne. Conseil, formations et coaching sur mesure. Audit stratégique offert." />
+  <meta property="og:url" content={currentUrl} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
   <meta property="og:locale" content="fr_FR" />
   <meta property="og:site_name" content="JCBO Conseil" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Accélérez votre croissance | JCBO Conseil" />
-  <meta name="twitter:description" content="30+ ans d'expertise terrain. Résultats mesurables." />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
 
   <meta name="geo.region" content="FR-OCC" />
   <meta name="geo.placename" content="Toulouse" />
   <meta name="geo.position" content="43.6047;1.4442" />
   <meta name="ICBM" content="43.6047, 1.4442" />
+
+  <!-- AEO / SEO Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

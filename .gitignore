@@ -4,6 +4,7 @@ node_modules/
 # Astro build
 dist/
 .astro/
+.vercel/
 
 # Environment
 .env

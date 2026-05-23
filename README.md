@@ -23,6 +23,15 @@ npm run build
 
 Le site statique est généré dans `dist/`.
 
+### Vercel
+
+- **Root Directory:** `jcboyang2/astro` (si le dépôt est à la racine `JCBOYANG`)
+- **Framework Preset:** Astro
+- **Build command:** `npm run build`
+- **Output directory:** `dist`
+
+Le site doit être en `output: 'static'` (pas SSR Node) pour que Vercel serve `index.html`.
+
 ### Render
 
 - **Build command:** `npm run build`

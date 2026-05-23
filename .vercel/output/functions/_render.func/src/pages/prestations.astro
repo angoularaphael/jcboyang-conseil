@@ -1,0 +1,304 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const services = [
+  {
+    title: 'Diagnostic Stratégique',
+    subtitle: 'Audit complet',
+    price: '490',
+    priceCfa: '320 000',
+    duration: 'Séance unique · 2h',
+    desc: 'Analyse complète de votre positionnement, marché et concurrence. Vous repartez avec un diagnostic chiffré et un plan d\'action prioritaire.',
+    gains: ['Vision claire de vos forces et blocages', 'Plan d\'action immédiat en 5 points', 'Recommandations personnalisées', 'Rapport écrit détaillé'],
+    cta: 'Réserver',
+    ctaLink: '/reserver',
+  },
+  {
+    title: 'Coaching Stratégique',
+    subtitle: 'Accompagnement individuel',
+    price: '250',
+    priceCfa: '150 000',
+    duration: 'Par séance · 1h30',
+    desc: 'Séances individuelles de coaching pour structurer votre stratégie, surmonter vos blocages et accélérer votre développement.',
+    gains: ['Stratégie commerciale personnalisée', 'Suivi entre les séances', 'Accès direct au consultant', 'Objectifs mesurables à chaque étape'],
+    cta: 'Réserver une séance',
+    ctaLink: '/reserver',
+    featured: true,
+  },
+  {
+    title: 'Accompagnement Premium',
+    subtitle: 'Programme 3 mois',
+    price: '2 400',
+    priceCfa: '1 500 000',
+    duration: '3 mois · 2 séances/mois',
+    desc: 'Programme complet d\'accompagnement sur-mesure avec suivi continu pour transformer durablement votre activité.',
+    gains: ['Diagnostic + stratégie complète', '6 séances de coaching', 'Support illimité par téléphone/email', 'Tableaux de bord & KPIs'],
+    cta: 'En savoir plus',
+    ctaLink: '/contact',
+  },
+  {
+    title: 'Formation Équipes',
+    subtitle: 'Montée en compétences',
+    price: 'Sur devis',
+    priceCfa: 'Sur devis',
+    duration: '1 à 3 jours',
+    desc: 'Formations sur-mesure pour vos équipes commerciales. Techniques de vente, négociation, management et mindset.',
+    gains: ['Programme adapté à votre secteur', 'Mises en situation concrètes', 'Supports et outils pratiques', 'Suivi post-formation inclus'],
+    cta: 'Demander un devis',
+    ctaLink: '/contact',
+  },
+];
+
+const coachingModules = [
+  { title: 'Mindset Entrepreneurial', desc: 'Développez la posture mentale du leader. Vision, discipline, résilience.', icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
+  { title: 'Vendeur Attitude', desc: 'Maîtrisez l\'art de la vente. Techniques avancées pour conclure.', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+  { title: 'Stratégie Commerciale', desc: 'Structurez votre offre, ciblez juste, vendez mieux.', icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z' },
+  { title: 'Leadership & Management', desc: 'Construisez et pilotez une équipe performante.', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2|M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z|M23 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75' },
+];
+---
+<Layout title="Nos Prestations — JCBO Conseil | Consulting, Coaching, Formations" description="Découvrez toutes nos prestations : diagnostic, coaching stratégique, accompagnement premium, formations. Tarifs transparents, résultats garantis.">
+  <Header />
+  <div class="pt-24"></div>
+
+  <!-- Hero -->
+  <section class="py-20 bg-offwhite">
+    <div class="max-w-[1200px] mx-auto px-6 text-center">
+      <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Investissez dans votre croissance</span>
+      <h1 class="font-heading text-[clamp(2rem,4.5vw,3rem)] font-bold text-navy mb-4">Nos <span class="text-gold">Prestations</span></h1>
+      <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+      <p class="text-gray-500 max-w-2xl mx-auto">Des solutions concrètes avec des prix transparents. Chaque prestation est orientée résultats et adaptée à votre réalité.</p>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="py-20 bg-white">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {services.map(s => (
+          <div class:list={["relative rounded-2xl p-8 transition-all hover:-translate-y-1", s.featured ? "bg-navy text-white border-2 border-gold shadow-2xl" : "bg-offwhite border border-gold/10 hover:border-gold/30"]}>
+            {s.featured && <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-navy text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">Le + demandé</div>}
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h3 class:list={["font-heading text-xl font-bold", s.featured ? "text-white" : "text-navy"]}>{s.title}</h3>
+                <p class:list={["font-accent italic text-sm", s.featured ? "text-gold" : "text-gold-dark"]}>{s.subtitle}</p>
+              </div>
+              <div class="text-right">
+                <p class:list={["font-heading text-2xl font-bold", s.featured ? "text-gold" : "text-navy"]}>{typeof s.price === 'string' && s.price.includes('devis') ? '' : ''}{s.price}{typeof s.price === 'string' && !s.price.includes('devis') ? '€' : ''}</p>
+                <p class:list={["text-xs", s.featured ? "text-white/40" : "text-gray-400"]}>{s.priceCfa} {!s.priceCfa.includes('devis') ? 'FCFA' : ''}</p>
+              </div>
+            </div>
+            <p class:list={["text-xs font-medium mb-4 px-3 py-1 rounded-full inline-block", s.featured ? "bg-white/10 text-gold" : "bg-gold/10 text-gold-dark"]}>{s.duration}</p>
+            <p class:list={["text-sm mb-5 leading-relaxed", s.featured ? "text-white/70" : "text-gray-500"]}>{s.desc}</p>
+            <p class:list={["text-xs font-semibold uppercase tracking-wider mb-3", s.featured ? "text-gold" : "text-navy"]}>Ce que vous allez gagner :</p>
+            <ul class="space-y-2 mb-8">
+              {s.gains.map(g => (
+                <li class="flex items-center gap-2 text-sm">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <span class={s.featured ? "text-white/80" : "text-gray-600"}>{g}</span>
+                </li>
+              ))}
+            </ul>
+            <a href={s.ctaLink} class:list={["block text-center font-bold py-3 rounded-full transition-all", s.featured ? "bg-gold text-navy hover:bg-gold-light" : "border-2 border-gold text-gold hover:bg-gold hover:text-navy"]}>{s.cta}</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Coaching en ligne -->
+  <section class="py-20 bg-navy text-white" id="coaching">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-14">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Nouveau</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-white mb-4">Coaching <span class="text-gold">en Ligne</span></h2>
+        <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+        <p class="text-white/50 max-w-2xl mx-auto">Accédez à nos modules de coaching où que vous soyez. Programmes structurés avec système de paiement intégré.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+        {coachingModules.map(m => (
+          <div class="bg-white/5 border border-gold/10 rounded-2xl p-6 hover:border-gold/30 transition-all">
+            <div class="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2">{m.icon.split('|').map(d => <path d={d} />)}</svg>
+            </div>
+            <h3 class="font-heading text-lg font-bold text-white mb-2">{m.title}</h3>
+            <p class="text-white/50 text-sm">{m.desc}</p>
+          </div>
+        ))}
+      </div>
+      <!-- Double tarification -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+        <div class="bg-white/5 border border-gold/20 rounded-2xl p-8 text-center hover:border-gold/50 transition-all">
+          <div class="w-12 h-12 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-gold text-xl font-bold">&euro;</span>
+          </div>
+          <h3 class="font-heading text-lg font-bold text-white mb-1">Zone Euro</h3>
+          <p class="text-white/40 text-sm mb-6">France, Europe & international</p>
+          <a href="/reserver" class="block bg-gold text-navy font-bold py-3 rounded-full hover:bg-gold-light transition-all">Réserver & payer</a>
+        </div>
+        <div class="bg-white/5 border border-gold/20 rounded-2xl p-8 text-center hover:border-gold/50 transition-all">
+          <div class="w-12 h-12 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-gold text-xl font-bold">XAF</span>
+          </div>
+          <h3 class="font-heading text-lg font-bold text-white mb-1">Zone Afrique</h3>
+          <p class="text-white/40 text-sm mb-6">Cameroun & pays africains</p>
+          <a href="/reserver" class="block bg-gold text-navy font-bold py-3 rounded-full hover:bg-gold-light transition-all">Réserver & payer</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modules de Formations -->
+  <section class="py-20 bg-offwhite" id="formations">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-14" data-animate="fade-up">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Programme complet</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-navy mb-4">Nos <span class="text-gold">Modules</span> de Formation</h2>
+        <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+        <p class="text-gray-500 max-w-2xl mx-auto">Un parcours structuré en 3 niveaux progressifs. Chaque niveau comprend 2 modules intensifs. À l'issue du parcours, obtenez votre <strong class="text-navy">certification VENDEUR ATTITUDE™</strong>.</p>
+      </div>
+
+      <!-- Niveau 1 -->
+      <div class="mb-10" data-animate="fade-up">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="bg-gold text-navy text-xs font-bold px-5 py-2 rounded-full uppercase tracking-wider">Niveau 1</span>
+          <h3 class="font-heading text-xl font-bold text-navy">Les Fondamentaux</h3>
+          <span class="text-sm font-accent italic text-gold ml-auto hidden md:block">Vous apprenez à vendre</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center flex-shrink-0"><span class="font-heading text-gold font-bold">M1</span></div>
+              <h4 class="font-heading text-base font-bold text-navy">Mindset & Posture Commerciale</h4>
+            </div>
+            <p class="text-sm text-gray-500 leading-relaxed mb-4">Développez votre mindset commercial, comprenez la psychologie d'achat et adoptez une posture crédible et impactante.</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Mindset</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Psychologie client</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Posture</span>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center flex-shrink-0"><span class="font-heading text-gold font-bold">M2</span></div>
+              <h4 class="font-heading text-base font-bold text-navy">Techniques de Vente Essentielles</h4>
+            </div>
+            <p class="text-sm text-gray-500 leading-relaxed mb-4">Structurez votre discours commercial, maîtrisez l'écoute active et apprenez à construire un argumentaire percutant.</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Pitch</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Écoute active</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Argumentaire</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Niveau 2 -->
+      <div class="mb-10" data-animate="fade-up">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="bg-gold text-navy text-xs font-bold px-5 py-2 rounded-full uppercase tracking-wider">Niveau 2</span>
+          <h3 class="font-heading text-xl font-bold text-navy">Performance Commerciale</h3>
+          <span class="text-sm font-accent italic text-gold ml-auto hidden md:block">Vous générez du chiffre d'affaires</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center flex-shrink-0"><span class="font-heading text-gold font-bold">M3</span></div>
+              <h4 class="font-heading text-base font-bold text-navy">Prospection & Acquisition Client</h4>
+            </div>
+            <p class="text-sm text-gray-500 leading-relaxed mb-4">Structurez votre prospection, attirez des clients qualifiés et mettez en place un système d'acquisition prévisible.</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Prospection</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Leads qualifiés</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Pipeline</span>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center flex-shrink-0"><span class="font-heading text-gold font-bold">M4</span></div>
+              <h4 class="font-heading text-base font-bold text-navy">Négociation & Closing</h4>
+            </div>
+            <p class="text-sm text-gray-500 leading-relaxed mb-4">Maîtrisez l'art de la négociation, gérez les objections avec assurance et transformez chaque opportunité en signature.</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Négociation</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Objections</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Closing</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Niveau 3 -->
+      <div class="mb-10" data-animate="fade-up">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="bg-gold text-navy text-xs font-bold px-5 py-2 rounded-full uppercase tracking-wider">Niveau 3</span>
+          <h3 class="font-heading text-xl font-bold text-navy">Leadership & Business</h3>
+          <span class="text-sm font-accent italic text-gold ml-auto hidden md:block">Vous créez votre propre activité</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center flex-shrink-0"><span class="font-heading text-gold font-bold">M5</span></div>
+              <h4 class="font-heading text-base font-bold text-navy">Stratégie & Développement Business</h4>
+            </div>
+            <p class="text-sm text-gray-500 leading-relaxed mb-4">Construisez une offre à forte valeur, développez votre portefeuille client et mettez en place un modèle scalable.</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Offre premium</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Scaling</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Business model</span>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center flex-shrink-0"><span class="font-heading text-gold font-bold">M6</span></div>
+              <h4 class="font-heading text-base font-bold text-navy">Management & Leadership Commercial</h4>
+            </div>
+            <p class="text-sm text-gray-500 leading-relaxed mb-4">Devenez un leader commercial. Animez des formations, managez des équipes de vente et pilotez la performance.</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Leadership</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Management</span>
+              <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Pilotage</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Certification -->
+      <div class="bg-navy rounded-2xl p-8 md:p-10 text-center relative overflow-hidden" data-animate="fade-up">
+        <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle at 30% 50%, #d4a762 0%, transparent 50%), radial-gradient(circle at 70% 50%, #d4a762 0%, transparent 50%);"></div>
+        <div class="relative">
+          <div class="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="1.5"><path d="M12 15l-3 3 1 4 2-2 2 2 1-4-3-3z"/><circle cx="12" cy="9" r="6"/></svg>
+          </div>
+          <span class="inline-block bg-gold text-navy text-xs font-bold px-5 py-2 rounded-full uppercase tracking-wider mb-4">Certification finale</span>
+          <h3 class="font-heading text-2xl md:text-3xl font-bold text-white mb-3">Certification <span class="text-gold">VENDEUR ATTITUDE™</span></h3>
+          <p class="text-white/60 max-w-xl mx-auto mb-8">À l'issue des 6 modules et des 3 niveaux, validez vos compétences et obtenez votre certification officielle.</p>
+          <div class="flex items-center justify-center gap-6 flex-wrap mb-8">
+            <div class="flex items-center gap-2 text-white/50 text-sm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>6 modules validés</div>
+            <div class="flex items-center gap-2 text-white/50 text-sm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Examen pratique</div>
+            <div class="flex items-center gap-2 text-white/50 text-sm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Diplôme officiel</div>
+          </div>
+          <a href="/methode" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-4 px-10 rounded-full hover:bg-gold-light hover:-translate-y-0.5 transition-all">
+            Découvrir le programme complet
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 bg-offwhite text-center">
+    <div class="max-w-[700px] mx-auto px-6">
+      <h2 class="font-heading text-2xl font-bold text-navy mb-4">Prêt à <span class="text-gold">passer à l'action</span> ?</h2>
+      <p class="text-gray-500 mb-8">Réservez directement en ligne ou contactez-nous pour un échange personnalisé.</p>
+      <div class="flex items-center justify-center gap-4 flex-wrap">
+        <a href="/reserver" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3.5 px-8 rounded-full hover:bg-gold-light transition-all">Réserver une séance</a>
+        <a href="/contact" class="inline-flex items-center gap-2 border-2 border-navy text-navy font-bold py-3.5 px-8 rounded-full hover:bg-navy hover:text-white transition-all">Nous contacter</a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

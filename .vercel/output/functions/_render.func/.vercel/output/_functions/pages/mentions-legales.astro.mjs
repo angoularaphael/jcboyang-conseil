@@ -1,0 +1,57 @@
+/* empty css                                    */
+import { c as createComponent, f as renderComponent, r as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_D4iU0DsB.mjs';
+import 'kleur/colors';
+import { $ as $$Layout, a as $$Header, b as $$Footer } from '../chunks/Footer_bCwkQopd.mjs';
+export { renderers } from '../renderers.mjs';
+
+const $$MentionsLegales = createComponent(($$result, $$props, $$slots) => {
+  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "title": "Mentions L\xE9gales | JCBO Conseil", "description": "Mentions l\xE9gales du site JCBO Conseil. Informations sur l'\xE9diteur, la propri\xE9t\xE9 intellectuelle, la protection des donn\xE9es et les cookies.", "noindex": true }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "Header", $$Header, {})} ${maybeRenderHead()}<div class="pt-24"></div> <main class="pb-20 bg-offwhite min-h-screen"> <div class="max-w-[800px] mx-auto px-6"> <div class="bg-white rounded-2xl p-8 md:p-12 border border-gold/10 shadow-sm"> <a href="/" class="inline-flex items-center gap-2 text-gold-dark text-sm font-medium hover:text-gold transition-colors mb-8"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+Retour à l'accueil
+</a> <h1 class="font-heading text-3xl font-bold text-navy mb-2">Mentions Légales</h1> <p class="font-accent italic text-gold mb-10">Conformément à la loi n° 2004-575 du 21 juin 2004</p> <h2 class="font-heading text-xl font-semibold text-navy mt-10 mb-4 pb-2 border-b border-gold/10">1 — Édition du site</h2> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+En vertu de <a href="https://www.legifrance.gouv.fr/affichTexte.do?cidTexte=JORFTEXT000000801164" target="_blank" rel="noopener" class="text-gold-dark hover:text-gold hover:underline">l'article 6 de la loi n° 2004-575 du 21 juin 2004</a> pour la confiance dans l'économie numérique, il est précisé aux utilisateurs du site internet <strong class="text-gray-700">https://www.jcbo-conseil.com</strong> l'identité des différents intervenants dans le cadre de sa réalisation et de son suivi :
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3"> <strong class="text-gray-700">Propriétaire du site :</strong> BOYANG-TSANG Jean-Christophe<br> <strong class="text-gray-700">Contact :</strong> <a href="mailto:jcboyang@gmail.com" class="text-gold-dark hover:text-gold">jcboyang@gmail.com</a><br> <strong class="text-gray-700">Téléphone :</strong> <a href="tel:+33615630938" class="text-gold-dark hover:text-gold">+33 6 15 63 09 38</a> (France) / +237 6 95 88 65 59 (Cameroun)<br> <strong class="text-gray-700">Adresse :</strong> 87 Rue Achille Viadieu — 31400 Toulouse, France
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3"> <strong class="text-gray-700">Identification de l'entreprise :</strong> Entrepreneur Individuel<br> <strong class="text-gray-700">SIREN :</strong> 832324974<br> <strong class="text-gray-700">Adresse postale :</strong> 87 Rue Achille Viadieu — 31400 Toulouse
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3"> <strong class="text-gray-700">Directeur de la publication :</strong> Jean-Christophe BOYANG-TSANG — <a href="mailto:jcboyang@gmail.com" class="text-gold-dark hover:text-gold">jcboyang@gmail.com</a><br> <strong class="text-gray-700">Hébergeur :</strong> O2 Switch — Chemin des Pardiaux, 63000 Clermont-Ferrand — Tél : 04 44 44 60 40<br> <strong class="text-gray-700">Délégué à la protection des données :</strong> Jean-Christophe BOYANG-TSANG — <a href="mailto:jcboyang@gmail.com" class="text-gold-dark hover:text-gold">jcboyang@gmail.com</a> </p> <h2 class="font-heading text-xl font-semibold text-navy mt-10 mb-4 pb-2 border-b border-gold/10">2 — Propriété intellectuelle et contrefaçons</h2> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Jean-Christophe BOYANG-TSANG — JCBO Conseil est propriétaire des droits de propriété intellectuelle et détient les droits d'usage sur tous les éléments accessibles sur le site internet, notamment les textes, images, graphismes, logos, vidéos, architecture, icônes et sons.
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments du site, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable de Jean-Christophe BOYANG-TSANG — JCBO Conseil.
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Toute exploitation non autorisée du site ou de l'un quelconque des éléments qu'il contient sera considérée comme constitutive d'une contrefaçon et poursuivie conformément aux dispositions des <a href="https://www.legifrance.gouv.fr/affichCodeArticle.do?idArticle=LEGIARTI000032655082&cidTexte=LEGITEXT000006069414" target="_blank" rel="noopener" class="text-gold-dark hover:text-gold hover:underline">articles L.335-2 et suivants du Code de Propriété Intellectuelle</a>.
+</p> <h2 class="font-heading text-xl font-semibold text-navy mt-10 mb-4 pb-2 border-b border-gold/10">3 — Limitations de responsabilité</h2> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Jean-Christophe BOYANG-TSANG — JCBO Conseil ne pourra être tenu pour responsable des dommages directs et indirects causés au matériel de l'utilisateur, lors de l'accès au site <a href="https://jcbo-conseil.com" class="text-gold-dark hover:text-gold">https://jcbo-conseil.com</a>.
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+JCBO Conseil décline toute responsabilité quant à l'utilisation qui pourrait être faite des informations et contenus présents sur le site. JCBO Conseil s'engage à sécuriser au mieux le site, cependant sa responsabilité ne pourra être mise en cause si des données indésirables sont importées et installées sur son site à son insu.
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Des espaces interactifs (espace contact ou commentaires) sont à la disposition des utilisateurs. JCBO Conseil se réserve le droit de supprimer, sans mise en demeure préalable, tout contenu déposé dans cet espace qui contreviendrait à la législation applicable en France, en particulier aux dispositions relatives à la protection des données.
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Le cas échéant, JCBO Conseil se réserve également la possibilité de mettre en cause la responsabilité civile et/ou pénale de l'utilisateur, notamment en cas de message à caractère raciste, injurieux, diffamant ou pornographique, quel que soit le support utilisé (texte, photographie, etc.).
+</p> <h2 id="donnees" class="font-heading text-xl font-semibold text-navy mt-10 mb-4 pb-2 border-b border-gold/10">4 — CNIL et gestion des données personnelles</h2> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Conformément aux dispositions de la <a href="https://www.legifrance.gouv.fr/affichTexte.do?cidTexte=JORFTEXT000000886460" target="_blank" rel="noopener" class="text-gold-dark hover:text-gold hover:underline">loi n° 78-17 du 6 janvier 1978</a> relative à l'informatique, aux fichiers et aux libertés, modifiée par la loi n° 2004-801 du 6 août 2004, et le Règlement Général sur la Protection des Données (RGPD) entré en vigueur le 25 mai 2018, le site fait l'objet d'une déclaration à la CNIL.
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+L'utilisateur est informé que lors de ses visites sur le site, un cookie peut s'installer automatiquement sur son logiciel de navigation. Les cookies sont de petits fichiers stockés temporairement sur le disque dur de l'ordinateur de l'utilisateur. Ces cookies sont nécessaires pour assurer l'accessibilité et la navigation sur le site.
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression et d'opposition de vos données personnelles. Pour exercer ce droit, adressez votre demande à <a href="mailto:jcboyang@gmail.com" class="text-gold-dark hover:text-gold">jcboyang@gmail.com</a>.
+</p> <h2 id="cookies" class="font-heading text-xl font-semibold text-navy mt-10 mb-4 pb-2 border-b border-gold/10">5 — Liens hypertextes et cookies</h2> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Le site <strong class="text-gray-700">https://jcbo-conseil.com</strong> contient des liens hypertextes vers d'autres sites et dégage toute responsabilité à propos de ces liens externes ou des liens créés par d'autres sites vers <strong class="text-gray-700">https://jcbo-conseil.com</strong>.
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+La navigation sur le site est susceptible de provoquer l'installation de cookie(s) sur l'ordinateur de l'utilisateur. Un « cookie » est un petit fichier qui enregistre des informations relatives à la navigation d'un utilisateur sur un site. Les données ainsi obtenues visent à faciliter la navigation ultérieure sur le site, et ont également vocation à permettre diverses mesures de fréquentation.
+</p> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Le refus d'installation d'un cookie peut entraîner l'impossibilité d'accéder à certains services. L'utilisateur peut toutefois configurer son navigateur pour refuser l'installation des cookies.
+</p> <h2 class="font-heading text-xl font-semibold text-navy mt-10 mb-4 pb-2 border-b border-gold/10">6 — Droit applicable et attribution de juridiction</h2> <p class="text-sm text-gray-500 leading-relaxed mb-3">
+Tout litige en relation avec l'utilisation du site <strong class="text-gray-700">https://jcbo-conseil.com</strong> est soumis au droit français. En dehors des cas où la loi ne le permet pas, il est fait attribution exclusive de juridiction aux tribunaux compétents de <strong class="text-gray-700">Toulouse</strong>.
+</p> </div> </div> </main> ${renderComponent($$result2, "Footer", $$Footer, {})} ` })}`;
+}, "D:/PROBOOK 445 G7/Desktop/JCBOYANG/jcbo-vitrine/src/pages/mentions-legales.astro", void 0);
+
+const $$file = "D:/PROBOOK 445 G7/Desktop/JCBOYANG/jcbo-vitrine/src/pages/mentions-legales.astro";
+const $$url = "/mentions-legales";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: $$MentionsLegales,
+  file: $$file,
+  url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };

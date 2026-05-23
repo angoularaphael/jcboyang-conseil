@@ -1,0 +1,47 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+const { slug } = Astro.params;
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'https://adhesion-jcbo.vercel.app';
+
+let article: {
+  title: string;
+  category: string;
+  date: string;
+  content: string;
+  image: string | null;
+} | null = null;
+
+try {
+  const res = await fetch(`${apiUrl}/api/public/actualites/${slug}`);
+  if (res.ok) {
+    const a = await res.json();
+    article = {
+      title: a.title,
+      category: a.category,
+      date: new Date(a.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+      content: a.content,
+      image: a.image,
+    };
+  }
+} catch {
+  article = null;
+}
+
+if (!article) return Astro.redirect('/actualites');
+---
+<Layout title={`${article.title} — JCBO Conseil`} description={article.content.slice(0, 160)}>
+  <Header />
+  <div class="pt-24"></div>
+  <article class="max-w-3xl mx-auto px-6 py-16">
+    <a href="/actualites" class="text-gold text-sm mb-6 inline-block">← Retour aux actualités</a>
+    <span class="text-xs bg-gold/10 text-gold-dark px-3 py-1 rounded-full">{article.category}</span>
+    <p class="text-gray-400 text-sm mt-4">{article.date}</p>
+    <h1 class="font-heading text-3xl font-bold text-navy mt-4 mb-8">{article.title}</h1>
+    {article.image && <img src={article.image} alt="" class="w-full rounded-2xl mb-8" />}
+    <div class="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap">{article.content}</div>
+  </article>
+  <Footer />
+</Layout>

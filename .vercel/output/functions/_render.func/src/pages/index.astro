@@ -1,0 +1,265 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import PainPoints from '../components/PainPoints.astro';
+import About from '../components/About.astro';
+import Testimonials from '../components/Testimonials.astro';
+import Footer from '../components/Footer.astro';
+
+const problematiques = [
+  {
+    icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+    title: 'Manque de clarté stratégique',
+    text: 'Vous avez des idées mais pas de cap clair. Vos actions manquent de cohérence et vos priorités changent constamment.',
+  },
+  {
+    icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
+    title: 'Développement irrégulier',
+    text: "Des hauts et des bas permanents. Vous n'arrivez pas à installer une croissance stable et prévisible.",
+  },
+  {
+    icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`,
+    title: 'Absence de méthode',
+    text: "Pas de process structuré, pas de plan d'action. Vous avancez à l'instinct sans pouvoir mesurer vos résultats.",
+  },
+  {
+    icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>`,
+    title: 'Difficulté à convaincre',
+    text: "Vous avez du mal à vendre vos offres, à vous positionner face à la concurrence et à transformer vos prospects en clients.",
+  },
+  {
+    icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    title: 'Prise de décision lente',
+    text: "Trop de doutes, pas assez d'informations. Vous repoussez des décisions importantes qui freinent votre activité.",
+  },
+  {
+    icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+    title: 'Potentiel inexploité',
+    text: "Vous savez que vous pouvez faire mieux. Mais sans accompagnement ni regard extérieur, vous restez en deçà de vos capacités.",
+  },
+];
+
+const galeryImages = [
+  { src: '/images/aout2025/Séminaire août 2025 3.jpeg', alt: 'Séminaire international août 2025', label: 'Séminaire Août 2025' },
+  { src: '/images/dec2025/P1170148.JPG', alt: 'Événement décembre 2025', label: 'Décembre 2025' },
+  { src: '/images/2019/Forum AKOMCA 2019_1.jpg', alt: 'Forum AKOMCA 2019', label: 'Forum AKOMCA 2019' },
+  { src: '/images/dec2025/P1170240.JPG', alt: 'Networking décembre 2025', label: 'Networking' },
+];
+---
+<Layout title="JCBO Conseil — Expert Business Development Toulouse | Consultant Stratégie Commerciale" description="Jean-Christophe Boyang-Tsang, consultant expert en développement commercial à Toulouse. Conseil stratégique, formation et coaching pour PME/TPE.">
+  <Header />
+  <Hero />
+  <PainPoints />
+
+  <!-- ====== PROBLÉMATIQUES ====== -->
+  <section class="py-20 bg-white" id="problematiques">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-14" data-animate="fade-up">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Vos défis au quotidien</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-navy mb-4">Les <span class="text-gold">problématiques</span> que nous résolvons</h2>
+        <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+        <p class="text-gray-500 max-w-xl mx-auto">Ces situations vous parlent ? Vous n'êtes pas seul. C'est exactement pour ça que JCBO Conseil existe.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {problematiques.map((p, i) => (
+          <div class="bg-offwhite border border-gold/10 rounded-2xl p-7 hover:border-gold/30 hover:shadow-lg hover:-translate-y-1 transition-all group" data-animate="fade-up" data-delay={String(i * 80)}>
+            <div class="w-14 h-14 rounded-xl bg-gold/8 flex items-center justify-center mb-5 group-hover:bg-gold/15 transition-colors" set:html={p.icon} />
+            <h3 class="font-heading text-base font-bold text-navy mb-2">{p.title}</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">{p.text}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="text-center mt-12" data-animate="fade-up">
+        <p class="text-gray-500 mb-5">Ces problèmes ne se règlent pas seuls. <strong class="text-navy">Ils se structurent.</strong></p>
+        <a href="/methode" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3.5 px-8 rounded-full hover:bg-gold-light hover:-translate-y-0.5 transition-all">
+          Découvrir notre méthode
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== NOS SOLUTIONS ====== -->
+  <section class="py-20 bg-offwhite">
+    <div class="max-w-[1200px] mx-auto px-6 text-center">
+      <div data-animate="fade-up">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Ce que nous faisons</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-navy mb-4">Nos <span class="text-gold">Solutions</span></h2>
+        <div class="w-14 h-0.5 bg-gold mx-auto mb-12"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <!-- Conseil & Coaching -->
+        <a href="/prestations" class="group bg-white rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:-translate-y-2 hover:shadow-xl transition-all" data-animate="fade-up" data-delay="0">
+          <div class="w-16 h-16 bg-navy rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
+          <h3 class="font-heading text-lg font-bold text-navy mb-3">Conseil & Coaching</h3>
+          <p class="text-gray-500 text-sm mb-4 leading-relaxed">Accompagnement stratégique personnalisé et coaching en ligne pour structurer votre développement commercial.</p>
+          <div class="flex flex-wrap gap-2 justify-center mb-5">
+            <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Audit stratégique</span>
+            <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Plan d'action</span>
+            <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Suivi KPIs</span>
+          </div>
+          <span class="text-gold font-semibold text-sm group-hover:underline inline-flex items-center gap-1">
+            Nos prestations
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+
+        <!-- Séminaires Mindset -->
+        <a href="/seminaires" class="group relative bg-navy rounded-2xl p-8 border-2 border-gold/20 hover:border-gold/40 hover:-translate-y-2 hover:shadow-xl transition-all" data-animate="fade-up" data-delay="150">
+          <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-navy text-[0.65rem] font-bold px-4 py-1 rounded-full uppercase tracking-wider">Populaire</span>
+          <div class="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 class="font-heading text-lg font-bold text-gold mb-3">Séminaires Mindset</h3>
+          <p class="text-white/60 text-sm mb-4 leading-relaxed">Programmes de groupe pour entreprises et PME. Transformation du mindset commercial et développement des compétences collectives.</p>
+          <div class="flex flex-wrap gap-2 justify-center mb-5">
+            <span class="text-xs bg-white/10 text-white/60 px-3 py-1 rounded-full">En présentiel</span>
+            <span class="text-xs bg-white/10 text-white/60 px-3 py-1 rounded-full">International</span>
+            <span class="text-xs bg-white/10 text-white/60 px-3 py-1 rounded-full">Sur mesure</span>
+          </div>
+          <span class="text-gold font-semibold text-sm group-hover:underline inline-flex items-center gap-1">
+            Découvrir
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+
+        <!-- Vendeur Attitude -->
+        <a href="/methode" class="group bg-white rounded-2xl p-8 border border-gold/10 hover:border-gold/30 hover:-translate-y-2 hover:shadow-xl transition-all" data-animate="fade-up" data-delay="300">
+          <div class="w-16 h-16 bg-navy rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="1.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+          </div>
+          <h3 class="font-heading text-lg font-bold text-navy mb-1">Vendeur Attitude™</h3>
+          <p class="font-accent italic text-gold text-xs mb-3">by JCBO-CONSEIL</p>
+          <p class="text-gray-500 text-sm mb-4 leading-relaxed">Programme de transformation commerciale. Apprenez à vous vendre, convaincre et performer avec une méthode éprouvée.</p>
+          <div class="flex flex-wrap gap-2 justify-center mb-5">
+            <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">3 niveaux</span>
+            <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Certification</span>
+            <span class="text-xs bg-offwhite text-navy/70 px-3 py-1 rounded-full">Résultats</span>
+          </div>
+          <span class="text-gold font-semibold text-sm group-hover:underline inline-flex items-center gap-1">
+            Découvrir le programme
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== PRÉSENTATION JC BOYANG ====== -->
+  <section class="py-20 md:py-28 bg-white" id="about">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.3fr] gap-12 lg:gap-16 items-center">
+        <!-- Image principale + badge -->
+        <div class="relative" data-animate="fade-right">
+          <div class="relative rounded-2xl overflow-hidden aspect-[3/4] max-w-[380px] mx-auto lg:mx-0 shadow-xl">
+            <img src="/images/2022/IMG-20240503-WA0065.jpg" alt="Jean-Christophe Boyang-Tsang, fondateur de JCBO Conseil" class="w-full h-full object-cover" loading="lazy" />
+          </div>
+          <!-- Badge expérience -->
+          <div class="absolute -bottom-5 -right-3 lg:-right-5 bg-navy text-white py-5 px-7 rounded-xl shadow-xl text-center">
+            <span class="block font-heading text-3xl font-bold text-gold leading-none">30+</span>
+            <span class="text-[0.7rem] uppercase tracking-widest text-white/60">ans d'expertise</span>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div data-animate="fade-left">
+          <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Qui vous accompagne</span>
+          <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-navy mb-1">Jean-Christophe <span class="text-gold">Boyang-Tsang</span></h2>
+          <p class="text-gold font-accent italic text-lg mb-6">Consultant Expert en Business Development</p>
+
+          <p class="text-gray-500 mb-4 leading-relaxed">
+            <strong class="text-gray-700">JCBo</strong>, ce sont les initiales de Jean-Christophe Boyang-Tsang, fondateur et unique force motrice derrière notre entreprise. Pas un théoricien — <strong class="text-gray-700">un homme de terrain</strong>.
+          </p>
+          <p class="text-gray-500 mb-4 leading-relaxed">
+            Professionnel expérimenté avec <strong class="text-gray-700">30 années de pratique</strong> dans les domaines du consulting, de la formation et du coaching. Expert en développement commercial et marketing, coach et formateur professionnel en écoles supérieures de commerce en France.
+          </p>
+          <p class="text-gray-500 mb-6 leading-relaxed">
+            Son expérience couvre la définition et la mise en œuvre de stratégies commerciales pour plusieurs PME et TPE, l'enseignement en écoles supérieures de commerce, et des postes de direction commerciale et marketing dans différents pays. Il organise également des <strong class="text-gray-700">séminaires, formations et événements internationaux</strong>.
+          </p>
+
+          <!-- Credentials -->
+          <div class="flex flex-wrap gap-2 mb-8">
+            {['Consultant certifié', 'Formateur en ESC', 'Coach professionnel', 'Partenaire AKOMCA', 'International'].map(c => (
+              <div class="flex items-center gap-2 bg-offwhite border border-gold/10 rounded-lg px-4 py-2.5 text-sm hover:border-gold/30 transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span class="text-navy font-medium">{c}</span>
+              </div>
+            ))}
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <a href="/a-propos" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3.5 px-8 rounded-full hover:bg-gold-light hover:-translate-y-0.5 transition-all">
+              En savoir plus
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <a href="/contact" class="inline-flex items-center gap-2 border border-navy/20 text-navy font-semibold py-3.5 px-8 rounded-full hover:border-gold hover:text-gold transition-all">Discuter de votre situation</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Galerie photos JC Boyang -->
+      <div class="mt-16 pt-14 border-t border-gold/10" data-animate="fade-up">
+        <div class="text-center mb-10">
+          <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">En images</span>
+          <h3 class="font-heading text-xl md:text-2xl font-bold text-navy">Séminaires, formations & <span class="text-gold">événements</span></h3>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {galeryImages.map((img, i) => (
+            <div class="relative rounded-xl overflow-hidden aspect-square group" data-animate="fade-up" data-delay={String(i * 100)}>
+              <img src={img.src} alt={img.alt} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+              <div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                <span class="text-white text-xs font-semibold bg-gold/90 px-3 py-1 rounded-full">{img.label}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Testimonials />
+
+  <!-- ====== NOS EXPLOITS (teaser → /resultats) ====== -->
+  <section class="py-20 bg-navy text-white" id="exploits">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-14" data-animate="fade-up">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Preuves terrain</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-white mb-4">Nos <span class="text-gold">Exploits</span></h2>
+        <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+        <p class="text-white/50 max-w-lg mx-auto">Séminaires, formations et événements internationaux — la preuve par l'action.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="relative rounded-xl overflow-hidden aspect-square group" data-animate="fade-up"><img src="/images/aout2025/Séminaire août 2025 3.jpeg" alt="Séminaire août 2025" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4"><span class="text-white text-xs font-semibold bg-gold/90 px-3 py-1 rounded-full">Août 2025</span></div></div>
+        <div class="relative rounded-xl overflow-hidden aspect-square group" data-animate="fade-up" data-delay="100"><img src="/images/dec2025/P1170148.JPG" alt="Décembre 2025" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4"><span class="text-white text-xs font-semibold bg-gold/90 px-3 py-1 rounded-full">Déc 2025</span></div></div>
+        <div class="relative rounded-xl overflow-hidden aspect-square group" data-animate="fade-up" data-delay="200"><img src="/images/2019/Forum AKOMCA 2019_1.jpg" alt="Forum AKOMCA 2019" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4"><span class="text-white text-xs font-semibold bg-gold/90 px-3 py-1 rounded-full">AKOMCA 2019</span></div></div>
+        <div class="relative rounded-xl overflow-hidden aspect-square group" data-animate="fade-up" data-delay="300"><img src="/images/dec2025/P1170344.JPG" alt="Événement JCBO" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4"><span class="text-white text-xs font-semibold bg-gold/90 px-3 py-1 rounded-full">Cohésion</span></div></div>
+      </div>
+      <div class="text-center" data-animate="fade-up">
+        <a href="/resultats" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3.5 px-8 rounded-full hover:bg-gold-light hover:-translate-y-0.5 transition-all">
+          Voir tous nos exploits
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Contact -->
+  <section class="py-20 bg-navy text-center">
+    <div class="max-w-[700px] mx-auto px-6" data-animate="fade-up">
+      <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-white mb-4">Prêt à <span class="text-gold">transformer</span> votre activité ?</h2>
+      <p class="text-white/50 mb-8">Réservez une séance en ligne ou contactez-nous pour un échange personnalisé.</p>
+      <div class="flex items-center justify-center gap-4 flex-wrap">
+        <a href="/reserver" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-4 px-10 rounded-full text-lg hover:bg-gold-light hover:-translate-y-0.5 transition-all">Réserver une séance</a>
+        <a href="/contact" class="inline-flex items-center gap-2 border border-white/30 text-white font-bold py-4 px-10 rounded-full text-lg hover:border-gold hover:text-gold transition-all">Nous contacter</a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

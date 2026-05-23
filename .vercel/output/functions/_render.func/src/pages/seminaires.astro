@@ -1,0 +1,123 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const benefits = [
+  { title: 'Vision stratégique', desc: 'Développer une vision claire et ambitieuse pour votre entreprise.', icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z|M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0' },
+  { title: 'Leadership', desc: 'Affirmer votre posture de leader et fédérer vos équipes.', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 3l1.5 3.7L17.3 8l-2.8 2.7.7 3.8L12 12.7 8.8 14.5l.7-3.8L6.7 8l3.8-1.3z' },
+  { title: 'Résilience', desc: 'Transformer les obstacles en opportunités de croissance.', icon: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9|M13.73 21a2 2 0 0 1-3.46 0' },
+  { title: 'Performance', desc: 'Mettre en place des processus mesurables orientés résultats.', icon: 'M22 12h-4l-3 9L9 3l-3 9H2' },
+  { title: 'Cohésion d\'équipe', desc: 'Créer une dynamique collective puissante et alignée.', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2|M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z|M23 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75' },
+  { title: 'Passage à l\'action', desc: 'Du diagnostic au plan d\'action concret et immédiat.', icon: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
+];
+
+const steps = [
+  { num: '01', title: 'Analyse des besoins', desc: 'Entretien approfondi pour comprendre vos objectifs et défis spécifiques.' },
+  { num: '02', title: 'Programme sur mesure', desc: 'Conception d\'un programme adapté à votre secteur, taille d\'équipe et ambitions.' },
+  { num: '03', title: 'Animation du séminaire', desc: 'Journées intensives mêlant ateliers pratiques, cas concrets et mises en situation.' },
+  { num: '04', title: 'Suivi post-séminaire', desc: 'Plan d\'action individuel et collectif avec suivi de mise en œuvre.' },
+];
+---
+<Layout title="Séminaires Mindset Entrepreneurial — JCBO Conseil" description="Séminaires de groupe sur mesure pour entreprises et chefs d'entreprise PME. Développez le mindset entrepreneurial de vos équipes.">
+  <Header />
+  <div class="pt-24"></div>
+
+  <!-- Hero -->
+  <section class="relative py-24 bg-navy text-white overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(212,167,98,0.08)_0%,transparent_60%)]"></div>
+    <div class="max-w-[1200px] mx-auto px-6 relative z-10 text-center">
+      <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-3">Programme exclusif</span>
+      <h1 class="font-heading text-[clamp(2rem,5vw,3.2rem)] font-bold mb-4">Séminaires <span class="text-gold">MINDSET ENTREPRENEURIAL</span></h1>
+      <div class="w-14 h-0.5 bg-gold mx-auto mb-6"></div>
+      <p class="text-white/60 max-w-2xl mx-auto text-lg mb-8">Des séminaires de groupe sur mesure pour entreprises et chefs d'entreprise PME. Adaptés à vos besoins et objectifs spécifiques.</p>
+      <a href="/contact" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-4 px-10 rounded-full text-lg hover:bg-gold-light hover:-translate-y-0.5 transition-all">Organiser un séminaire</a>
+    </div>
+  </section>
+
+  <!-- À qui s'adresse -->
+  <section class="py-20 bg-offwhite">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-14">
+        <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-navy mb-4">À qui s'adressent <span class="text-gold">nos séminaires</span> ?</h2>
+        <div class="w-14 h-0.5 bg-gold mx-auto"></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white rounded-2xl p-8 border border-gold/10 text-center">
+          <div class="w-16 h-16 bg-navy rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <h3 class="font-heading text-lg font-bold text-navy mb-3">Entreprises (PME/TPE)</h3>
+          <p class="text-gray-500 text-sm">Boostez la performance et la cohésion de vos équipes dirigeantes et commerciales.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 border border-gold/10 text-center">
+          <div class="w-16 h-16 bg-navy rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 class="font-heading text-lg font-bold text-navy mb-3">Groupes de dirigeants</h3>
+          <p class="text-gray-500 text-sm">Rejoignez un cercle de chefs d'entreprise partageant les mêmes ambitions de croissance.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 border border-gold/10 text-center">
+          <div class="w-16 h-16 bg-navy rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h3 class="font-heading text-lg font-bold text-navy mb-3">International</h3>
+          <p class="text-gray-500 text-sm">Séminaires adaptés aux contextes africain et européen. France, Cameroun et au-delà.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bénéfices -->
+  <section class="py-20 bg-white">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-14">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Ce que vous allez développer</span>
+        <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-navy mb-4">Les piliers du <span class="text-gold">Mindset Entrepreneurial</span></h2>
+        <div class="w-14 h-0.5 bg-gold mx-auto"></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {benefits.map(b => (
+          <div class="bg-offwhite rounded-2xl p-7 border border-gold/10 hover:border-gold/30 hover:-translate-y-1 transition-all">
+            <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center mb-4">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2">{b.icon.split('|').map(d => <path d={d} />)}</svg>
+            </div>
+            <h3 class="font-heading text-lg font-bold text-navy mb-2">{b.title}</h3>
+            <p class="text-gray-500 text-sm">{b.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Process -->
+  <section class="py-20 bg-navy text-white">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-14">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Notre approche</span>
+        <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-white mb-4">Comment ça <span class="text-gold">fonctionne</span></h2>
+        <div class="w-14 h-0.5 bg-gold mx-auto"></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        {steps.map(s => (
+          <div class="text-center">
+            <span class="inline-block font-heading text-5xl font-bold text-gold/20 mb-3">{s.num}</span>
+            <h3 class="font-heading text-lg font-bold text-white mb-2">{s.title}</h3>
+            <p class="text-white/50 text-sm">{s.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 bg-offwhite text-center">
+    <div class="max-w-[700px] mx-auto px-6">
+      <h2 class="font-heading text-2xl font-bold text-navy mb-4">Organisez votre <span class="text-gold">séminaire sur mesure</span></h2>
+      <p class="text-gray-500 mb-8">Chaque programme est conçu selon vos besoins et objectifs spécifiques. Parlons de votre projet.</p>
+      <a href="/contact" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3.5 px-8 rounded-full hover:bg-gold-light transition-all">Être recontacté</a>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

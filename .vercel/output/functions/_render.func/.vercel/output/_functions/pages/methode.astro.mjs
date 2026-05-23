@@ -1,0 +1,85 @@
+/* empty css                                    */
+import { c as createComponent, f as renderComponent, r as renderTemplate, m as maybeRenderHead, d as addAttribute } from '../chunks/astro/server_D4iU0DsB.mjs';
+import 'kleur/colors';
+import { $ as $$Layout, a as $$Header, b as $$Footer } from '../chunks/Footer_bCwkQopd.mjs';
+export { renderers } from '../renderers.mjs';
+
+const $$Methode = createComponent(($$result, $$props, $$slots) => {
+  const steps = [
+    {
+      num: "1",
+      title: "Clarifier",
+      desc: "Comprendre votre situation, vos objectifs et vos blocages.",
+      icon: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z|M21 21l-4.35-4.35"
+    },
+    {
+      num: "2",
+      title: "Structurer",
+      desc: "Transformer vos id\xE9es en plan d'action concret.",
+      icon: "M3 3h7v7H3z|M14 3h7v7h-7z|M3 14h7v7H3z|M14 14h7v7h-7z"
+    },
+    {
+      num: "3",
+      title: "D\xE9velopper",
+      desc: "Passer \xE0 l'action avec des leviers efficaces.",
+      icon: "M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+    },
+    {
+      num: "4",
+      title: "Optimiser",
+      desc: "Am\xE9liorer vos r\xE9sultats en continu.",
+      icon: "M22 12h-4l-3 9L9 3l-3 9H2"
+    },
+    {
+      num: "5",
+      title: "Autonomiser",
+      desc: "Vous rendre capable de piloter seul votre croissance.",
+      icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+    }
+  ];
+  const differences = [
+    "Approche orient\xE9e r\xE9sultats",
+    "M\xE9thode simple et applicable",
+    "Accompagnement personnalis\xE9",
+    "Exp\xE9rience terrain"
+  ];
+  const cibles = [
+    { label: "Dirigeants de PME", icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" },
+    { label: "Entrepreneurs", icon: "M13 2L3 14h9l-1 8 10-12h-9l1-8z" },
+    { label: "Ind\xE9pendants", icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z" },
+    { label: "Cadres en prise de d\xE9cision", icon: "M2 7h20v14H2z|M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" }
+  ];
+  const resultats = [
+    { label: "Prendre des d\xE9cisions plus rapidement", icon: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z|M12 6v6l4 2" },
+    { label: "Structurer votre activit\xE9", icon: "M3 3h7v7H3z|M14 3h7v7h-7z|M3 14h7v7H3z|M14 14h7v7h-7z" },
+    { label: "D\xE9velopper votre chiffre d'affaires", icon: "M12 1v22|M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" },
+    { label: "Gagner en clart\xE9 et en confiance", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" }
+  ];
+  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "title": "Notre M\xE9thode | JCBO Conseil \u2014 Strat\xE9gie claire pour d\xE9velopper votre activit\xE9", "description": "D\xE9couvrez la m\xE9thode JCBO Conseil en 5 \xE9tapes : Clarifier, Structurer, D\xE9velopper, Optimiser, Autonomiser. Passez d'une vision floue \xE0 une strat\xE9gie actionnable." }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "Header", $$Header, {})} ${maybeRenderHead()}<div class="pt-24"></div>  <section class="py-20 bg-navy text-white relative overflow-hidden"> <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle at 20% 50%, #d4a762 0%, transparent 50%), radial-gradient(circle at 80% 50%, #d4a762 0%, transparent 50%);"></div> <div class="max-w-[900px] mx-auto px-6 text-center relative"> <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.15em] mb-4">Notre méthode</span> <h1 class="font-heading text-[clamp(1.8rem,5vw,3rem)] font-bold mb-6 leading-tight">Une méthode claire pour <span class="text-gold">structurer et développer</span> votre activité</h1> <div class="w-20 h-0.5 bg-gold mx-auto mb-8"></div> <p class="text-white/70 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">Notre méthode vous permet de passer d'une vision floue à une <strong class="text-gold-light">stratégie claire, structurée et actionnable</strong>.</p> </div> </section>  <section class="py-16 bg-offwhite"> <div class="max-w-[750px] mx-auto px-6"> <div class="bg-white rounded-2xl border border-gold/10 p-8 md:p-10 text-center shadow-lg relative" data-animate="fade-up"> <div class="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6"> <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg> </div> <p class="font-accent italic text-lg md:text-xl text-gray-700 leading-[1.9]">
+Dans un environnement économique incertain et exigeant,<br class="hidden md:block">
+les décisions approximatives <strong class="text-gold-dark">coûtent cher</strong>.<br class="hidden md:block">
+Ce qui fait la différence aujourd'hui, ce n'est pas l'idée.<br class="hidden md:block">
+C'est la capacité à <strong class="text-gold-dark">structurer, exécuter et ajuster</strong> avec méthode.
+</p> </div> </div> </section>  <section class="py-16 bg-white"> <div class="max-w-[700px] mx-auto px-6" data-animate="fade-up"> <div class="bg-navy rounded-2xl p-8 md:p-10 text-white"> <div class="flex items-center gap-4 mb-5"> <div class="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center flex-shrink-0"> <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> </div> <h2 class="font-heading text-xl md:text-2xl font-bold text-gold">Le constat</h2> </div> <p class="text-white/80 text-base md:text-lg leading-relaxed mb-6">
+La plupart des dirigeants ne manquent pas d'idées.<br>
+Ils manquent de <strong class="text-gold-light">clarté</strong>, de <strong class="text-gold-light">structure</strong> et de <strong class="text-gold-light">méthode</strong>.
+</p> <div class="border-t border-gold/15 pt-5"> <span class="block font-heading text-sm font-bold text-gold uppercase tracking-wider mb-4">Résultat :</span> <div class="space-y-3"> <div class="flex items-center gap-3 bg-white/5 rounded-lg px-4 py-3 hover:bg-gold/10 transition-colors"> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2" class="flex-shrink-0 opacity-60"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg> <span class="text-white/70 text-sm">Des décisions difficiles</span> </div> <div class="flex items-center gap-3 bg-white/5 rounded-lg px-4 py-3 hover:bg-gold/10 transition-colors"> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2" class="flex-shrink-0 opacity-60"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg> <span class="text-white/70 text-sm">Un développement irrégulier</span> </div> <div class="flex items-center gap-3 bg-white/5 rounded-lg px-4 py-3 hover:bg-gold/10 transition-colors"> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2" class="flex-shrink-0 opacity-60"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg> <span class="text-white/70 text-sm">Un potentiel inexploité</span> </div> </div> </div> </div> </div> </section>  <section class="py-20 bg-offwhite"> <div class="max-w-[800px] mx-auto px-6"> <div class="text-center mb-14" data-animate="fade-up"> <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Progression structurée</span> <h2 class="font-heading text-[clamp(1.8rem,4vw,2.6rem)] font-bold text-navy mb-4">La méthode en <span class="text-gold">5 étapes</span></h2> <div class="w-14 h-0.5 bg-gold mx-auto"></div> </div> <div class="relative pl-12 md:pl-16"> <!-- Timeline line --> <div class="absolute left-5 md:left-7 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gold to-gold/15 rounded-full"></div> ${steps.map((step, i) => renderTemplate`<div class="relative mb-8 last:mb-0" data-animate="fade-up"${addAttribute(String(i * 100), "data-delay")}> <!-- Number circle --> <div class="absolute -left-12 md:-left-16 top-0 w-10 h-10 md:w-12 md:h-12 bg-navy border-2 border-gold rounded-full flex items-center justify-center z-10 group-hover:bg-gold transition-all shadow-lg"> <span class="font-heading text-gold font-bold text-sm md:text-base">${step.num}</span> </div> <!-- Content card --> <div class="bg-white border border-gold/10 rounded-2xl p-6 md:p-8 hover:border-gold/30 hover:shadow-lg hover:translate-x-1 transition-all relative"> <!-- Arrow pointer --> <div class="absolute -left-2 top-4 w-4 h-4 bg-white border-l border-b border-gold/10 rotate-45 hidden md:block"></div> <div class="w-11 h-11 bg-gold/8 rounded-xl flex items-center justify-center mb-4"> <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="1.5"> ${step.icon.split("|").map((d) => renderTemplate`<path${addAttribute(d, "d")}></path>`)} </svg> </div> <h3 class="font-heading text-lg md:text-xl font-bold text-navy mb-2">${step.title}</h3> <p class="text-gray-500 text-sm leading-relaxed">${step.desc}</p> </div> </div>`)} </div> </div> </section>  <section class="py-20 bg-white"> <div class="max-w-[1100px] mx-auto px-6"> <div class="grid grid-cols-1 md:grid-cols-2 gap-8"> <!-- Ce qui fait la différence --> <div class="bg-offwhite rounded-2xl border border-gold/10 p-8 md:p-10 hover:shadow-lg hover:border-gold/30 transition-all" data-animate="fade-up"> <h2 class="font-heading text-xl md:text-2xl font-bold text-navy mb-8">Ce qui fait la <span class="text-gold">différence</span></h2> <div class="space-y-4"> ${differences.map((d) => renderTemplate`<div class="flex items-center gap-4 bg-white rounded-xl px-5 py-4 hover:translate-x-1 transition-all"> <div class="flex-shrink-0"> <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> </div> <span class="font-medium text-navy text-sm md:text-base">${d}</span> </div>`)} </div> </div> <!-- Pour qui --> <div class="bg-offwhite rounded-2xl border border-gold/10 p-8 md:p-10 hover:shadow-lg hover:border-gold/30 transition-all" data-animate="fade-up" data-delay="150"> <h2 class="font-heading text-xl md:text-2xl font-bold text-navy mb-8">Pour <span class="text-gold">qui</span> ?</h2> <div class="flex flex-wrap gap-3"> ${cibles.map((c) => renderTemplate`<div class="inline-flex items-center gap-3 bg-white border border-gold/10 rounded-full px-5 py-3 hover:border-gold hover:-translate-y-0.5 hover:shadow-md transition-all"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2" class="flex-shrink-0"> ${c.icon.split("|").map((d) => renderTemplate`<path${addAttribute(d, "d")}></path>`)} </svg> <span class="font-medium text-navy text-sm">${c.label}</span> </div>`)} </div> </div> </div> </div> </section>  <section class="py-20 bg-offwhite"> <div class="max-w-[1000px] mx-auto px-6"> <div class="text-center mb-12" data-animate="fade-up"> <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Impact</span> <h2 class="font-heading text-[clamp(1.8rem,4vw,2.6rem)] font-bold text-navy mb-4">Résultats <span class="text-gold">attendus</span></h2> <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div> <p class="text-gray-500 max-w-lg mx-auto">Avec cette méthode, vous serez capable de :</p> </div> <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" data-animate="fade-up" data-delay="100"> ${resultats.map((r) => renderTemplate`<div class="bg-white border border-gold/10 rounded-2xl p-7 text-center hover:border-gold/30 hover:shadow-lg hover:-translate-y-1 transition-all"> <div class="w-14 h-14 bg-gold/8 rounded-full flex items-center justify-center mx-auto mb-4"> <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2"> ${r.icon.split("|").map((d) => renderTemplate`<path${addAttribute(d, "d")}></path>`)} </svg> </div> <p class="font-medium text-navy text-sm leading-relaxed">${r.label}</p> </div>`)} </div> </div> </section>  <section class="py-20 bg-navy text-center relative overflow-hidden"> <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle at 30% 50%, #d4a762 0%, transparent 60%), radial-gradient(circle at 70% 30%, #d4a762 0%, transparent 50%);"></div> <div class="max-w-[700px] mx-auto px-6 relative" data-animate="fade-up"> <h2 class="font-heading text-[clamp(1.4rem,3.5vw,2rem)] font-semibold text-white mb-3 leading-relaxed">
+Prenez <strong class="text-gold">30 minutes</strong> pour faire le point sur votre situation
+</h2> <p class="text-white/50 mb-10 text-sm">Un échange gratuit et sans engagement pour clarifier vos priorités.</p> <a href="/reserver" class="inline-flex items-center gap-3 bg-gold text-navy font-bold py-4 px-12 rounded-full text-lg hover:bg-gold-light hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(212,167,98,0.3)] transition-all">
+Réserver un échange
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg> </a> </div> </section> ${renderComponent($$result2, "Footer", $$Footer, {})} ` })}`;
+}, "D:/PROBOOK 445 G7/Desktop/JCBOYANG/jcbo-vitrine/src/pages/methode.astro", void 0);
+
+const $$file = "D:/PROBOOK 445 G7/Desktop/JCBOYANG/jcbo-vitrine/src/pages/methode.astro";
+const $$url = "/methode";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: $$Methode,
+  file: $$file,
+  url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };

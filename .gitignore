@@ -24,8 +24,9 @@ Desktop.ini
 # Logs
 npm-debug.log*
 
-# Large media files
+# Large media files (sauf vidéo hero versionnée)
 *.mp4
 *.MP4
 *.mov
 *.avi
+!public/videos/hero-accueil.mp4

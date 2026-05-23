@@ -1,8 +1,26 @@
 ---
+import { heroMedia } from '../data/hero-media';
+
+const videoSrc = import.meta.env.PUBLIC_HERO_VIDEO_URL ?? heroMedia.home.video;
+const videoPoster = heroMedia.home.poster;
 ---
 <section class="relative min-h-screen flex items-center justify-center text-center text-white overflow-hidden" id="hero">
-  <!-- BG -->
-  <div class="absolute inset-0 bg-navy bg-[radial-gradient(ellipse_at_20%_50%,rgba(212,167,98,0.08)_0%,transparent_60%),radial-gradient(ellipse_at_80%_20%,rgba(212,167,98,0.05)_0%,transparent_50%)]"></div>
+  <!-- Vidéo de fond -->
+  <div class="absolute inset-0 z-0" aria-hidden="true">
+    <video
+      class="absolute inset-0 w-full h-full object-cover"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      poster={videoPoster}
+    >
+      <source src={videoSrc} type="video/mp4" />
+    </video>
+    <div class="absolute inset-0 bg-navy/75"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(212,167,98,0.1)_0%,transparent_60%),radial-gradient(ellipse_at_80%_20%,rgba(212,167,98,0.06)_0%,transparent_50%)]"></div>
+  </div>
 
   <div class="relative z-10 max-w-[1200px] mx-auto px-6 pt-28 pb-20">
     <!-- Trust bar -->

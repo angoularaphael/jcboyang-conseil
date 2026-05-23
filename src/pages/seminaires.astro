@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import PageHero from '../components/PageHero.astro';
+import { heroMedia } from '../data/hero-media';
 
 const benefits = [
   { title: 'Vision stratégique', desc: 'Développer une vision claire et ambitieuse pour votre entreprise.', icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z|M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0' },
@@ -23,17 +25,15 @@ const steps = [
   <Header />
   <div class="pt-24"></div>
 
-  <!-- Hero -->
-  <section class="relative py-24 bg-navy text-white overflow-hidden">
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(212,167,98,0.08)_0%,transparent_60%)]"></div>
-    <div class="max-w-[1200px] mx-auto px-6 relative z-10 text-center">
+  <PageHero imageSrc={heroMedia.seminaires.image} imageAlt={heroMedia.seminaires.alt} padding="py-24">
+    <div class="max-w-[1200px] mx-auto px-6">
       <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-3">Programme exclusif</span>
       <h1 class="font-heading text-[clamp(2rem,5vw,3.2rem)] font-bold mb-4">Séminaires <span class="text-gold">MINDSET ENTREPRENEURIAL</span></h1>
       <div class="w-14 h-0.5 bg-gold mx-auto mb-6"></div>
       <p class="text-white/60 max-w-2xl mx-auto text-lg mb-8">Des séminaires de groupe sur mesure pour entreprises et chefs d'entreprise PME. Adaptés à vos besoins et objectifs spécifiques.</p>
       <a href="/contact" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-4 px-10 rounded-full text-lg hover:bg-gold-light hover:-translate-y-0.5 transition-all">Organiser un séminaire</a>
     </div>
-  </section>
+  </PageHero>
 
   <!-- À qui s'adresse -->
   <section class="py-20 bg-offwhite">

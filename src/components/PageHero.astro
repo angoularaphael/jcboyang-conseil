@@ -1,0 +1,58 @@
+---
+interface Props {
+  variant?: 'video' | 'image';
+  videoSrc?: string;
+  videoPoster?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+  minHeight?: string;
+  padding?: string;
+  class?: string;
+}
+
+const {
+  variant = 'image',
+  videoSrc,
+  videoPoster,
+  imageSrc,
+  imageAlt = '',
+  minHeight = '',
+  padding = 'py-16 md:py-20',
+  class: className = '',
+} = Astro.props;
+---
+
+<section class:list={['relative text-white text-center overflow-hidden', padding, minHeight, className]}>
+  <div class="absolute inset-0 z-0" aria-hidden="true">
+    {variant === 'video' && videoSrc ? (
+      <video
+        class="absolute inset-0 w-full h-full object-cover"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        poster={videoPoster}
+      >
+        <source src={videoSrc} type="video/mp4" />
+      </video>
+    ) : imageSrc ? (
+      <img
+        src={imageSrc}
+        alt=""
+        role="presentation"
+        class="absolute inset-0 w-full h-full object-cover"
+        loading="eager"
+        decoding="async"
+      />
+    ) : null}
+    <div class="absolute inset-0 bg-navy/80"></div>
+    <div
+      class="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(212,167,98,0.12)_0%,transparent_55%),radial-gradient(ellipse_at_80%_20%,rgba(212,167,98,0.08)_0%,transparent_50%)]"
+    ></div>
+  </div>
+
+  <div class="relative z-10">
+    <slot />
+  </div>
+</section>

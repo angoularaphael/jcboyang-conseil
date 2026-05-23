@@ -2,13 +2,14 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import PageHero from '../components/PageHero.astro';
+import { heroMedia } from '../data/hero-media';
 ---
 <Layout title="Contact — JCBO Conseil | Être Recontacté" description="Contactez JCBO Conseil. Remplissez notre formulaire professionnel pour recevoir une réponse adaptée et orientée résultats.">
   <Header />
   <div class="pt-24"></div>
 
-  <!-- Hero -->
-  <section class="py-16 bg-navy text-white text-center">
+  <PageHero imageSrc={heroMedia.contact.image} imageAlt={heroMedia.contact.alt}>
     <div class="max-w-[800px] mx-auto px-6">
       <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-3">Formulaire de contact</span>
       <h1 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-4">Contactez <span class="text-gold">JCBO Conseil</span></h1>
@@ -16,7 +17,7 @@ import Footer from '../components/Footer.astro';
       <p class="text-white/60">Chaque demande est analysée avec rigueur afin de vous proposer une réponse adaptée, concrète et orientée résultats.</p>
       <p class="text-white/40 text-sm mt-3">Ce formulaire nous permet de comprendre votre situation et de vous orienter vers la solution la plus pertinente.</p>
     </div>
-  </section>
+  </PageHero>
 
   <!-- Formulaire -->
   <section class="py-16 bg-offwhite">

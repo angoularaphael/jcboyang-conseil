@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import PageHero from '../components/PageHero.astro';
+import { heroMedia } from '../data/hero-media';
 
 const resources = [
   {
@@ -52,15 +54,14 @@ const resources = [
   <Header />
   <div class="pt-24"></div>
 
-  <!-- Hero -->
-  <section class="py-16 bg-navy text-white text-center">
+  <PageHero imageSrc={heroMedia.ressources.image} imageAlt={heroMedia.ressources.alt}>
     <div class="max-w-[800px] mx-auto px-6">
       <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-3">Bibliothèque gratuite</span>
       <h1 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-4">Nos <span class="text-gold">Ressources</span></h1>
       <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
       <p class="text-white/60">Guides PDF, checklists et templates pour passer à l'action. Gratuit, concret et téléchargeable immédiatement.</p>
     </div>
-  </section>
+  </PageHero>
 
   <!-- Resources grid -->
   <section class="py-16 bg-offwhite">
@@ -138,34 +139,5 @@ const resources = [
 </Layout>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('downloadModal');
-  const closeBtn = document.getElementById('closeModal');
-  const nameEl = document.getElementById('modal-resource-name');
-  const form = document.getElementById('downloadForm');
-
-  document.querySelectorAll('.download-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      nameEl.textContent = btn.dataset.resource;
-      modal.style.opacity = '1';
-      modal.style.visibility = 'visible';
-    });
-  });
-
-  function closeModal() {
-    modal.style.opacity = '0';
-    modal.style.visibility = 'hidden';
-  }
-
-  closeBtn.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    // TODO: Send to email service / CRM
-    alert('Merci ! Vous allez recevoir le document par email.');
-    closeModal();
-    form.reset();
-  });
-});
+  import '../scripts/ressources-modal.ts';
 </script>

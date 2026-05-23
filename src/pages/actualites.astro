@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import PageHero from '../components/PageHero.astro';
+import { heroMedia } from '../data/hero-media';
 
 const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'https://adhesion-jcbo.vercel.app';
 
@@ -33,14 +35,14 @@ const categories = ['Tous', 'Stratégie', 'Mindset', 'Vendeur Attitude', 'Coachi
   <Header />
   <div class="pt-24"></div>
 
-  <section class="py-16 bg-navy text-white text-center">
+  <PageHero imageSrc={heroMedia.actualites.image} imageAlt={heroMedia.actualites.alt}>
     <div class="max-w-[800px] mx-auto px-6">
       <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-3">Blog & Expertise</span>
       <h1 class="font-heading text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-4">Nos <span class="text-gold">Actualités</span></h1>
       <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
       <p class="text-white/60">Articles publiés par l'équipe JCBO Conseil.</p>
     </div>
-  </section>
+  </PageHero>
 
   <section class="bg-gold/10 border-b border-gold/10">
     <div class="max-w-[800px] mx-auto px-6 py-8 flex flex-col md:flex-row items-center gap-5">

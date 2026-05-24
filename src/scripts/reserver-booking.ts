@@ -150,27 +150,22 @@ export function initReserverBooking(): void {
       return;
     }
 
-    if (zoneRadio.value !== 'euro') {
+    if (paymentRadio && paymentRadio.value === 'transfer') {
       alert(
-        "Le paiement par carte Stripe est disponible en zone Euro uniquement.\n" +
-          'Pour la zone Afrique, sélectionnez « Mobile Money » et notre équipe vous contactera.'
+        "Pour un virement bancaire, notre équipe vous contactera par e-mail avec les coordonnées bancaires."
       );
       return;
     }
 
-    if (paymentRadio && paymentRadio.value !== 'card') {
-      alert(
-        "Pour un virement bancaire ou un paiement Mobile Money, vous serez recontacté par e-mail. Sélectionnez « Carte bancaire (Stripe) » pour un paiement immédiat."
-      );
-      return;
-    }
+    const isMobileMoney = paymentRadio?.value === 'mobile';
+    const endpoint = isMobileMoney ? '/api/notchpay/checkout' : '/api/stripe/checkout';
 
     const originalText = payBtn.innerHTML;
     payBtn.disabled = true;
     payBtn.innerHTML = 'Redirection vers le paiement…';
 
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

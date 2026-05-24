@@ -51,7 +51,11 @@ export const POST: APIRoute = async ({ request }) => {
   const stripe = new Stripe(stripeKey);
   const origin = new URL(request.url).origin;
 
-  const checkout = await stripe.checkout.sessions.create({
+  // Stripe Connect : 20% commission plateforme, 80% vers le compte connecté
+  const connectedAccountId = import.meta.env.STRIPE_CONNECTED_ACCOUNT_ID;
+  const platformFee = Math.round(sessionInfo.priceEur * 100 * 0.20);
+
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
     payment_method_types: ["card"],
     customer_email: data.email,
@@ -73,6 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
       sessionKey: data.sessionId,
       sessionLabel: sessionInfo.label,
       customerName: data.name,
+      customerEmail: data.email,
       customerPhone: data.phone,
       customerCompany: data.company,
       desiredDate: data.date,
@@ -80,7 +85,18 @@ export const POST: APIRoute = async ({ request }) => {
     },
     success_url: `${origin}/reservation/succes?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/reservation/echec`,
-  });
+  };
+
+  if (connectedAccountId) {
+    sessionParams.payment_intent_data = {
+      application_fee_amount: platformFee,
+      transfer_data: {
+        destination: connectedAccountId,
+      },
+    };
+  }
+
+  const checkout = await stripe.checkout.sessions.create(sessionParams);
 
   return new Response(JSON.stringify({ url: checkout.url }), {
     status: 200,

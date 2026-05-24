@@ -1,0 +1,38 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+const sessionId = Astro.url.searchParams.get('session_id') ?? '';
+---
+<Layout title="Paiement confirmé — JCBO Conseil" description="Votre réservation est confirmée. Notre équipe vous recontactera très rapidement." noindex>
+  <Header />
+  <div class="pt-24"></div>
+
+  <section class="py-20 bg-offwhite">
+    <div class="max-w-[720px] mx-auto px-6">
+      <div class="bg-white rounded-2xl p-10 text-center border border-gold/10 shadow-sm">
+        <div class="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center bg-green-50">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Merci</span>
+        <h1 class="font-heading text-3xl font-bold text-navy mb-3">Paiement <span class="text-gold">confirmé</span></h1>
+        <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+        <p class="text-gray-500 mb-6 leading-relaxed">
+          Votre réservation a bien été enregistrée. Vous allez recevoir un e-mail de confirmation dans quelques instants.
+          L'équipe JCBO Conseil vous recontactera très rapidement pour planifier votre séance.
+        </p>
+        {sessionId && (
+          <p class="text-xs text-gray-400 mb-8">Référence Stripe : <code class="font-mono">{sessionId}</code></p>
+        )}
+        <a href="/" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold-light transition-all">
+          Retour à l'accueil
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

@@ -126,13 +126,76 @@ export function initReserverBooking(): void {
 
   backStep2Btn.addEventListener('click', () => showStep(2));
 
-  payBtn.addEventListener('click', () => {
+  payBtn.addEventListener('click', async () => {
     const consent = getInput('bk-consent');
     if (!consent?.checked) {
       alert('Veuillez accepter les conditions.');
       return;
     }
-    alert('Redirection vers le paiement sécurisé... (Intégration Stripe à connecter)');
+
+    const sessionRadio = getCheckedRadio('session');
+    const zoneRadio = getCheckedRadio('zone');
+    const paymentRadio = getCheckedRadio('payment');
+    const nameInput = getInput('bk-name');
+    const emailInput = getInput('bk-email');
+    const phoneInput = getInput('bk-phone');
+    const companyInput = getInput('bk-company');
+    const dateInput = getInput('bk-date');
+    const messageInput = document.getElementById('bk-message');
+    const messageVal =
+      messageInput instanceof HTMLTextAreaElement ? messageInput.value : '';
+
+    if (!sessionRadio || !zoneRadio || !nameInput || !emailInput || !phoneInput) {
+      alert('Informations incomplètes.');
+      return;
+    }
+
+    if (zoneRadio.value !== 'euro') {
+      alert(
+        "Le paiement par carte Stripe est disponible en zone Euro uniquement.\n" +
+          'Pour la zone Afrique, sélectionnez « Mobile Money » et notre équipe vous contactera.'
+      );
+      return;
+    }
+
+    if (paymentRadio && paymentRadio.value !== 'card') {
+      alert(
+        "Pour un virement bancaire ou un paiement Mobile Money, vous serez recontacté par e-mail. Sélectionnez « Carte bancaire (Stripe) » pour un paiement immédiat."
+      );
+      return;
+    }
+
+    const originalText = payBtn.innerHTML;
+    payBtn.disabled = true;
+    payBtn.innerHTML = 'Redirection vers le paiement…';
+
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionRadio.value,
+          name: nameInput.value.trim(),
+          email: emailInput.value.trim(),
+          phone: phoneInput.value.trim(),
+          company: companyInput?.value.trim() ?? '',
+          date: dateInput?.value ?? '',
+          message: messageVal.trim(),
+        }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        alert(data.error || 'Erreur lors de la création du paiement.');
+        payBtn.disabled = false;
+        payBtn.innerHTML = originalText;
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      alert("Erreur réseau. Veuillez réessayer.");
+      payBtn.disabled = false;
+      payBtn.innerHTML = originalText;
+    }
   });
 }
 

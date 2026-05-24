@@ -1,0 +1,36 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+---
+<Layout title="Paiement annulé — JCBO Conseil" description="Le paiement a été annulé. Vous pouvez relancer la réservation à tout moment." noindex>
+  <Header />
+  <div class="pt-24"></div>
+
+  <section class="py-20 bg-offwhite">
+    <div class="max-w-[720px] mx-auto px-6">
+      <div class="bg-white rounded-2xl p-10 text-center border border-gold/10 shadow-sm">
+        <div class="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" style="background:rgba(212,167,98,0.1);">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h1 class="font-heading text-3xl font-bold text-navy mb-3">Paiement <span class="text-gold">non finalisé</span></h1>
+        <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
+        <p class="text-gray-500 mb-8 leading-relaxed">
+          Aucun montant n'a été débité. Vous pouvez relancer le processus de réservation, ou nous contacter pour étudier d'autres modes de paiement (virement, Mobile Money).
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="/reserver" class="bg-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold-light transition-all">
+            Reprendre la réservation
+          </a>
+          <a href="/contact" class="border-2 border-navy text-navy font-bold py-3 px-8 rounded-full hover:bg-navy hover:text-white transition-all">
+            Nous contacter
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

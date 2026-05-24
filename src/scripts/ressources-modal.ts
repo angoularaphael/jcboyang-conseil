@@ -64,8 +64,10 @@ export function initRessourcesModal(): void {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
-    const nom = String(fd.get("dl-name") ?? "").trim();
+    const nom = String(fd.get("dl-nom") ?? "").trim();
+    const prenom = String(fd.get("dl-prenom") ?? "").trim();
     const email = String(fd.get("dl-email") ?? "").trim();
+    const profession = String(fd.get("dl-profession") ?? "").trim();
     const newsletter = fd.get("dl-newsletter") === "on";
 
     setBtnLoading(submitBtn, true);
@@ -73,7 +75,7 @@ export function initRessourcesModal(): void {
       const res = await fetch(`${API_URL}/api/public/ressources/download`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom, email, resource: currentResource, newsletter }),
+        body: JSON.stringify({ nom, prenom, email, profession, resource: currentResource, newsletter }),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {

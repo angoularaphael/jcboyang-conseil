@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Method from '../components/Method.astro';
 import Footer from '../components/Footer.astro';
+import { adhesionUrl } from '../data/site-config';
 
 const galeryImages = [
   { src: '/images/aout2025/Séminaire août 2025 3.jpeg', alt: 'Séminaire international août 2025', label: 'Séminaire Août 2025' },
@@ -16,10 +17,67 @@ const credentials = [
   'Formateur en ESC',
   'Coach professionnel',
   'Partenaire AKOMCA',
-  'International'
+  'International',
+];
+
+const visionOrg = [
+  'Une vision claire',
+  'Un leadership responsable',
+  'Une culture de confiance',
+  'Une communication alignée',
+  'Une capacité collective à évoluer',
+];
+
+const domainesOrg = [
+  { title: 'Diagnostic organisationnel', desc: 'Analyse des blocages, dysfonctionnements, pertes d\'efficacité et leviers de performance.' },
+  { title: 'Structuration stratégique', desc: 'Clarification des priorités, des processus et des objectifs de croissance.' },
+  { title: 'Accompagnement du leadership', desc: 'Renforcement de la posture managériale, de la communication et de la prise de décision.' },
+  { title: 'Optimisation des performances', desc: 'Mise en place d\'outils de pilotage, d\'organisation et de suivi des résultats.' },
+  { title: 'Conduite du changement', desc: 'Accompagnement des équipes et des dirigeants dans les phases de transformation et d\'évolution.' },
+];
+
+const valeursOrg = [
+  'L\'écoute', 'L\'empathie', 'L\'intégrité', 'La transmission',
+  'Le respect de l\'altérité', 'L\'exigence professionnelle', 'L\'engagement humain', 'La responsabilité durable',
+];
+
+const objectifsOrg = [
+  'Gagner en clarté', 'Améliorer leur efficacité', 'Renforcer leur cohérence',
+  'Fluidifier leur fonctionnement', 'Développer une croissance durable', 'Fédérer leurs équipes autour d\'une vision commune',
+];
+
+const missionBiz = [
+  'Développer votre activité',
+  'Renforcer votre visibilité',
+  'Améliorer votre performance commerciale',
+  'Structurer votre développement',
+  'Construire une croissance durable et maîtrisée',
+];
+
+const expertisesBiz = [
+  { title: 'Stratégie de développement commercial', desc: 'Construction d\'une vision claire et d\'un plan de croissance structuré.' },
+  { title: 'Structuration des offres', desc: 'Clarification de la proposition de valeur et amélioration du positionnement.' },
+  { title: 'Développement de la performance commerciale', desc: 'Optimisation des méthodes de prospection, de négociation et de fidélisation.' },
+  { title: 'Accompagnement des dirigeants et équipes', desc: 'Renforcement de la posture commerciale, du leadership et de l\'impact relationnel.' },
+  { title: 'Business networking & opportunités', desc: 'Création de connexions stratégiques et développement de partenariats à forte valeur ajoutée.' },
+];
+
+const valeursBiz = [
+  'L\'écoute des besoins réels', 'Le respect des relations humaines', 'L\'éthique professionnelle', 'La création de valeur',
+  'La confiance', 'La responsabilité', 'La transmission', 'L\'impact durable',
+];
+
+const approcheBiz = [
+  'Une vision claire', 'Une méthode structurée', 'Une posture crédible', 'Une exécution disciplinée',
+  'Une stratégie adaptée aux réalités du terrain', 'Une relation humaine forte et authentique',
+];
+
+const pourquoiBiz = [
+  'Expérience terrain', 'Vision stratégique', 'Compréhension humaine',
+  'Intelligence relationnelle', 'Accompagnement opérationnel',
 ];
 ---
-<Layout title="JCBO — Expert Business Development Toulouse | Jean-Christophe Boyang-Tsang" description="Découvrez le parcours de Jean-Christophe Boyang-Tsang, consultant expert en business development avec 30 ans d'expérience terrain.">
+<Layout title="JCBO — Expert Business Development Toulouse | Jean-Christophe Boyang-Tsang" description="Découvrez JCBO-CONSEIL : transformation organisationnelle, business development et l'accompagnement de Jean-Christophe Boyang-Tsang, 30 ans d'expérience terrain.">
   <Header />
   <div class="pt-24"></div>
 
@@ -27,23 +85,21 @@ const credentials = [
   <section class="py-20 md:py-28 bg-white" id="about">
     <div class="max-w-[1200px] mx-auto px-6">
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.3fr] gap-12 lg:gap-16 items-center">
-        <!-- Image principale + badge -->
         <div class="relative" data-animate="fade-right">
           <div class="relative rounded-2xl overflow-hidden aspect-[3/4] max-w-[380px] mx-auto lg:mx-0 shadow-xl">
             <img src="/images/2022/IMG-20240503-WA0065.jpg" alt="Jean-Christophe Boyang-Tsang, fondateur de JCBO Conseil" class="w-full h-full object-cover" loading="lazy" />
           </div>
-          <!-- Badge expérience -->
           <div class="absolute -bottom-5 -right-3 lg:-right-5 bg-navy text-white py-5 px-7 rounded-xl shadow-xl text-center">
             <span class="block font-heading text-3xl font-bold text-gold leading-none">30+</span>
             <span class="text-[0.7rem] uppercase tracking-widest text-white/60">ans d'expertise</span>
           </div>
         </div>
 
-        <!-- Content -->
         <div data-animate="fade-left">
           <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Qui vous accompagne</span>
           <h1 class="font-heading text-[clamp(2rem,4vw,3rem)] font-bold text-navy mb-1">Jean-Christophe <span class="text-gold">Boyang-Tsang</span></h1>
-          <p class="text-gold font-accent italic text-xl mb-8">Consultant Expert en Business Development</p>
+          <p class="text-gold font-accent italic text-xl mb-2">Consultant Expert en Business Development</p>
+          <p class="text-sm text-gray-400 mb-8 uppercase tracking-widest">JCBO-CONSEIL · Stratégie · Mindset · Performance</p>
 
           <div class="space-y-4 text-gray-600 leading-relaxed text-lg">
             <p>
@@ -57,7 +113,6 @@ const credentials = [
             </p>
           </div>
 
-          <!-- Credentials -->
           <div class="flex flex-wrap gap-2 mt-10 mb-10">
             {credentials.map(c => (
               <div class="flex items-center gap-2 bg-offwhite border border-gold/10 rounded-lg px-4 py-2.5 text-sm hover:border-gold/30 transition-colors">
@@ -68,27 +123,207 @@ const credentials = [
           </div>
 
           <div class="flex flex-wrap gap-3">
+            <a href="#transformation-organisationnelle" class="inline-flex items-center gap-2 border-2 border-navy text-navy font-bold py-3 px-6 rounded-full hover:bg-navy hover:text-white transition-all text-sm">Transformation org.</a>
+            <a href="#business-development" class="inline-flex items-center gap-2 border-2 border-gold text-gold font-bold py-3 px-6 rounded-full hover:bg-gold hover:text-navy transition-all text-sm">Business Development</a>
             <a href="/contact" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3.5 px-8 rounded-full hover:bg-gold-light hover:-translate-y-0.5 transition-all">Discuter de votre situation</a>
           </div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <!-- Galerie photos JC Boyang -->
-      <div class="mt-20 pt-14 border-t border-gold/10" data-animate="fade-up">
-        <div class="text-center mb-10">
-          <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">En images</span>
-          <h3 class="font-heading text-xl md:text-2xl font-bold text-navy">Séminaires, formations & <span class="text-gold">événements</span></h3>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {galeryImages.map((img, i) => (
-            <div class="relative rounded-xl overflow-hidden aspect-square group" data-animate="fade-up" data-delay={String(i * 100)}>
-              <img src={img.src} alt={img.alt} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-              <div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                <span class="text-white text-xs font-semibold bg-gold/90 px-3 py-1 rounded-full">{img.label}</span>
-              </div>
+  <!-- ====== TRANSFORMATION ORGANISATIONNELLE ====== -->
+  <section class="py-20 bg-offwhite scroll-mt-28" id="transformation-organisationnelle">
+    <div class="max-w-[1000px] mx-auto px-6">
+      <div class="text-center mb-12" data-animate="fade-up">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Expertise JCBO-CONSEIL</span>
+        <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.5rem)] font-bold text-navy mb-3">
+          Consultant en <span class="text-gold">Transformation Organisationnelle</span>
+        </h2>
+        <p class="text-gray-500 italic text-lg max-w-2xl mx-auto">Transformer les organisations en plaçant l'humain au cœur de la performance</p>
+      </div>
+
+      <div class="space-y-6 text-gray-600 leading-relaxed mb-10" data-animate="fade-up">
+        <p>
+          Dans un environnement économique en constante évolution, de nombreuses entreprises disposent de talents, de compétences et d'opportunités… sans parvenir à transformer durablement leurs résultats.
+        </p>
+        <p>
+          Chez <strong class="text-navy">JCBO-CONSEIL</strong>, nous accompagnons les dirigeants, PME, institutions et organisations dans leurs démarches de transformation organisationnelle afin de renforcer leur performance, leur clarté stratégique et leur efficacité opérationnelle.
+        </p>
+      </div>
+
+      <div class="bg-white border border-gold/15 rounded-2xl p-8 mb-12 text-center" data-animate="fade-up">
+        <p class="font-heading text-navy font-bold mb-3">Notre approche repose sur une conviction forte :</p>
+        <p class="text-gray-600 mb-4">Une organisation performante ne dépend pas uniquement des outils.<br/>Elle dépend surtout de la qualité de sa structure, de son leadership… et des femmes et des hommes qui la font vivre.</p>
+        <p class="text-gold font-accent italic">Parce qu'aucune transformation durable ne peut réussir sans adhésion humaine, nous plaçons l'humain au cœur de toute stratégie et de toute action opérationnelle.</p>
+      </div>
+
+      <div class="mb-12" data-animate="fade-up">
+        <h3 class="font-heading text-xl font-bold text-navy mb-6 text-center">Notre vision</h3>
+        <p class="text-gray-500 text-sm text-center mb-6">Nous croyons qu'une organisation solide se construit grâce à :</p>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+          {visionOrg.map(v => (
+            <li class="flex items-center gap-3 bg-white rounded-xl px-5 py-3 border border-gold/10">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span class="text-navy text-sm font-medium">{v}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="mb-12" data-animate="fade-up">
+        <h3 class="font-heading text-xl font-bold text-navy mb-6 text-center">Nos domaines d'intervention</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {domainesOrg.map(d => (
+            <div class="bg-white rounded-xl p-6 border border-gold/10">
+              <h4 class="font-heading font-bold text-navy mb-2">{d.title}</h4>
+              <p class="text-sm text-gray-500 leading-relaxed">{d.desc}</p>
             </div>
           ))}
         </div>
+      </div>
+
+      <div class="bg-navy rounded-2xl p-8 md:p-10 text-white mb-12" data-animate="fade-up">
+        <h3 class="font-heading text-xl font-bold text-center mb-2">Nos <span class="text-gold">valeurs</span></h3>
+        <p class="text-white/50 text-sm text-center mb-6">Chez JCBO-CONSEIL, nos interventions s'appuient sur des valeurs fortes</p>
+        <div class="flex flex-wrap justify-center gap-2 mb-6">
+          {valeursOrg.map(v => (
+            <span class="bg-white/5 border border-gold/20 rounded-full px-4 py-1.5 text-sm">{v}</span>
+          ))}
+        </div>
+        <p class="text-center text-gold font-accent italic">La performance durable naît toujours d'un équilibre entre stratégie, organisation et humain.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10" data-animate="fade-up">
+        <div>
+          <h3 class="font-heading text-lg font-bold text-navy mb-4">Notre objectif</h3>
+          <p class="text-gray-500 text-sm mb-3">Aider les organisations à :</p>
+          <ul class="space-y-2">
+            {objectifsOrg.map(o => (
+              <li class="flex items-center gap-2 text-sm text-gray-600">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                {o}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-heading text-lg font-bold text-navy mb-4">Une approche humaine et stratégique</h3>
+          <p class="text-gray-500 text-sm mb-4">Chaque organisation possède son histoire, sa culture, ses défis et ses ambitions. C'est pourquoi nous privilégions un accompagnement :</p>
+          <div class="flex flex-wrap gap-2">
+            {['Personnalisé', 'Opérationnel', 'Structuré', 'Humain', 'Orienté résultats concrets'].map(a => (
+              <span class="bg-white border border-gold/15 rounded-lg px-3 py-1.5 text-sm text-navy font-medium">{a}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== BUSINESS DEVELOPMENT ====== -->
+  <section class="py-20 bg-white scroll-mt-28" id="business-development">
+    <div class="max-w-[1000px] mx-auto px-6">
+      <div class="text-center mb-12" data-animate="fade-up">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Expertise JCBO-CONSEIL</span>
+        <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.5rem)] font-bold text-navy mb-3">
+          Conseil en <span class="text-gold">Business Development</span>
+        </h2>
+        <p class="text-gray-500 italic text-lg max-w-2xl mx-auto">Développer votre croissance avec méthode, stratégie… et impact humain</p>
+        <p class="text-sm text-gray-400 mt-3">Accélérez votre croissance. Révélez votre potentiel.</p>
+      </div>
+
+      <div class="space-y-6 text-gray-600 leading-relaxed mb-10" data-animate="fade-up">
+        <p>
+          Le développement commercial ne repose plus uniquement sur la prospection ou la vente. Aujourd'hui, les entreprises qui se développent durablement sont celles qui savent structurer leur stratégie, clarifier leur positionnement, créer de la confiance, développer des relations solides et transformer leurs opportunités en résultats concrets.
+        </p>
+        <p>
+          Chez <strong class="text-navy">JCBO-CONSEIL</strong>, nous accompagnons les entreprises, dirigeants et entrepreneurs dans la structuration et l'accélération de leur développement business.
+        </p>
+      </div>
+
+      <div class="bg-offwhite border border-gold/15 rounded-2xl p-8 mb-12" data-animate="fade-up">
+        <p class="font-heading text-navy font-bold mb-3">Notre conviction</p>
+        <p class="text-gray-600 mb-4">Une croissance durable ne peut exister sans confiance. Et la confiance se construit avant tout dans la relation humaine, dans la qualité de l'écoute, dans la cohérence et dans la crédibilité.</p>
+        <p class="text-gold font-accent italic">C'est pourquoi nous plaçons l'humain au cœur de toutes nos stratégies de développement.</p>
+      </div>
+
+      <div class="mb-12" data-animate="fade-up">
+        <h3 class="font-heading text-xl font-bold text-navy mb-6 text-center">Notre mission</h3>
+        <p class="text-gray-500 text-sm text-center mb-4">Vous aider à :</p>
+        <ul class="space-y-2 max-w-lg mx-auto">
+          {missionBiz.map(m => (
+            <li class="flex items-center gap-3 bg-offwhite rounded-xl px-5 py-3 border border-gold/10">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span class="text-navy text-sm font-medium">{m}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="mb-12" data-animate="fade-up">
+        <h3 class="font-heading text-xl font-bold text-navy mb-6 text-center">Nos expertises</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {expertisesBiz.map(e => (
+            <div class="bg-offwhite rounded-xl p-6 border border-gold/10">
+              <h4 class="font-heading font-bold text-navy mb-2">{e.title}</h4>
+              <p class="text-sm text-gray-500 leading-relaxed">{e.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="bg-navy rounded-2xl p-8 md:p-10 text-white mb-12" data-animate="fade-up">
+        <h3 class="font-heading text-xl font-bold text-center mb-2">Nos <span class="text-gold">valeurs</span></h3>
+        <p class="text-white/50 text-sm text-center mb-6">Un business durable repose sur</p>
+        <div class="flex flex-wrap justify-center gap-2 mb-6">
+          {valeursBiz.map(v => (
+            <span class="bg-white/5 border border-gold/20 rounded-full px-4 py-1.5 text-sm">{v}</span>
+          ))}
+        </div>
+        <p class="text-center text-white/70 text-sm">Nous ne développons pas uniquement des chiffres. Nous développons des relations solides, crédibles et durables.</p>
+      </div>
+
+      <div class="mb-12" data-animate="fade-up">
+        <h3 class="font-heading text-lg font-bold text-navy mb-6 text-center">Notre approche</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {approcheBiz.map(a => (
+            <div class="flex items-center gap-2 bg-offwhite rounded-xl px-4 py-3 border border-gold/10 text-sm text-gray-600">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              {a}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="text-center bg-offwhite rounded-2xl p-8 border border-gold/10" data-animate="fade-up">
+        <h3 class="font-heading text-lg font-bold text-navy mb-4">Pourquoi JCBO-CONSEIL ?</h3>
+        <p class="text-gray-500 text-sm mb-4">Parce que nous combinons :</p>
+        <div class="flex flex-wrap justify-center gap-2 mb-6">
+          {pourquoiBiz.map(p => (
+            <span class="bg-white border border-gold/15 rounded-full px-4 py-1.5 text-sm text-navy font-medium">{p}</span>
+          ))}
+        </div>
+        <p class="text-gold font-accent italic">Notre ambition : faire de chaque entreprise accompagnée une organisation plus claire, plus humaine, plus solide et plus performante.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Galerie -->
+  <section class="py-20 bg-offwhite">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-10" data-animate="fade-up">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">En images</span>
+        <h3 class="font-heading text-xl md:text-2xl font-bold text-navy">Séminaires, formations & <span class="text-gold">événements</span></h3>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {galeryImages.map((img, i) => (
+          <div class="relative rounded-xl overflow-hidden aspect-square group" data-animate="fade-up" data-delay={String(i * 100)}>
+            <img src={img.src} alt={img.alt} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+            <div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+              <span class="text-white text-xs font-semibold bg-gold/90 px-3 py-1 rounded-full">{img.label}</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   </section>
@@ -103,6 +338,7 @@ const credentials = [
       <div class="flex items-center justify-center gap-4 flex-wrap">
         <a href="/reserver" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-4 px-10 rounded-full text-lg hover:bg-gold-light hover:-translate-y-0.5 transition-all">Réserver une séance</a>
         <a href="/contact" class="inline-flex items-center gap-2 border border-white/30 text-white font-bold py-4 px-10 rounded-full text-lg hover:border-gold hover:text-gold transition-all">Nous contacter</a>
+        <a href={`${adhesionUrl}/adherent/marketplace`} target="_blank" rel="noopener" class="inline-flex items-center gap-2 border border-gold/40 text-gold font-bold py-4 px-10 rounded-full text-lg hover:bg-gold hover:text-navy transition-all">Formations en ligne</a>
       </div>
     </div>
   </section>

@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { adhesionUrl } from '../data/site-config';
 
 const services = [
   {
@@ -69,6 +70,36 @@ const coachingModules = [
       <h1 class="font-heading text-[clamp(2rem,4.5vw,3rem)] font-bold text-navy mb-4">Nos <span class="text-gold">Prestations</span></h1>
       <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
       <p class="text-gray-500 max-w-2xl mx-auto">Des solutions concrètes avec des prix transparents. Chaque prestation est orientée résultats et adaptée à votre réalité.</p>
+    </div>
+  </section>
+
+  <!-- Expertises JCBO -->
+  <section class="py-16 bg-navy text-white">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-12">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">JCBO-CONSEIL</span>
+        <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold mb-4">Nos <span class="text-gold">expertises</span> phares</h2>
+        <p class="text-white/50 max-w-2xl mx-auto text-sm">Stratégie · Mindset · Performance — Accélérez votre croissance. Révélez votre potentiel.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <a href="/a-propos#transformation-organisationnelle" class="group bg-white/5 border border-gold/20 rounded-2xl p-8 hover:border-gold/50 hover:-translate-y-1 transition-all">
+          <span class="text-gold text-xs font-bold uppercase tracking-wider">Expertise</span>
+          <h3 class="font-heading text-xl font-bold text-white mt-2 mb-3 group-hover:text-gold transition-colors">Transformation Organisationnelle</h3>
+          <p class="text-white/60 text-sm leading-relaxed mb-4">Placer l'humain au cœur de la performance. Diagnostic, structuration, leadership et conduite du changement.</p>
+          <span class="text-gold text-sm font-semibold inline-flex items-center gap-1">En savoir plus <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        </a>
+        <a href="/a-propos#business-development" class="group bg-white/5 border border-gold/20 rounded-2xl p-8 hover:border-gold/50 hover:-translate-y-1 transition-all">
+          <span class="text-gold text-xs font-bold uppercase tracking-wider">Expertise</span>
+          <h3 class="font-heading text-xl font-bold text-white mt-2 mb-3 group-hover:text-gold transition-colors">Conseil en Business Development</h3>
+          <p class="text-white/60 text-sm leading-relaxed mb-4">Développer votre croissance avec méthode, stratégie et impact humain. Prospection, offre, networking.</p>
+          <span class="text-gold text-sm font-semibold inline-flex items-center gap-1">En savoir plus <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        </a>
+      </div>
+      <div class="text-center mt-10">
+        <a href={`${adhesionUrl}/adherent/marketplace`} target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold-light transition-all text-sm">
+          Accéder aux formations en ligne (marketplace)
+        </a>
+      </div>
     </div>
   </section>
 

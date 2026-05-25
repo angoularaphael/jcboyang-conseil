@@ -37,9 +37,14 @@ export function initRessourcesModal(): void {
   }
 
   let currentResource = "—";
+  let currentResourceId = "";
 
-  function openModal(resourceName: string): void {
+  const resourceIdInput = document.getElementById("dl-resource-id") as HTMLInputElement | null;
+
+  function openModal(resourceName: string, resourceId?: string): void {
     currentResource = resourceName;
+    currentResourceId = resourceId ?? "";
+    if (resourceIdInput) resourceIdInput.value = currentResourceId;
     nameEl.textContent = resourceName;
     modal.style.opacity = "1";
     modal.style.visibility = "visible";
@@ -52,7 +57,7 @@ export function initRessourcesModal(): void {
 
   document.querySelectorAll<HTMLButtonElement>(".download-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      openModal(btn.dataset.resource ?? "—");
+      openModal(btn.dataset.resource ?? "—", btn.dataset.resourceId);
     });
   });
 
@@ -75,14 +80,27 @@ export function initRessourcesModal(): void {
       const res = await fetch(`${API_URL}/api/public/ressources/download`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom, prenom, email, profession, resource: currentResource, newsletter }),
+        body: JSON.stringify({
+          nom,
+          prenom,
+          email,
+          profession,
+          resource: currentResource,
+          resourceId: currentResourceId || undefined,
+          newsletter,
+        }),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
         alert(data.error || "Erreur lors de l'envoi. Réessayez.");
         return;
       }
-      alert("Merci ! Le document vous a été envoyé par e-mail.");
+      const dataFull = data as { warning?: string };
+      if (dataFull.warning) {
+        alert(dataFull.warning);
+      } else {
+        alert("Merci ! Le document vous a été envoyé par e-mail (vérifiez vos spams).");
+      }
       closeModal();
       form.reset();
     } finally {

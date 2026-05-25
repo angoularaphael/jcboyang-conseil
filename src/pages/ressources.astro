@@ -5,96 +5,47 @@ import Footer from '../components/Footer.astro';
 import PageHero from '../components/PageHero.astro';
 import { heroMedia } from '../data/hero-media';
 
-const resources = [
-  {
-    title: 'Guide : Stratégie de croissance entrepreneuriale',
-    desc: 'Un guide complet pour structurer votre croissance et mettre en place une stratégie commerciale efficace.',
-    category: 'Stratégie',
-    pages: 'PDF',
-    icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
-    file: 'GUIDE PDF 1.pdf',
-  },
-  {
-    title: 'Guide : Développer son leadership d\'entrepreneur',
-    desc: 'Les clés du leadership entrepreneurial : posture, vision, prise de décision et influence.',
-    category: 'Leadership',
-    pages: 'PDF',
-    icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
-    file: 'GUIDE PDF 2.pdf',
-  },
-  {
-    title: 'Checklist : Structurer son activité',
-    desc: 'La checklist pas-à-pas pour organiser et structurer votre activité entrepreneuriale efficacement.',
-    category: 'Organisation',
-    pages: 'PDF',
-    icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2|M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2|M9 14l2 2 4-4',
-    file: 'checklist 1.pdf',
-  },
-  {
-    title: 'Checklist : Plan d\'action commercial',
-    desc: 'Votre checklist pour bâtir un plan d\'action commercial concret et mesurable.',
-    category: 'Vente',
-    pages: 'PDF',
-    icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2|M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2|M9 14l2 2 4-4',
-    file: 'checklist2.pdf',
-  },
-  {
-    title: 'Template : Plan d\'action 90 jours',
-    desc: 'Le template utilisé par JCBO Conseil pour planifier les 90 premiers jours d\'une stratégie commerciale.',
-    category: 'Stratégie',
-    pages: 'PDF Template',
-    icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z',
-    file: 'template.pdf',
-  },
-  {
-    title: 'L\'illusion du travail acharné',
-    desc: 'Comprendre pourquoi travailler plus n\'est pas toujours la solution. Changez de paradigme.',
-    category: 'Mindset',
-    pages: 'Image',
-    icon: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z',
-    file: 'illusion-du-travail.jpeg',
-  },
-  {
-    title: 'Devenir la meilleure version de soi',
-    desc: 'Les principes fondamentaux pour se développer continuellement en tant qu\'entrepreneur.',
-    category: 'Mindset',
-    pages: 'Image',
-    icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
-    file: 'devenir.jpeg',
-  },
-  {
-    title: 'Garder le contrôle de son activité',
-    desc: 'Comment maintenir la maîtrise de votre entreprise même dans les périodes de turbulence.',
-    category: 'Leadership',
-    pages: 'Image',
-    icon: 'M3 3h7v7H3z|M14 3h7v7h-7z|M3 14h7v7H3z|M14 14h7v7h-7z',
-    file: 'garder-le-controle.jpeg',
-  },
-  {
-    title: 'Vaincre la peur de l\'échec',
-    desc: 'La peur est le premier frein des entrepreneurs. Apprenez à la transformer en moteur.',
-    category: 'Mindset',
-    pages: 'Image',
-    icon: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z|M12 6v6l4 2',
-    file: 'la-peur.jpeg',
-  },
-  {
-    title: 'La loi de polarité en business',
-    desc: 'Comprendre comment les opposés s\'attirent et comment utiliser cette loi dans votre stratégie.',
-    category: 'Stratégie',
-    pages: 'Image',
-    icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
-    file: 'loi-de-polarite.jpeg',
-  },
-  {
-    title: 'Votre rêve entrepreneurial',
-    desc: 'Clarifier votre vision et transformer votre rêve en projet concret et réalisable.',
-    category: 'Mindset',
-    pages: 'Image',
-    icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z',
-    file: 'ton-reve.jpeg',
-  },
-];
+const API_URL = import.meta.env.PUBLIC_API_URL ?? 'https://adhesion-jcbo.vercel.app';
+
+type VitrineResource = {
+  id: string;
+  title: string;
+  desc: string;
+  category: string;
+  pages: string;
+  icon: string;
+};
+
+const defaultIcon = 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z|M14 2v6h6';
+
+const categoryIcons: Record<string, string> = {
+  Stratégie: 'M22 12h-4l-3 9L9 3l-3 9H2',
+  Leadership: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
+  Organisation: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2|M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2|M9 14l2 2 4-4',
+  Vente: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2|M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2|M9 14l2 2 4-4',
+  Mindset: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+};
+
+let resources: VitrineResource[] = [];
+
+try {
+  const res = await fetch(`${API_URL}/api/public/ressources`, { headers: { Accept: 'application/json' } });
+  if (res.ok) {
+    const data = (await res.json()) as {
+      ressources?: { id: string; titre: string; description?: string; categorie: string; nom_fichier?: string }[];
+    };
+    resources = (data.ressources ?? []).map((r) => ({
+      id: r.id,
+      title: r.titre,
+      desc: r.description || 'Ressource gratuite JCBO Conseil.',
+      category: r.categorie,
+      pages: r.nom_fichier?.toLowerCase().endsWith('.pdf') ? 'PDF' : 'Document',
+      icon: categoryIcons[r.categorie] ?? defaultIcon,
+    }));
+  }
+} catch {
+  /* liste vide si API indisponible */
+}
 ---
 <Layout title="Ressources Gratuites — JCBO Conseil | Guides PDF & Outils" description="Téléchargez gratuitement nos guides PDF, checklists et templates pour développer votre activité. Stratégie, mindset, vente.">
   <Header />
@@ -109,34 +60,43 @@ const resources = [
     </div>
   </PageHero>
 
-  <!-- Resources grid -->
   <section class="py-16 bg-offwhite">
     <div class="max-w-[1200px] mx-auto px-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {resources.map((r, i) => (
-          <div class="bg-white rounded-2xl border border-gold/10 p-7 hover:-translate-y-1 hover:shadow-lg transition-all group">
-            <div class="flex items-start gap-4 mb-5">
-              <div class="flex-shrink-0 w-14 h-14 bg-navy rounded-2xl flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2">{r.icon.split('|').map(d => <path d={d} />)}</svg>
+      {resources.length === 0 ? (
+        <div class="text-center py-16 bg-white rounded-2xl border border-gold/10">
+          <p class="text-navy font-semibold mb-2">Aucune ressource publiée pour le moment</p>
+          <p class="text-gray-500 text-sm">L'administrateur peut ajouter des ressources depuis le dashboard → Ressources, avec « Afficher sur la vitrine » coché.</p>
+        </div>
+      ) : (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {resources.map((r) => (
+            <div class="bg-white rounded-2xl border border-gold/10 p-7 hover:-translate-y-1 hover:shadow-lg transition-all group">
+              <div class="flex items-start gap-4 mb-5">
+                <div class="flex-shrink-0 w-14 h-14 bg-navy rounded-2xl flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2">{r.icon.split('|').map(d => <path d={d} />)}</svg>
+                </div>
+                <div>
+                  <span class="text-xs font-medium bg-gold/10 text-gold-dark px-3 py-1 rounded-full">{r.category}</span>
+                  <p class="text-xs text-gray-400 mt-1">{r.pages}</p>
+                </div>
               </div>
-              <div>
-                <span class="text-xs font-medium bg-gold/10 text-gold-dark px-3 py-1 rounded-full">{r.category}</span>
-                <p class="text-xs text-gray-400 mt-1">{r.pages}</p>
-              </div>
+              <h3 class="font-heading text-lg font-bold text-navy mb-2 group-hover:text-gold transition-colors">{r.title}</h3>
+              <p class="text-gray-500 text-sm mb-6 leading-relaxed">{r.desc}</p>
+              <button
+                class="download-btn w-full flex items-center justify-center gap-2 bg-navy text-white font-bold py-3 rounded-xl hover:bg-gold hover:text-navy transition-all"
+                data-resource={r.title}
+                data-resource-id={r.id}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Télécharger gratuitement
+              </button>
             </div>
-            <h3 class="font-heading text-lg font-bold text-navy mb-2 group-hover:text-gold transition-colors">{r.title}</h3>
-            <p class="text-gray-500 text-sm mb-6 leading-relaxed">{r.desc}</p>
-            <button class="download-btn w-full flex items-center justify-center gap-2 bg-navy text-white font-bold py-3 rounded-xl hover:bg-gold hover:text-navy transition-all" data-resource={r.title}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Télécharger gratuitement
-            </button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   </section>
 
-  <!-- Email capture modal -->
   <div id="downloadModal" class="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 invisible transition-all duration-300">
     <div class="bg-white rounded-2xl p-8 max-w-md w-full relative shadow-2xl">
       <button id="closeModal" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-offwhite flex items-center justify-center text-gray-400 hover:text-navy transition-colors">
@@ -147,8 +107,9 @@ const resources = [
       </div>
       <h3 class="font-heading text-xl font-bold text-navy text-center mb-2">Téléchargement gratuit</h3>
       <p class="text-gray-500 text-sm text-center mb-1" id="modal-resource-name">—</p>
-      <p class="text-gray-400 text-xs text-center mb-6">Entrez votre email pour recevoir le document et nos meilleurs conseils.</p>
+      <p class="text-gray-400 text-xs text-center mb-6">Le document vous sera envoyé par e-mail en pièce jointe.</p>
       <form id="downloadForm" class="space-y-4">
+        <input type="hidden" name="dl-resource-id" id="dl-resource-id" value="" />
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-sm font-semibold text-navy mb-1.5">Nom <span class="text-red-500">*</span></label>
@@ -172,14 +133,13 @@ const resources = [
           <span class="text-xs text-gray-500">J'accepte de recevoir les conseils et actualités de JCBO Conseil</span>
         </label>
         <button type="submit" class="w-full bg-gold text-navy font-bold py-3.5 rounded-full hover:bg-gold-light transition-all">
-          Recevoir le document
+          Recevoir le document par e-mail
         </button>
       </form>
       <p class="text-xs text-gray-400 text-center mt-4">Vos données sont protégées. Pas de spam, désinscription en 1 clic.</p>
     </div>
   </div>
 
-  <!-- CTA -->
   <section class="py-14 bg-navy text-center">
     <div class="max-w-[700px] mx-auto px-6">
       <h2 class="font-heading text-2xl font-bold text-white mb-4">Besoin d'un accompagnement <span class="text-gold">personnalisé</span> ?</h2>

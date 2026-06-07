@@ -51,9 +51,9 @@ export const POST: APIRoute = async ({ request }) => {
   const stripe = new Stripe(stripeKey);
   const origin = new URL(request.url).origin;
 
-  // Stripe Connect : 20% commission plateforme, 80% vers le compte connecté
+  // Stripe Connect : 80 % JCBO (plateforme), 20 % compte connecté
   const connectedAccountId = import.meta.env.STRIPE_CONNECTED_ACCOUNT_ID;
-  const platformFee = Math.round(sessionInfo.priceEur * 100 * 0.20);
+  const platformFee = Math.round(sessionInfo.priceEur * 100 * 0.8);
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",

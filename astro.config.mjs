@@ -4,7 +4,7 @@ import vercel from '@astrojs/vercel/serverless';
 
 export default defineConfig({
   integrations: [tailwind()],
-  site: 'https://jcboyang-conseil.vercel.app',
+  site: 'https://www.jcbo-conseil.com',
   output: 'server',
   adapter: vercel(),
 });

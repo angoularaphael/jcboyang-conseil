@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jcbo-conseil.com/sitemap-index.xml
+Sitemap: https://www.jcbo-conseil.com/sitemap.xml

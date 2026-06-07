@@ -1,4 +1,11 @@
 {
   "buildCommand": "npm run build",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "redirects": [
+    {
+      "source": "/favicon.ico",
+      "destination": "/images/logo.png",
+      "permanent": true
+    }
+  ]
 }

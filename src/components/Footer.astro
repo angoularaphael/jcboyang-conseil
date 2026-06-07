@@ -1,11 +1,31 @@
 ---
+const team = [
+  {
+    name: "Angoula Onambele Germain Raphael",
+    role: "Chef coordo",
+    github: "https://github.com/angoularaphael",
+    linkedin: "https://www.linkedin.com/in/germain-raphael-angoula-onambele-a6b858395",
+  },
+  {
+    name: "Mbosseu Brad Bruel",
+    role: "Développeur",
+    github: "https://github.com/mbosseu",
+    linkedin: "https://www.linkedin.com/in/brad-bruel-mbosseu-b95644397",
+  },
+  {
+    name: "Eddy Etame Etame",
+    role: "Développeur",
+    github: "https://github.com/Eddy-etame",
+    linkedin: "https://www.linkedin.com/in/eddy-etame-etame-47254338b/",
+  },
+];
 ---
 <footer class="bg-navy-dark text-white/60">
   <div class="max-w-[1200px] mx-auto px-6 py-14">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
       <!-- Brand -->
       <div>
-        <img src="/images/logo.png" alt="JCBO Conseil" width="55" height="64" class="mb-4" />
+        <img src="/images/logo.png" alt="JCBO Conseil" width="48" height="56" class="mb-4 w-12 h-auto" />
         <p class="text-sm leading-relaxed mb-5">Expert en stratégie commerciale. Conseil, formation et coaching pour accélérer la croissance des PME/TPE.</p>
         <div class="flex gap-3">
           <a href="https://www.facebook.com/profile.php?id=61553882894803" target="_blank" rel="noopener" aria-label="Facebook" class="w-9 h-9 rounded-full border border-gold/20 flex items-center justify-center text-gold hover:bg-gold hover:text-navy transition-all">
@@ -55,30 +75,19 @@
     </div>
 
     <!-- Équipe de développement -->
-    <div class="mt-12 pt-10 border-t border-white/10">
-      <h4 class="font-heading text-white font-semibold mb-5">Équipe de développement</h4>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div>
-          <p class="text-sm text-white font-medium mb-2">Angoula Onambele Germain Raphael</p>
-          <div class="flex gap-3">
-            <a href="https://github.com/angoularaphael" target="_blank" rel="noopener" aria-label="GitHub Angoula Raphael" class="text-xs text-gold hover:text-gold-light transition-colors">GitHub</a>
-            <a href="https://www.linkedin.com/in/germain-raphael-angoula-onambele-a6b858395" target="_blank" rel="noopener" aria-label="LinkedIn Angoula Raphael" class="text-xs text-gold hover:text-gold-light transition-colors">LinkedIn</a>
+    <div class="mt-10 pt-8 border-t border-white/10">
+      <h4 class="font-heading text-white text-sm font-semibold mb-4">Équipe de développement</h4>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl">
+        {team.map((member) => (
+          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+            <p class="text-xs text-white font-medium leading-snug mb-0.5">{member.name}</p>
+            <p class="text-[11px] text-gold/80 mb-2">{member.role}</p>
+            <div class="flex gap-3">
+              <a href={member.github} target="_blank" rel="noopener" class="text-[11px] text-gold hover:text-gold-light transition-colors">GitHub</a>
+              <a href={member.linkedin} target="_blank" rel="noopener" class="text-[11px] text-gold hover:text-gold-light transition-colors">LinkedIn</a>
+            </div>
           </div>
-        </div>
-        <div>
-          <p class="text-sm text-white font-medium mb-2">Mbosseu Brad Bruel</p>
-          <div class="flex gap-3">
-            <a href="https://github.com/mbosseu" target="_blank" rel="noopener" aria-label="GitHub Mbosseu Brad Bruel" class="text-xs text-gold hover:text-gold-light transition-colors">GitHub</a>
-            <a href="https://www.linkedin.com/in/brad-bruel-mbosseu-b95644397" target="_blank" rel="noopener" aria-label="LinkedIn Mbosseu Brad Bruel" class="text-xs text-gold hover:text-gold-light transition-colors">LinkedIn</a>
-          </div>
-        </div>
-        <div>
-          <p class="text-sm text-white font-medium mb-2">Eddy Etame Tame</p>
-          <div class="flex gap-3">
-            <a href="https://github.com/Eddy-etame" target="_blank" rel="noopener" aria-label="GitHub Eddy Etame" class="text-xs text-gold hover:text-gold-light transition-colors">GitHub</a>
-            <a href="https://www.linkedin.com/in/eddy-etame-etame-47254338b/" target="_blank" rel="noopener" aria-label="LinkedIn Eddy Etame" class="text-xs text-gold hover:text-gold-light transition-colors">LinkedIn</a>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   </div>

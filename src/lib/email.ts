@@ -1,25 +1,8 @@
-import nodemailer from "nodemailer";
 import { getContactEmail, getFromEmail, getNotifyEmail, getReplyToEmail } from "./email-config";
-
-function isSmtpConfigured(): boolean {
-  return !!(
-    import.meta.env.SMTP_HOST &&
-    import.meta.env.SMTP_USER &&
-    import.meta.env.SMTP_PASS
-  );
-}
+import { createSmtpTransport, isSmtpConfigured } from "./smtp";
 
 function createTransport() {
-  const port = Number(import.meta.env.SMTP_PORT ?? 587);
-  return nodemailer.createTransport({
-    host: import.meta.env.SMTP_HOST,
-    port,
-    secure: port === 465,
-    auth: {
-      user: import.meta.env.SMTP_USER,
-      pass: import.meta.env.SMTP_PASS,
-    },
-  });
+  return createSmtpTransport();
 }
 
 export type ReservationPayload = {

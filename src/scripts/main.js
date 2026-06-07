@@ -149,4 +149,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* --- Smooth scroll --- */
   document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', function (e) { e.preventDefault(); const t = document.querySelector(this.getAttribute('href')); if (t) t.scrollIntoView({ behavior: 'smooth' }); }));
+
+  /* --- Cookie banner --- */
+  const COOKIE_KEY = 'jcbo-cookie-consent';
+  const banner = document.getElementById('cookie-banner');
+  const stored = localStorage.getItem(COOKIE_KEY);
+
+  function hideBanner() {
+    if (banner) banner.classList.add('hidden');
+  }
+
+  if (!stored && banner) {
+    banner.classList.remove('hidden');
+  }
+
+  document.getElementById('cookie-accept')?.addEventListener('click', () => {
+    localStorage.setItem(COOKIE_KEY, 'accepted');
+    hideBanner();
+  });
+
+  document.getElementById('cookie-refuse')?.addEventListener('click', () => {
+    localStorage.setItem(COOKIE_KEY, 'refused');
+    hideBanner();
+  });
 });

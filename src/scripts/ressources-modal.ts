@@ -28,7 +28,6 @@ export function initRessourcesModal(): void {
   const formView = document.getElementById("downloadFormView");
   const successView = document.getElementById("downloadSuccessView");
   const successEmailEl = document.getElementById("downloadSuccessEmail");
-  const successLinkEl = document.getElementById("downloadSuccessLink");
   const successCloseBtn = document.getElementById("downloadSuccessClose");
   const errorEl = document.getElementById("downloadError");
   const submitBtn = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
@@ -60,21 +59,10 @@ export function initRessourcesModal(): void {
     }
   }
 
-  function showSuccessView(email: string, downloadUrl?: string): void {
+  function showSuccessView(email: string): void {
     formView.classList.add("hidden");
     successView.classList.remove("hidden");
-    successEmailEl.textContent = downloadUrl
-      ? `Une copie a aussi été envoyée à ${email}.`
-      : `Consultez votre boîte e-mail : ${email}`;
-    if (successLinkEl instanceof HTMLAnchorElement) {
-      if (downloadUrl) {
-        successLinkEl.href = downloadUrl;
-        successLinkEl.classList.remove("hidden");
-      } else {
-        successLinkEl.classList.add("hidden");
-        successLinkEl.removeAttribute("href");
-      }
-    }
+    successEmailEl.textContent = email;
   }
 
   function openModal(resourceName: string, resourceId?: string): void {
@@ -136,7 +124,7 @@ export function initRessourcesModal(): void {
           newsletter,
         }),
       });
-      const data = (await res.json()) as { error?: string; sentTo?: string; downloadUrl?: string };
+      const data = (await res.json()) as { error?: string; sentTo?: string };
       if (!res.ok) {
         if (errorEl) {
           errorEl.textContent = data.error || "Une erreur est survenue. Réessayez.";
@@ -144,7 +132,7 @@ export function initRessourcesModal(): void {
         }
         return;
       }
-      showSuccessView(data.sentTo || email, data.downloadUrl);
+      showSuccessView(data.sentTo || email);
     } finally {
       setBtnLoading(submitBtn, false);
     }

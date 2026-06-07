@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { getContactEmail, getFromEmail, getNotifyEmail, getReplyToEmail } from "./email-config";
 
 function isSmtpConfigured(): boolean {
   return !!(
@@ -41,8 +42,8 @@ export async function sendAdminReservationEmail(
     return { ok: false, error: "SMTP non configuré" };
   }
 
-  const adminEmail = import.meta.env.ADMIN_EMAIL ?? "contact@jcbo-conseil.fr";
-  const from = import.meta.env.FROM_EMAIL ?? `JCBO Conseil <noreply@jcbo-conseil.fr>`;
+  const adminEmail = getNotifyEmail();
+  const mail = { from: getFromEmail(), replyTo: getReplyToEmail() };
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -89,7 +90,7 @@ export async function sendAdminReservationEmail(
 
   try {
     await createTransport().sendMail({
-      from,
+      ...mail,
       to: adminEmail,
       subject: `[JCBO] Paiement reçu — ${payload.sessionLabel} (${payload.amount.toFixed(2)} ${payload.currency.toUpperCase()})`,
       html,
@@ -107,7 +108,6 @@ export async function sendCustomerReservationEmail(
   if (!isSmtpConfigured()) {
     return { ok: false, error: "SMTP non configuré" };
   }
-  const from = import.meta.env.FROM_EMAIL ?? `JCBO Conseil <noreply@jcbo-conseil.fr>`;
   const html = `<!DOCTYPE html><html lang="fr"><body style="font-family:Georgia,serif;padding:24px;color:#374151;">
     <p>Bonjour <strong>${payload.customerName}</strong>,</p>
     <p>Nous confirmons la réception de votre paiement pour la prestation suivante :</p>
@@ -117,11 +117,12 @@ export async function sendCustomerReservationEmail(
       Référence : <code>${payload.stripeSessionId}</code>
     </p>
     <p>Notre équipe vous recontactera très rapidement pour planifier votre séance.</p>
-    <p style="color:#9ca3af;font-size:12px;">JCBO Conseil — contact@jcbo-conseil.fr</p>
+    <p style="color:#9ca3af;font-size:12px;">JCBO Conseil — ${getContactEmail()}</p>
   </body></html>`;
   try {
     await createTransport().sendMail({
-      from,
+      from: getFromEmail(),
+      replyTo: getReplyToEmail(),
       to: payload.customerEmail,
       subject: `Confirmation de paiement — ${payload.sessionLabel}`,
       html,

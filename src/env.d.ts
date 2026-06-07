@@ -20,6 +20,9 @@ interface ImportMetaEnv {
   readonly SMTP_PASS?: string;
   readonly FROM_EMAIL?: string;
   readonly ADMIN_EMAIL?: string;
+  readonly CONTACT_EMAIL?: string;
+  readonly NOTIFY_EMAIL?: string;
+  readonly REPLY_TO_EMAIL?: string;
 }
 
 interface ImportMeta {

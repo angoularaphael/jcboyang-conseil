@@ -25,5 +25,22 @@
       </a>
     </div>
     <p class="absolute bottom-6 text-xs text-white/25">&copy; JCBO Conseil</p>
+
+    <script>
+      async function checkVitrineMaintenance() {
+        try {
+          const res = await fetch("/api/maintenance-status", { cache: "no-store" });
+          const data = await res.json();
+          if (!data.vitrine) {
+            window.location.replace("/");
+          }
+        } catch {
+          /* réessayer au prochain intervalle */
+        }
+      }
+
+      checkVitrineMaintenance();
+      setInterval(checkVitrineMaintenance, 3000);
+    </script>
   </body>
 </html>

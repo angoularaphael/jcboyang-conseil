@@ -2,25 +2,15 @@ import { defineMiddleware } from "astro:middleware";
 
 const API_URL = import.meta.env.PUBLIC_API_URL ?? "https://adhesion-jcbo.vercel.app";
 
-const MAINTENANCE_ALLOW = ["/maintenance"];
-
-let cachedMaintenance: { vitrine: boolean; fetchedAt: number } | null = null;
-const CACHE_TTL_MS = 30_000;
-
 async function isVitrineInMaintenance(): Promise<boolean> {
-  const now = Date.now();
-  if (cachedMaintenance && now - cachedMaintenance.fetchedAt < CACHE_TTL_MS) {
-    return cachedMaintenance.vitrine;
-  }
-
   try {
     const res = await fetch(`${API_URL}/api/public/maintenance`, {
       headers: { Accept: "application/json" },
+      cache: "no-store",
     });
     if (!res.ok) return false;
     const data = (await res.json()) as { vitrine?: boolean };
-    cachedMaintenance = { vitrine: !!data.vitrine, fetchedAt: now };
-    return cachedMaintenance.vitrine;
+    return !!data.vitrine;
   } catch {
     return false;
   }
@@ -29,11 +19,20 @@ async function isVitrineInMaintenance(): Promise<boolean> {
 export const onRequest = defineMiddleware(async (context, next) => {
   const path = new URL(context.request.url).pathname;
 
-  if (MAINTENANCE_ALLOW.some((p) => path.startsWith(p))) {
+  if (path.startsWith("/api/maintenance-status")) {
     return next();
   }
 
-  if (await isVitrineInMaintenance()) {
+  const inMaintenance = await isVitrineInMaintenance();
+
+  if (path.startsWith("/maintenance")) {
+    if (!inMaintenance) {
+      return context.redirect("/");
+    }
+    return next();
+  }
+
+  if (inMaintenance) {
     return context.redirect("/maintenance");
   }
 

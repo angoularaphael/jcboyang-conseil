@@ -1,0 +1,23 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+<Layout title="Page introuvable — JCBO Conseil" description="La page demandée n'existe plus ou a été déplacée. Retrouvez nos prestations, actualités et contact sur JCBO Conseil." noindex>
+  <Header />
+  <div class="pt-24"></div>
+  <main class="min-h-[60vh] flex items-center justify-center bg-offwhite px-6 py-20">
+    <div class="max-w-lg text-center">
+      <p class="text-gold font-accent italic text-sm uppercase tracking-widest mb-3">Erreur 404</p>
+      <h1 class="font-heading text-4xl font-bold text-navy mb-4">Page introuvable</h1>
+      <p class="text-gray-500 mb-8 leading-relaxed">
+        Cette adresse n'existe plus ou a été déplacée lors de la refonte du site JCBO Conseil.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/" class="inline-flex justify-center bg-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold-light transition-all">Accueil</a>
+        <a href="/contact" class="inline-flex justify-center border border-navy/20 text-navy font-bold py-3 px-8 rounded-full hover:border-gold hover:text-gold transition-all">Contact</a>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</Layout>

@@ -7,7 +7,7 @@ interface Props {
   noindex?: boolean;
 }
 const { title, description, noindex = false } = Astro.props;
-const currentUrl = new URL(Astro.url.pathname, 'https://jcbo-conseil.com').href;
+const currentUrl = new URL(Astro.url.pathname, 'https://www.jcbo-conseil.com').href;
 
 // JSON-LD AEO & SEO Structure
 const jsonLd = {
@@ -20,9 +20,9 @@ const jsonLd = {
     "jobTitle": "Consultant Expert en Business Development"
   },
   "description": "Expert en stratégie commerciale et marketing avec plus de 30 ans d'expérience. Conseil, formations et coaching pour PME/TPE à Toulouse et à l'international.",
-  "url": "https://jcbo-conseil.com",
-  "logo": "https://jcbo-conseil.com/images/logo.png",
-  "image": "https://jcbo-conseil.com/images/2022/IMG-20240503-WA0065.jpg",
+  "url": "https://www.jcbo-conseil.com",
+  "logo": "https://www.jcbo-conseil.com/images/logo.png",
+  "image": "https://www.jcbo-conseil.com/images/2022/IMG-20240503-WA0065.jpg",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Toulouse",
@@ -57,7 +57,7 @@ const jsonLd = {
   <meta property="og:url" content={currentUrl} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta property="og:image" content="https://jcbo-conseil.com/images/logo.png" />
+  <meta property="og:image" content="https://www.jcbo-conseil.com/images/logo.png" />
   <meta property="og:image:alt" content="Logo JCBO Conseil" />
   <meta property="og:locale" content="fr_FR" />
   <meta property="og:site_name" content="JCBO Conseil" />
@@ -65,7 +65,7 @@ const jsonLd = {
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
-  <meta name="twitter:image" content="https://jcbo-conseil.com/images/logo.png" />
+  <meta name="twitter:image" content="https://www.jcbo-conseil.com/images/logo.png" />
 
   <meta name="geo.region" content="FR-OCC" />
   <meta name="geo.placename" content="Toulouse" />

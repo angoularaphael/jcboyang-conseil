@@ -90,16 +90,20 @@ export function initRessourcesModal(): void {
           newsletter,
         }),
       });
-      const data = (await res.json()) as { error?: string };
+      const data = (await res.json()) as { error?: string; sentTo?: string; warning?: string };
       if (!res.ok) {
         alert(data.error || "Erreur lors de l'envoi. Réessayez.");
         return;
       }
-      const dataFull = data as { warning?: string };
-      if (dataFull.warning) {
-        alert(dataFull.warning);
+      const dest = data.sentTo || email;
+      if (data.warning) {
+        alert(`${data.warning}\n\nUn e-mail a été envoyé à ${dest}. Vérifiez Courrier indésirable et l'onglet Promotions.`);
       } else {
-        alert("Merci ! Le document vous a été envoyé par e-mail (vérifiez vos spams).");
+        alert(
+          `Merci ! Le document a été envoyé à ${dest}.\n\n` +
+            "Vérifiez votre boîte de réception, l'onglet Promotions et les spams (expéditeur : no-reply@jcbo-conseil.com). " +
+            "L'arrivée peut prendre quelques minutes."
+        );
       }
       closeModal();
       form.reset();

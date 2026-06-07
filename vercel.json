@@ -3,6 +3,12 @@
   "installCommand": "npm install",
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "jcbo-conseil.com" }],
+      "destination": "https://www.jcbo-conseil.com/:path*",
+      "permanent": true
+    },
+    {
       "source": "/favicon.ico",
       "destination": "/images/logo.png",
       "permanent": true

@@ -1,5 +1,6 @@
 ---
 import CookieBanner from '../components/CookieBanner.astro';
+import { getSiteJsonLd, SITE_URL } from '../lib/seo';
 
 interface Props {
   title: string;
@@ -7,37 +8,8 @@ interface Props {
   noindex?: boolean;
 }
 const { title, description, noindex = false } = Astro.props;
-const currentUrl = new URL(Astro.url.pathname, 'https://www.jcbo-conseil.com').href;
-
-// JSON-LD AEO & SEO Structure
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "ProfessionalService",
-  "name": "JCBO Conseil",
-  "founder": {
-    "@type": "Person",
-    "name": "Jean-Christophe Boyang-Tsang",
-    "jobTitle": "Consultant Expert en Business Development"
-  },
-  "description": "Expert en stratégie commerciale et marketing avec plus de 30 ans d'expérience. Conseil, formations et coaching pour PME/TPE à Toulouse et à l'international.",
-  "url": "https://www.jcbo-conseil.com",
-  "logo": "https://www.jcbo-conseil.com/images/logo.png",
-  "image": "https://www.jcbo-conseil.com/images/2022/IMG-20240503-WA0065.jpg",
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Toulouse",
-    "addressRegion": "Occitanie",
-    "addressCountry": "FR"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": "43.6047",
-    "longitude": "1.4442"
-  },
-  "areaServed": ["Toulouse", "France", "International"],
-  "priceRange": "$$",
-  "knowsAbout": ["Business Development", "Sales Training", "Coaching Dirigeant", "Stratégie Commerciale", "Mindset Entrepreneurial"]
-};
+const currentUrl = new URL(Astro.url.pathname, SITE_URL).href;
+const jsonLd = getSiteJsonLd();
 ---
 <!DOCTYPE html>
 <html lang="fr" class="scroll-smooth">

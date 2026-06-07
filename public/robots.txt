@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /maintenance
+Disallow: /reservation/
 
 Sitemap: https://www.jcbo-conseil.com/sitemap.xml

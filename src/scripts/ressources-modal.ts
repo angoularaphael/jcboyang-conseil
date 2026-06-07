@@ -25,13 +25,23 @@ export function initRessourcesModal(): void {
   const closeBtn = document.getElementById("closeModal");
   const nameEl = document.getElementById("modal-resource-name");
   const form = document.getElementById("downloadForm");
+  const formView = document.getElementById("downloadFormView");
+  const successView = document.getElementById("downloadSuccessView");
+  const successEmailEl = document.getElementById("downloadSuccessEmail");
+  const successLinkEl = document.getElementById("downloadSuccessLink");
+  const successCloseBtn = document.getElementById("downloadSuccessClose");
+  const errorEl = document.getElementById("downloadError");
   const submitBtn = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
 
   if (
     !modal ||
     !(closeBtn instanceof HTMLButtonElement) ||
     !nameEl ||
-    !(form instanceof HTMLFormElement)
+    !(form instanceof HTMLFormElement) ||
+    !formView ||
+    !successView ||
+    !successEmailEl ||
+    !(successCloseBtn instanceof HTMLButtonElement)
   ) {
     return;
   }
@@ -41,11 +51,39 @@ export function initRessourcesModal(): void {
 
   const resourceIdInput = document.getElementById("dl-resource-id") as HTMLInputElement | null;
 
+  function showFormView(): void {
+    formView.classList.remove("hidden");
+    successView.classList.add("hidden");
+    if (errorEl) {
+      errorEl.classList.add("hidden");
+      errorEl.textContent = "";
+    }
+  }
+
+  function showSuccessView(email: string, downloadUrl?: string): void {
+    formView.classList.add("hidden");
+    successView.classList.remove("hidden");
+    successEmailEl.textContent = downloadUrl
+      ? `Une copie a aussi été envoyée à ${email}.`
+      : `Consultez votre boîte e-mail : ${email}`;
+    if (successLinkEl instanceof HTMLAnchorElement) {
+      if (downloadUrl) {
+        successLinkEl.href = downloadUrl;
+        successLinkEl.classList.remove("hidden");
+      } else {
+        successLinkEl.classList.add("hidden");
+        successLinkEl.removeAttribute("href");
+      }
+    }
+  }
+
   function openModal(resourceName: string, resourceId?: string): void {
     currentResource = resourceName;
     currentResourceId = resourceId ?? "";
     if (resourceIdInput) resourceIdInput.value = currentResourceId;
     nameEl.textContent = resourceName;
+    form.reset();
+    showFormView();
     modal.style.opacity = "1";
     modal.style.visibility = "visible";
   }
@@ -53,6 +91,8 @@ export function initRessourcesModal(): void {
   function closeModal(): void {
     modal.style.opacity = "0";
     modal.style.visibility = "hidden";
+    showFormView();
+    form.reset();
   }
 
   document.querySelectorAll<HTMLButtonElement>(".download-btn").forEach((btn) => {
@@ -62,6 +102,7 @@ export function initRessourcesModal(): void {
   });
 
   closeBtn.addEventListener("click", closeModal);
+  successCloseBtn.addEventListener("click", closeModal);
   modal.addEventListener("click", (e) => {
     if (e.target === modal) closeModal();
   });
@@ -74,6 +115,11 @@ export function initRessourcesModal(): void {
     const email = String(fd.get("dl-email") ?? "").trim();
     const profession = String(fd.get("dl-profession") ?? "").trim();
     const newsletter = fd.get("dl-newsletter") === "on";
+
+    if (errorEl) {
+      errorEl.classList.add("hidden");
+      errorEl.textContent = "";
+    }
 
     setBtnLoading(submitBtn, true);
     try {
@@ -90,23 +136,15 @@ export function initRessourcesModal(): void {
           newsletter,
         }),
       });
-      const data = (await res.json()) as { error?: string; sentTo?: string; warning?: string };
+      const data = (await res.json()) as { error?: string; sentTo?: string; downloadUrl?: string };
       if (!res.ok) {
-        alert(data.error || "Erreur lors de l'envoi. Réessayez.");
+        if (errorEl) {
+          errorEl.textContent = data.error || "Une erreur est survenue. Réessayez.";
+          errorEl.classList.remove("hidden");
+        }
         return;
       }
-      const dest = data.sentTo || email;
-      if (data.warning) {
-        alert(`${data.warning}\n\nUn e-mail a été envoyé à ${dest}. Vérifiez Courrier indésirable et l'onglet Promotions.`);
-      } else {
-        alert(
-          `Merci ! Le document a été envoyé à ${dest}.\n\n` +
-            "Vérifiez votre boîte de réception, l'onglet Promotions et les spams (expéditeur : no-reply@jcbo-conseil.com). " +
-            "L'arrivée peut prendre quelques minutes."
-        );
-      }
-      closeModal();
-      form.reset();
+      showSuccessView(data.sentTo || email, data.downloadUrl);
     } finally {
       setBtnLoading(submitBtn, false);
     }

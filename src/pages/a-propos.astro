@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Method from '../components/Method.astro';
 import Footer from '../components/Footer.astro';
-import { adhesionUrl } from '../data/site-config';
+import { marketplaceUrl } from '../data/site-config';
 
 const galeryImages = [
   { src: '/images/aout2025/Séminaire août 2025 3.jpeg', alt: 'Séminaire international août 2025', label: 'Séminaire Août 2025' },
@@ -338,7 +338,7 @@ const pourquoiBiz = [
       <div class="flex items-center justify-center gap-4 flex-wrap">
         <a href="/reserver" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-4 px-10 rounded-full text-lg hover:bg-gold-light hover:-translate-y-0.5 transition-all">Réserver une séance</a>
         <a href="/contact" class="inline-flex items-center gap-2 border border-white/30 text-white font-bold py-4 px-10 rounded-full text-lg hover:border-gold hover:text-gold transition-all">Nous contacter</a>
-        <a href={`${adhesionUrl}/adherent/marketplace`} target="_blank" rel="noopener" class="inline-flex items-center gap-2 border border-gold/40 text-gold font-bold py-4 px-10 rounded-full text-lg hover:bg-gold hover:text-navy transition-all">Formations en ligne</a>
+        <a href={marketplaceUrl} class="inline-flex items-center gap-2 border border-gold/40 text-gold font-bold py-4 px-10 rounded-full text-lg hover:bg-gold hover:text-navy transition-all">Formations en ligne</a>
       </div>
     </div>
   </section>

@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 
-const API_URL = import.meta.env.PUBLIC_API_URL ?? "https://adhesion-jcbo.vercel.app";
+import { apiUrl as API_URL } from "../../data/site-config";
 
 const NO_CACHE = {
   "Content-Type": "application/json",

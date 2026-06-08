@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.PUBLIC_API_URL ?? "https://adhesion-jcbo.vercel.app";
+import { apiUrl as API_URL } from "../data/site-config";
 
 function runWhenReady(fn: () => void): void {
   if (document.readyState === "loading") {

@@ -5,7 +5,7 @@ import Footer from '../components/Footer.astro';
 import PageHero from '../components/PageHero.astro';
 import { heroMedia } from '../data/hero-media';
 
-const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'https://adhesion-jcbo.vercel.app';
+import { apiUrl } from '../data/site-config';
 
 let articles: {
   title: string;

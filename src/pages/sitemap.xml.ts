@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { SITE_URL } from "../lib/seo";
 
-const API_URL = import.meta.env.PUBLIC_API_URL ?? "https://adhesion-jcbo.vercel.app";
+import { apiUrl as API_URL } from "../data/site-config";
 
 const STATIC_PATHS = [
   "/",

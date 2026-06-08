@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 
-const API_URL = import.meta.env.PUBLIC_API_URL ?? "https://adhesion-jcbo.vercel.app";
+import { apiUrl as API_URL } from "./data/site-config";
 
 async function isVitrineInMaintenance(): Promise<boolean> {
   try {

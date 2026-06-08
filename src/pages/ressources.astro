@@ -5,7 +5,7 @@ import Footer from '../components/Footer.astro';
 import PageHero from '../components/PageHero.astro';
 import { heroMedia } from '../data/hero-media';
 
-const API_URL = import.meta.env.PUBLIC_API_URL ?? 'https://adhesion-jcbo.vercel.app';
+import { apiUrl as API_URL } from '../data/site-config';
 
 type VitrineResource = {
   id: string;

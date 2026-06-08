@@ -2,6 +2,8 @@
 
 interface ImportMetaEnv {
   readonly PUBLIC_API_URL?: string;
+  readonly PUBLIC_ADHESION_URL?: string;
+  readonly PUBLIC_VITRINE_URL?: string;
   readonly PUBLIC_HERO_VIDEO_URL?: string;
 
   // Stripe (clés serveur — ne PAS exposer côté client)

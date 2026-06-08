@@ -147,10 +147,10 @@ const sessions = [
             </div>
           </label>
           <label class="flex items-center gap-3 bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
-            <input type="radio" name="payment" value="transfer" class="w-4 h-4 accent-[#d4a762]" />
+            <input type="radio" name="payment" value="virement" class="w-4 h-4 accent-[#d4a762]" />
             <div class="flex items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              <span class="text-sm font-medium">Virement bancaire</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1m-7 5h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2z"/></svg>
+              <span class="text-sm font-medium">Virement bancaire (Zone Euro)</span>
             </div>
           </label>
           <label class="flex items-center gap-3 bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
@@ -160,6 +160,12 @@ const sessions = [
               <span class="text-sm font-medium">Mobile Money (Zone Afrique)</span>
             </div>
           </label>
+        </div>
+
+        <div id="virement-info" class="hidden bg-navy/5 border border-gold/20 rounded-xl p-5 mb-6 text-sm text-gray-600">
+          <p class="font-semibold text-navy mb-2">Paiement par virement (Qonto)</p>
+          <p class="mb-2">Après validation, vous recevrez par e-mail les coordonnées bancaires et une référence unique à indiquer lors du virement.</p>
+          <p class="text-xs text-gray-400">Titulaire : Jean-Christophe BOYANG-TSANG — IBAN FR76 1695 8000 0107 9747 1536 990</p>
         </div>
 
         <div class="flex items-start gap-3 mb-6">

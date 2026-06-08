@@ -126,6 +126,14 @@ export function initReserverBooking(): void {
 
   backStep2Btn.addEventListener('click', () => showStep(2));
 
+  const virementInfo = document.getElementById('virement-info');
+  document.querySelectorAll<HTMLInputElement>('input[name="payment"]').forEach((radio) => {
+    radio.addEventListener('change', () => {
+      if (!virementInfo) return;
+      virementInfo.classList.toggle('hidden', radio.value !== 'virement' || !radio.checked);
+    });
+  });
+
   payBtn.addEventListener('click', async () => {
     const consent = getInput('bk-consent');
     if (!consent?.checked) {
@@ -150,19 +158,18 @@ export function initReserverBooking(): void {
       return;
     }
 
-    if (paymentRadio && paymentRadio.value === 'transfer') {
-      alert(
-        "Pour un virement bancaire, notre équipe vous contactera par e-mail avec les coordonnées bancaires."
-      );
-      return;
-    }
-
-    const isMobileMoney = paymentRadio?.value === 'mobile';
-    const endpoint = isMobileMoney ? '/api/notchpay/checkout' : '/api/stripe/checkout';
+    const paymentMethod = paymentRadio?.value ?? 'card';
+    const isMobileMoney = paymentMethod === 'mobile';
+    const isVirement = paymentMethod === 'virement';
+    const endpoint = isMobileMoney
+      ? '/api/notchpay/checkout'
+      : isVirement
+        ? '/api/reservation/virement'
+        : '/api/stripe/checkout';
 
     const originalText = payBtn.innerHTML;
     payBtn.disabled = true;
-    payBtn.innerHTML = 'Redirection vers le paiement…';
+    payBtn.innerHTML = isVirement ? 'Enregistrement…' : 'Redirection vers le paiement…';
 
     try {
       const res = await fetch(endpoint, {
@@ -178,14 +185,25 @@ export function initReserverBooking(): void {
           message: messageVal.trim(),
         }),
       });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
+      const data = (await res.json()) as {
+        url?: string;
+        redirectUrl?: string;
+        error?: string;
+      };
+      if (!res.ok) {
         alert(data.error || 'Erreur lors de la création du paiement.');
         payBtn.disabled = false;
         payBtn.innerHTML = originalText;
         return;
       }
-      window.location.href = data.url;
+      const target = isVirement ? data.redirectUrl : data.url;
+      if (!target) {
+        alert(data.error || 'Erreur lors de la création du paiement.');
+        payBtn.disabled = false;
+        payBtn.innerHTML = originalText;
+        return;
+      }
+      window.location.href = target;
     } catch {
       alert("Erreur réseau. Veuillez réessayer.");
       payBtn.disabled = false;

@@ -1,0 +1,64 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { bankDetails } from '../../data/bank-details';
+
+const ref = Astro.url.searchParams.get('ref') ?? '';
+const amount = Astro.url.searchParams.get('amount') ?? '';
+const session = Astro.url.searchParams.get('session') ?? '';
+---
+<Layout title="Virement bancaire — JCBO Conseil" description="Coordonnées bancaires pour finaliser votre réservation par virement." noindex>
+  <Header />
+  <div class="pt-24"></div>
+
+  <section class="py-20 bg-offwhite">
+    <div class="max-w-[720px] mx-auto px-6">
+      <div class="bg-white rounded-2xl p-10 border border-gold/10 shadow-sm">
+        <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Réservation enregistrée</span>
+        <h1 class="font-heading text-3xl font-bold text-navy mb-3">Effectuez votre <span class="text-gold">virement</span></h1>
+        <div class="w-14 h-0.5 bg-gold mb-6"></div>
+
+        <p class="text-gray-500 mb-6 leading-relaxed">
+          Un e-mail récapitulatif vous a été envoyé. Pour confirmer votre réservation
+          {session ? <> pour « <strong class="text-navy">{session}</strong> »</> : null},
+          effectuez le virement ci-dessous en indiquant la référence.
+        </p>
+
+        {ref && (
+          <div class="bg-gold/10 border border-gold/30 rounded-xl p-5 mb-6 text-center">
+            <p class="text-xs font-bold uppercase tracking-wider text-gold-dark mb-1">Référence obligatoire</p>
+            <p class="font-mono text-lg font-bold text-navy">{ref}</p>
+          </div>
+        )}
+
+        {amount && (
+          <p class="text-center text-navy font-heading text-2xl font-bold mb-8">{amount} €</p>
+        )}
+
+        <div class="bg-offwhite rounded-xl p-6 space-y-3 text-sm">
+          <h2 class="font-heading font-bold text-navy mb-4">Coordonnées bancaires (Qonto)</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2">
+            <span class="text-gray-400">Titulaire</span><span class="text-navy font-medium">{bankDetails.holder}</span>
+            <span class="text-gray-400">Adresse</span><span class="text-navy">{bankDetails.address}</span>
+            <span class="text-gray-400">IBAN</span><span class="text-navy font-mono">{bankDetails.iban}</span>
+            <span class="text-gray-400">BIC / SWIFT</span><span class="text-navy font-mono">{bankDetails.bic}</span>
+            <span class="text-gray-400">Banque</span><span class="text-navy">{bankDetails.bankName}</span>
+            <span class="text-gray-400">Domiciliation</span><span class="text-navy">{bankDetails.bankAddress}</span>
+          </div>
+          <p class="text-xs text-gray-400 pt-3 border-t border-gray-200">{bankDetails.swiftNote}</p>
+        </div>
+
+        <p class="text-sm text-gray-500 mt-6">
+          Dès réception du virement, notre équipe vous recontactera pour planifier votre séance.
+        </p>
+
+        <a href="/" class="inline-flex items-center gap-2 mt-8 bg-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold-light transition-all">
+          Retour à l'accueil
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

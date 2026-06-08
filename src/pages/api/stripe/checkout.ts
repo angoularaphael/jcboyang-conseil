@@ -59,6 +59,16 @@ export const POST: APIRoute = async ({ request }) => {
     mode: "payment",
     payment_method_types: ["card"],
     customer_email: data.email,
+    invoice_creation: {
+      enabled: true,
+      invoice_data: {
+        description: `Réservation — ${sessionInfo.label}`,
+        metadata: {
+          source: "vitrine",
+          customerName: data.name,
+        },
+      },
+    },
     line_items: [
       {
         price_data: {
@@ -87,14 +97,14 @@ export const POST: APIRoute = async ({ request }) => {
     cancel_url: `${origin}/reservation/echec`,
   };
 
+  const paymentIntentData: Stripe.Checkout.SessionCreateParams.PaymentIntentData = {
+    receipt_email: data.email,
+  };
   if (connectedAccountId) {
-    sessionParams.payment_intent_data = {
-      application_fee_amount: platformFee,
-      transfer_data: {
-        destination: connectedAccountId,
-      },
-    };
+    paymentIntentData.application_fee_amount = platformFee;
+    paymentIntentData.transfer_data = { destination: connectedAccountId };
   }
+  sessionParams.payment_intent_data = paymentIntentData;
 
   const checkout = await stripe.checkout.sessions.create(sessionParams);
 

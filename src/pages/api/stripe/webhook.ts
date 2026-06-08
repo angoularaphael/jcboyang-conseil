@@ -1,11 +1,6 @@
 import type { APIRoute } from "astro";
 import Stripe from "stripe";
-import { getSupabase, isSupabaseConfigured } from "../../../lib/supabase";
-import {
-  sendAdminReservationEmail,
-  sendCustomerReservationEmail,
-  type ReservationPayload,
-} from "../../../lib/email";
+import { fulfillReservation } from "../../../lib/reservation-fulfill";
 
 export const POST: APIRoute = async ({ request }) => {
   const stripeKey = import.meta.env.STRIPE_SECRET_KEY;
@@ -45,64 +40,10 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ recu: true, ignored: "non-vitrine" }), { status: 200 });
   }
 
-  const amount = (session.amount_total ?? 0) / 100;
-  const currency = session.currency ?? "eur";
-
-  const payload: ReservationPayload = {
-    customerName: meta.customerName ?? "Client",
-    customerEmail: session.customer_email ?? meta.customerEmail ?? "",
-    customerPhone: meta.customerPhone ?? "",
-    company: meta.customerCompany ?? "",
-    sessionLabel: meta.sessionLabel ?? "Réservation",
-    date: meta.desiredDate ?? "",
-    message: meta.customerMessage ?? "",
-    amount,
-    currency,
-    stripeSessionId: session.id,
-  };
-
-  // 1) Notification admin dans Supabase (dashboard)
-  if (isSupabaseConfigured()) {
-    try {
-      const supa = getSupabase();
-      await supa.from("admin_notifications").insert({
-        id: `NOTIF-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        type: "paiement_vitrine",
-        titre: `Paiement reçu — ${payload.sessionLabel}`,
-        message:
-          `${payload.customerName} (${payload.customerEmail}) a payé ${payload.amount.toFixed(2)} ` +
-          `${payload.currency.toUpperCase()} pour « ${payload.sessionLabel} ».`,
-        metadata: {
-          stripeSessionId: payload.stripeSessionId,
-          amount: payload.amount,
-          currency: payload.currency,
-          customer: {
-            name: payload.customerName,
-            email: payload.customerEmail,
-            phone: payload.customerPhone,
-            company: payload.company,
-          },
-          sessionLabel: payload.sessionLabel,
-          desiredDate: payload.date,
-          message: payload.message,
-        },
-        lue: false,
-      });
-    } catch (err) {
-      // On loggue mais on ne fait pas échouer le webhook : Stripe retenterait sinon.
-      console.error("[webhook] Insertion admin_notifications échouée :", err);
-    }
+  const result = await fulfillReservation(stripe, session.id);
+  if (!result.ok) {
+    console.error("[webhook] Fulfillment échoué :", result.error);
   }
 
-  // 2) Emails (admin + client)
-  try {
-    await Promise.all([
-      sendAdminReservationEmail(payload),
-      sendCustomerReservationEmail(payload),
-    ]);
-  } catch (err) {
-    console.error("[webhook] Envoi des e-mails échoué :", err);
-  }
-
-  return new Response(JSON.stringify({ recu: true }), { status: 200 });
+  return new Response(JSON.stringify({ recu: true, ...result }), { status: 200 });
 };

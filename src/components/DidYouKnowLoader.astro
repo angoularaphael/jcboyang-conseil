@@ -1,0 +1,92 @@
+---
+import { didYouKnowFacts, homePreloadImages } from '../data/did-you-know';
+
+interface Props {
+  images?: readonly string[];
+  facts?: readonly string[];
+}
+
+const images = Astro.props.images ?? homePreloadImages;
+const facts = Astro.props.facts ?? didYouKnowFacts;
+const firstFact = facts[0] ?? '';
+---
+
+<div
+  id="dyk-loader"
+  class="fixed inset-0 z-[10050] flex flex-col items-center justify-center bg-navy text-white px-6 transition-opacity duration-500"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="dyk-title"
+  aria-describedby="dyk-fact"
+>
+  <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+    <div class="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full bg-gold/5 blur-3xl"></div>
+    <div class="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full bg-gold/8 blur-3xl"></div>
+  </div>
+
+  <div class="relative z-10 max-w-lg w-full text-center">
+    <img
+      src="/images/logo.png"
+      alt="JCBO Conseil"
+      width="72"
+      height="84"
+      class="mx-auto mb-8 opacity-90"
+    />
+
+    <p id="dyk-title" class="font-accent italic text-gold text-sm uppercase tracking-[0.2em] mb-3">
+      Le saviez-vous ?
+    </p>
+
+    <p
+      id="dyk-fact"
+      class="font-heading text-lg md:text-xl leading-relaxed text-white/90 min-h-[4.5rem] flex items-center justify-center transition-opacity duration-300"
+    >
+      {firstFact}
+    </p>
+
+    <div class="mt-10 max-w-xs mx-auto">
+      <div class="h-1 bg-white/10 rounded-full overflow-hidden">
+        <div
+          id="dyk-progress-bar"
+          class="h-full bg-gold rounded-full transition-all duration-300 ease-out"
+          style="width: 0%"
+        ></div>
+      </div>
+      <p id="dyk-progress-text" class="text-[0.65rem] text-white/35 uppercase tracking-widest mt-3">
+        Chargement des images…
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  #dyk-loader.dyk-fade-out {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #dyk-fact.dyk-fact-exit {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  #dyk-fact.dyk-fact-enter {
+    animation: dykFactIn 0.4s ease forwards;
+  }
+
+  @keyframes dykFactIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script define:vars={{ images: [...images], facts: [...facts] }}>
+  import { initDidYouKnowLoader } from '../scripts/did-you-know-loader';
+  initDidYouKnowLoader(images, facts);
+</script>

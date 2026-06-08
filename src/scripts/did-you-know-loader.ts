@@ -1,28 +1,29 @@
-const STORAGE_KEY = "jcbo-dyk-seen";
-const MIN_DISPLAY_MS = 2800;
-const MAX_WAIT_MS = 12000;
-const FACT_INTERVAL_MS = 3500;
+const STORAGE_KEY = "jcbo-dyk-dismissed";
+const FACT_INTERVAL_MS = 3000;
+
+function preloadImages(urls: string[]): void {
+  urls.forEach((url) => {
+    const img = new Image();
+    img.src = url;
+  });
+}
 
 export function initDidYouKnowLoader(imageUrls: string[], facts: string[]): void {
-  const loader = document.getElementById("dyk-loader");
-  if (!loader || facts.length === 0) return;
+  const banner = document.getElementById("dyk-banner");
+  if (!banner || facts.length === 0) return;
 
-  if (sessionStorage.getItem(STORAGE_KEY)) {
-    loader.remove();
+  if (localStorage.getItem(STORAGE_KEY)) {
+    banner.remove();
     return;
   }
 
-  const factEl = document.getElementById("dyk-fact");
-  const progressBar = document.getElementById("dyk-progress-bar");
-  const progressText = document.getElementById("dyk-progress-text");
-  let factIndex = 0;
-  let loaded = 0;
-  const total = imageUrls.length;
-  const startTime = Date.now();
-  let imagesDone = total === 0;
-  let dismissed = false;
+  preloadImages(imageUrls);
 
-  document.body.style.overflow = "hidden";
+  const factEl = document.getElementById("dyk-fact");
+  const dismissBtn = document.getElementById("dyk-dismiss");
+  const closeBtn = document.getElementById("dyk-close");
+  let factIndex = 0;
+  let dismissed = false;
 
   const factInterval = window.setInterval(() => {
     if (dismissed || !factEl) return;
@@ -33,52 +34,19 @@ export function initDidYouKnowLoader(imageUrls: string[], facts: string[]): void
       factEl.textContent = facts[factIndex];
       factEl.classList.remove("dyk-fact-exit");
       factEl.classList.add("dyk-fact-enter");
-      window.setTimeout(() => factEl.classList.remove("dyk-fact-enter"), 400);
-    }, 300);
+      window.setTimeout(() => factEl.classList.remove("dyk-fact-enter"), 350);
+    }, 250);
   }, FACT_INTERVAL_MS);
-
-  function updateProgress(): void {
-    const pct = total > 0 ? Math.round((loaded / total) * 100) : 100;
-    if (progressBar) progressBar.style.width = `${pct}%`;
-    if (progressText) progressText.textContent = total > 0 ? `${pct} %` : "";
-  }
 
   function dismiss(): void {
     if (dismissed) return;
     dismissed = true;
     window.clearInterval(factInterval);
-    sessionStorage.setItem(STORAGE_KEY, "1");
-    loader.classList.add("dyk-fade-out");
-    document.body.style.overflow = "";
-    window.setTimeout(() => loader.remove(), 650);
+    localStorage.setItem(STORAGE_KEY, "1");
+    banner.classList.add("dyk-fade-out");
+    window.setTimeout(() => banner.remove(), 400);
   }
 
-  function tryDismiss(): void {
-    if (!imagesDone || dismissed) return;
-    const elapsed = Date.now() - startTime;
-    const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed);
-    window.setTimeout(dismiss, remaining);
-  }
-
-  updateProgress();
-
-  imageUrls.forEach((url) => {
-    const img = new Image();
-    const done = () => {
-      loaded += 1;
-      updateProgress();
-      if (loaded >= total) {
-        imagesDone = true;
-        tryDismiss();
-      }
-    };
-    img.onload = done;
-    img.onerror = done;
-    img.src = url;
-  });
-
-  window.setTimeout(() => {
-    imagesDone = true;
-    tryDismiss();
-  }, MAX_WAIT_MS);
+  dismissBtn?.addEventListener("click", dismiss);
+  closeBtn?.addEventListener("click", dismiss);
 }

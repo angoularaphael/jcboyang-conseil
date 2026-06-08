@@ -12,77 +12,67 @@ const firstFact = facts[0] ?? '';
 ---
 
 <div
-  id="dyk-loader"
-  class="fixed inset-0 z-[10050] flex flex-col items-center justify-center bg-navy text-white px-6 transition-opacity duration-500"
-  role="dialog"
-  aria-modal="true"
+  id="dyk-banner"
+  class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-[1001] bg-navy text-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] border border-gold/25 overflow-hidden transition-all duration-400"
+  role="status"
+  aria-live="polite"
   aria-labelledby="dyk-title"
-  aria-describedby="dyk-fact"
 >
-  <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-    <div class="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full bg-gold/5 blur-3xl"></div>
-    <div class="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full bg-gold/8 blur-3xl"></div>
-  </div>
-
-  <div class="relative z-10 max-w-lg w-full text-center">
-    <img
-      src="/images/logo.png"
-      alt="JCBO Conseil"
-      width="72"
-      height="84"
-      class="mx-auto mb-8 opacity-90"
-    />
-
-    <p id="dyk-title" class="font-accent italic text-gold text-sm uppercase tracking-[0.2em] mb-3">
-      Le saviez-vous ?
-    </p>
-
-    <p
-      id="dyk-fact"
-      class="font-heading text-lg md:text-xl leading-relaxed text-white/90 min-h-[4.5rem] flex items-center justify-center transition-opacity duration-300"
-    >
-      {firstFact}
-    </p>
-
-    <div class="mt-10 max-w-xs mx-auto">
-      <div class="h-1 bg-white/10 rounded-full overflow-hidden">
-        <div
-          id="dyk-progress-bar"
-          class="h-full bg-gold rounded-full transition-all duration-300 ease-out"
-          style="width: 0%"
-        ></div>
-      </div>
-      <p id="dyk-progress-text" class="text-[0.65rem] text-white/35 uppercase tracking-widest mt-3">
-        Chargement des images…
-      </p>
+  <div class="flex items-start gap-3 p-4 pr-3">
+    <div class="shrink-0 w-8 h-8 rounded-lg bg-gold/15 flex items-center justify-center mt-0.5" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+      </svg>
     </div>
+
+    <div class="flex-1 min-w-0">
+      <p id="dyk-title" class="font-accent italic text-gold text-xs uppercase tracking-[0.15em] mb-1">
+        Le saviez-vous ?
+      </p>
+      <p
+        id="dyk-fact"
+        class="text-sm leading-snug text-white/90 transition-opacity duration-300"
+      >
+        {firstFact}
+      </p>
+      <button
+        type="button"
+        id="dyk-dismiss"
+        class="mt-2 text-[0.7rem] text-gold/70 hover:text-gold underline underline-offset-2 transition-colors"
+      >
+        Ne plus afficher
+      </button>
+    </div>
+
+    <button
+      type="button"
+      id="dyk-close"
+      class="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors text-lg leading-none"
+      aria-label="Fermer"
+    >
+      &times;
+    </button>
   </div>
 </div>
 
 <style>
-  #dyk-loader.dyk-fade-out {
+  #dyk-banner.dyk-fade-out {
     opacity: 0;
+    transform: translateY(12px);
     pointer-events: none;
   }
 
   #dyk-fact.dyk-fact-exit {
     opacity: 0;
-    transform: translateY(8px);
   }
 
   #dyk-fact.dyk-fact-enter {
-    animation: dykFactIn 0.4s ease forwards;
+    animation: dykFactIn 0.35s ease forwards;
   }
 
   @keyframes dykFactIn {
-    from {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
 

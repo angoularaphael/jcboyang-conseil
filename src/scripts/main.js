@@ -172,4 +172,69 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(COOKIE_KEY, 'refused');
     hideBanner();
   });
+
+  /* --- Le saviez-vous ? --- */
+  const DYK_STORAGE_KEY = 'jcbo-dyk-dismissed';
+  const dykBanner = document.getElementById('dyk-banner');
+
+  if (dykBanner) {
+    if (localStorage.getItem(DYK_STORAGE_KEY)) {
+      dykBanner.remove();
+    } else {
+      let dykFacts = [];
+      let dykImages = [];
+      try {
+        dykFacts = JSON.parse(dykBanner.dataset.facts || '[]');
+        dykImages = JSON.parse(dykBanner.dataset.images || '[]');
+      } catch {
+        dykBanner.remove();
+        dykFacts = [];
+      }
+
+      if (dykFacts.length) {
+        dykImages.forEach((url) => { const img = new Image(); img.src = url; });
+
+        const dykFactEl = document.getElementById('dyk-fact');
+        const dykDismissBtn = document.getElementById('dyk-dismiss');
+        const dykCloseBtn = document.getElementById('dyk-close');
+        let dykIndex = 0;
+        let dykDismissed = false;
+
+        const dykInterval = setInterval(() => {
+          if (dykDismissed || !dykFactEl) return;
+          dykIndex = (dykIndex + 1) % dykFacts.length;
+          dykFactEl.classList.add('dyk-fact-exit');
+          setTimeout(() => {
+            if (dykDismissed || !dykFactEl) return;
+            dykFactEl.textContent = dykFacts[dykIndex];
+            dykFactEl.classList.remove('dyk-fact-exit');
+            dykFactEl.classList.add('dyk-fact-enter');
+            setTimeout(() => dykFactEl.classList.remove('dyk-fact-enter'), 350);
+          }, 250);
+        }, 3000);
+
+        function hideDykBanner() {
+          if (dykDismissed) return;
+          dykDismissed = true;
+          clearInterval(dykInterval);
+          dykBanner.classList.add('dyk-fade-out');
+          setTimeout(() => dykBanner.remove(), 400);
+        }
+
+        dykDismissBtn?.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          localStorage.setItem(DYK_STORAGE_KEY, '1');
+          hideDykBanner();
+        });
+
+        dykCloseBtn?.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          localStorage.setItem(DYK_STORAGE_KEY, '1');
+          hideDykBanner();
+        });
+      }
+    }
+  }
 });

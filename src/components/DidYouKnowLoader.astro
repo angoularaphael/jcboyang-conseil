@@ -13,10 +13,12 @@ const firstFact = facts[0] ?? '';
 
 <div
   id="dyk-banner"
-  class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-[1001] bg-navy text-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] border border-gold/25 overflow-hidden transition-all duration-400"
+  class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-[1100] bg-navy text-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] border border-gold/25 overflow-hidden transition-all duration-400"
   role="status"
   aria-live="polite"
   aria-labelledby="dyk-title"
+  data-facts={JSON.stringify([...facts])}
+  data-images={JSON.stringify([...images])}
 >
   <div class="flex items-start gap-3 p-4 pr-3">
     <div class="shrink-0 w-8 h-8 rounded-lg bg-gold/15 flex items-center justify-center mt-0.5" aria-hidden="true">
@@ -38,7 +40,7 @@ const firstFact = facts[0] ?? '';
       <button
         type="button"
         id="dyk-dismiss"
-        class="mt-2 text-[0.7rem] text-gold/70 hover:text-gold underline underline-offset-2 transition-colors"
+        class="mt-2 text-[0.7rem] text-gold/70 hover:text-gold underline underline-offset-2 transition-colors cursor-pointer"
       >
         Ne plus afficher
       </button>
@@ -47,7 +49,7 @@ const firstFact = facts[0] ?? '';
     <button
       type="button"
       id="dyk-close"
-      class="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors text-lg leading-none"
+      class="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors text-lg leading-none cursor-pointer"
       aria-label="Fermer"
     >
       &times;
@@ -75,8 +77,3 @@ const firstFact = facts[0] ?? '';
     to { opacity: 1; transform: translateY(0); }
   }
 </style>
-
-<script define:vars={{ images: [...images], facts: [...facts] }}>
-  import { initDidYouKnowLoader } from '../scripts/did-you-know-loader';
-  initDidYouKnowLoader(images, facts);
-</script>

@@ -36,9 +36,13 @@ export const POST: APIRoute = async ({ request }) => {
 
   const txData = (payload.data ?? payload) as Record<string, unknown>;
   const reference = String(txData.reference ?? txData.trxref ?? "");
-  if (!reference) return new Response("Référence manquante", { status: 400 });
+  const trxId = String(txData.id ?? txData.trx ?? "").trim();
+  if (!reference && !trxId) return new Response("Référence manquante", { status: 400 });
 
-  const verification = await verifyNotchpayPaymentIsComplete(reference);
+  const verification = await verifyNotchpayPaymentIsComplete(
+    reference || trxId,
+    reference && trxId && reference !== trxId ? trxId : undefined
+  );
   if (!verification.complete) {
     console.info(
       `[notchpay webhook] payment.complete ignoré (statut API: ${verification.paymentStatus})`
@@ -49,7 +53,10 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  const result = await fulfillNotchpayReservation(verification.reference);
+  const result = await fulfillNotchpayReservation(
+    verification.reference,
+    trxId && trxId !== verification.reference ? trxId : undefined
+  );
   if (!result.ok) {
     return new Response(JSON.stringify({ error: result.error, paymentStatus: result.paymentStatus }), {
       status: 400,

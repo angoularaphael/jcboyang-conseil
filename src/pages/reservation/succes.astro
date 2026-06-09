@@ -2,7 +2,10 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { pickVitrineReferenceFromUrl } from '../../lib/notchpay-reference';
+import {
+  pickNotchpayTrxIdFromUrl,
+  pickVitrineReferenceFromUrl,
+} from '../../lib/notchpay-reference';
 
 const sessionId = Astro.url.searchParams.get('session_id') ?? '';
 const provider = Astro.url.searchParams.get('provider') ?? '';
@@ -10,6 +13,7 @@ const notchReference =
   provider === 'notchpay'
     ? pickVitrineReferenceFromUrl(Astro.url.searchParams)
     : Astro.url.searchParams.get('reference') ?? Astro.url.searchParams.get('trxref') ?? '';
+const notchTrxId = provider === 'notchpay' ? pickNotchpayTrxIdFromUrl(Astro.url.searchParams) : '';
 const paymentRef = provider === 'notchpay' ? notchReference : sessionId;
 const factureParam = provider === 'notchpay' ? 'reference' : 'session_id';
 const factureId = provider === 'notchpay' ? notchReference : sessionId;
@@ -84,7 +88,7 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
 </Layout>
 
 {shouldVerify && (
-  <script define:vars={{ sessionId, provider, notchReference }}>
+  <script define:vars={{ sessionId, provider, notchReference, notchTrxId }}>
     function formatXaf(n) {
       return `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
     }
@@ -183,8 +187,16 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
       }
     }
 
+    function buildNotchpayApiQuery() {
+      const params = new URLSearchParams();
+      if (notchReference) params.set("ref", notchReference);
+      if (notchTrxId) params.set("trx", notchTrxId);
+      if (!notchReference && notchTrxId) params.set("reference", notchTrxId);
+      return params.toString();
+    }
+
     async function verifyNotchpayPayment(paymentRef, loadingText) {
-      if (!paymentRef) {
+      if (!paymentRef && !notchTrxId) {
         redirectToFailure(
           { statusMessage: "Référence de paiement introuvable. Le paiement n'a pas pu être vérifié." },
           paymentRef
@@ -192,8 +204,9 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
         return;
       }
 
-      const statusUrl = `/api/notchpay/payment-status?reference=${encodeURIComponent(paymentRef)}`;
-      const fulfillUrl = `/api/notchpay/fulfill?reference=${encodeURIComponent(paymentRef)}`;
+      const query = buildNotchpayApiQuery();
+      const statusUrl = `/api/notchpay/payment-status?${query}`;
+      const fulfillUrl = `/api/notchpay/fulfill?${query}`;
       const maxAttempts = 12;
 
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -258,9 +271,9 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
 
       redirectToFailure(
         {
-          paymentStatus: "pending",
+          paymentStatus: "failed",
           statusMessage:
-            "Impossible de confirmer le paiement pour le moment. Si vous avez validé sur votre téléphone, vérifiez votre e-mail ou contactez-nous.",
+            "Paiement non confirmé. Aucun montant n'a été débité. Si vous pensez qu'il s'agit d'une erreur, contactez-nous.",
         },
         paymentRef
       );
@@ -314,7 +327,7 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
       const loadingText = document.getElementById("verify-loading-text");
 
       try {
-        if (provider === "notchpay" && notchReference) {
+        if (provider === "notchpay" && (notchReference || notchTrxId)) {
           await verifyNotchpayPayment(paymentRef, loadingText);
         } else {
           await verifyStripePayment(paymentRef, loadingText);

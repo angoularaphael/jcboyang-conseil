@@ -20,7 +20,9 @@ export function normalizeNotchpayStatus(status: unknown): PaymentStatus {
     value === "failure" ||
     value === "refused" ||
     value === "declined" ||
-    value === "rejected"
+    value === "rejected" ||
+    value === "insufficient_funds" ||
+    value === "insufficient funds"
   ) {
     return "failed";
   }
@@ -146,4 +148,12 @@ export function isSuccessfulPaymentStatus(status: PaymentStatus): boolean {
 
 export function isPendingPaymentStatus(status: PaymentStatus): boolean {
   return status === "pending" || status === "processing";
+}
+
+/** Échec définitif même si NotchPay renvoie encore `pending` (ex. fonds insuffisants). */
+export function isTerminalNotchpayFailureReason(reason?: string): boolean {
+  const lower = reason?.toLowerCase() ?? "";
+  return /insufficient|fonds|balance|solde|refus|declin|reject|cancel|annul|échou|echou|fail|denied/.test(
+    lower
+  );
 }

@@ -17,11 +17,15 @@ import {
   isNotchpayApiWrapperStatus,
   isPendingPaymentStatus,
   isSuccessfulPaymentStatus,
+  isTerminalNotchpayFailureReason,
   normalizeNotchpayStatus,
   resolveStripeCheckoutStatus,
   type PaymentStatus,
 } from "./payment-status";
-import { extractPlanIdFromVitrineReference } from "./notchpay-reference";
+import {
+  buildNotchpayLookupKeys,
+  extractPlanIdFromVitrineReference,
+} from "./notchpay-reference";
 import { getSupabase, isSupabaseConfigured, readServerEnv } from "./supabase";
 
 export type FulfillResult = {
@@ -100,14 +104,20 @@ function parseNotchpayTransactionPayload(
   const nested = data.transaction ?? data.data;
   if (nested && typeof nested === "object" && !Array.isArray(nested)) {
     const tx = nested as Record<string, unknown>;
-    if (tx.status != null || tx.payment_status != null || tx.reference != null) {
+    if (
+      tx.payment_status != null ||
+      tx.paymentStatus != null ||
+      tx.status != null ||
+      tx.reference != null
+    ) {
       return tx;
     }
   }
 
-  if (data.reference && (data.payment_status != null || data.amount != null)) {
+  if (data.reference && (data.payment_status != null || data.paymentStatus != null || data.amount != null)) {
     const status = String(data.status ?? "");
-    if (isNotchpayApiWrapperStatus(status) && data.payment_status == null) {
+    const paymentStatus = data.payment_status ?? data.paymentStatus;
+    if (isNotchpayApiWrapperStatus(status) && paymentStatus == null) {
       return null;
     }
     return data;
@@ -137,7 +147,7 @@ function resolvePlanIdFromNotchpay(
   );
 }
 
-async function fetchNotchpayTransaction(
+async function fetchNotchpayTransactionByKey(
   reference: string
 ): Promise<Record<string, unknown> | null> {
   const notchPayKey = readServerEnv("NOTCHPAY_PUBLIC_KEY");
@@ -159,6 +169,18 @@ async function fetchNotchpayTransaction(
     console.error("[notchpay] retrieve exception :", err);
     return null;
   }
+}
+
+/** Essaie la référence vitrine puis l'identifiant trx NotchPay (`trx.test_*`). */
+async function fetchNotchpayTransaction(
+  primaryReference: string,
+  alternateReference?: string
+): Promise<Record<string, unknown> | null> {
+  for (const key of buildNotchpayLookupKeys(primaryReference, alternateReference)) {
+    const tx = await fetchNotchpayTransactionByKey(key);
+    if (tx) return tx;
+  }
+  return null;
 }
 
 async function buildInstallmentFulfillResult(
@@ -209,12 +231,15 @@ async function resolveInstallmentFulfillIfPaid(
 }
 
 /** Vérifie le statut réel côté API (utilisé par le webhook avant confirmation). */
-export async function verifyNotchpayPaymentIsComplete(reference: string): Promise<{
+export async function verifyNotchpayPaymentIsComplete(
+  reference: string,
+  alternateReference?: string
+): Promise<{
   complete: boolean;
   reference: string;
   paymentStatus: PaymentStatus;
 }> {
-  const tx = await fetchNotchpayTransaction(reference);
+  const tx = await fetchNotchpayTransaction(reference, alternateReference);
   if (!tx) {
     return { complete: false, reference, paymentStatus: "pending" };
   }
@@ -228,8 +253,11 @@ export async function verifyNotchpayPaymentIsComplete(reference: string): Promis
 }
 
 /** Vérification légère (sans e-mail) — utilisée par le polling client. */
-export async function checkNotchpayPaymentStatus(reference: string): Promise<FulfillResult> {
-  let tx = await fetchNotchpayTransaction(reference);
+export async function checkNotchpayPaymentStatus(
+  reference: string,
+  alternateReference?: string
+): Promise<FulfillResult> {
+  let tx = await fetchNotchpayTransaction(reference, alternateReference);
   const canonicalRef = resolveNotchpayReference(tx, reference);
 
   if (await isNotchpayAlreadyFulfilled(canonicalRef)) {
@@ -273,8 +301,11 @@ export async function checkNotchpayPaymentStatus(reference: string): Promise<Ful
 }
 
 function getNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
-  const raw = tx.payment_status ?? tx.status;
-  if (isNotchpayApiWrapperStatus(raw) && tx.payment_status == null) {
+  const paymentStatusField = tx.payment_status ?? tx.paymentStatus;
+  const raw = paymentStatusField ?? tx.status;
+  if (isNotchpayApiWrapperStatus(raw) && paymentStatusField == null) {
+    const reason = getNotchpayFailureReason(tx);
+    if (isTerminalNotchpayFailureReason(reason)) return "failed";
     return "unknown";
   }
   return normalizeNotchpayStatus(raw);
@@ -283,15 +314,18 @@ function getNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
 function rejectNotchpayPayment(
   tx: Record<string, unknown>
 ): FulfillResult {
-  const paymentStatus = getNotchpayPaymentStatus(tx);
   const reason = getNotchpayFailureReason(tx);
+  let paymentStatus = getNotchpayPaymentStatus(tx);
+  if (isTerminalNotchpayFailureReason(reason) && isPendingPaymentStatus(paymentStatus)) {
+    paymentStatus = "failed";
+  }
   const statusMessage = getPaymentStatusMessage("notchpay", paymentStatus, reason);
   return {
     ok: false,
     paymentStatus,
     statusMessage,
     error: statusMessage,
-    retryable: isPendingPaymentStatus(paymentStatus),
+    retryable: isPendingPaymentStatus(paymentStatus) && !isTerminalNotchpayFailureReason(reason),
   };
 }
 
@@ -614,16 +648,19 @@ async function isPlanFullyFulfilled(planId: string): Promise<boolean> {
 }
 
 /** Confirme un paiement NotchPay, envoie e-mails et notifie l'admin (idempotent). */
-export async function fulfillNotchpayReservation(reference: string): Promise<FulfillResult> {
+export async function fulfillNotchpayReservation(
+  reference: string,
+  alternateReference?: string
+): Promise<FulfillResult> {
   const notchPayKey = readServerEnv("NOTCHPAY_PUBLIC_KEY");
   if (!notchPayKey) {
     return { ok: false, error: "NotchPay non configuré" };
   }
 
-  let tx = await fetchNotchpayTransaction(reference);
+  let tx = await fetchNotchpayTransaction(reference, alternateReference);
   if (!tx) {
     await sleep(600);
-    tx = await fetchNotchpayTransaction(reference);
+    tx = await fetchNotchpayTransaction(reference, alternateReference);
   }
   const canonicalRef = resolveNotchpayReference(tx, reference);
   const planIdFromRef = resolvePlanIdFromNotchpay(reference, canonicalRef, tx);

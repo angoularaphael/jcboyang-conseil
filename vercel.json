@@ -14,7 +14,17 @@
       "permanent": true
     },
     {
+      "source": "/formations/",
+      "destination": "/prestations#formations",
+      "permanent": true
+    },
+    {
       "source": "/Formations",
+      "destination": "/prestations#formations",
+      "permanent": true
+    },
+    {
+      "source": "/Formations/",
       "destination": "/prestations#formations",
       "permanent": true
     },
@@ -24,7 +34,17 @@
       "permanent": true
     },
     {
+      "source": "/coaching/",
+      "destination": "/prestations#coaching",
+      "permanent": true
+    },
+    {
       "source": "/Coaching",
+      "destination": "/prestations#coaching",
+      "permanent": true
+    },
+    {
+      "source": "/Coaching/",
       "destination": "/prestations#coaching",
       "permanent": true
     },
@@ -34,7 +54,17 @@
       "permanent": true
     },
     {
+      "source": "/jcbo/",
+      "destination": "/a-propos",
+      "permanent": true
+    },
+    {
       "source": "/JCBO",
+      "destination": "/a-propos",
+      "permanent": true
+    },
+    {
+      "source": "/JCBO/",
       "destination": "/a-propos",
       "permanent": true
     },
@@ -44,7 +74,17 @@
       "permanent": true
     },
     {
+      "source": "/temoignages/",
+      "destination": "/resultats",
+      "permanent": true
+    },
+    {
       "source": "/Temoignages",
+      "destination": "/resultats",
+      "permanent": true
+    },
+    {
+      "source": "/Temoignages/",
       "destination": "/resultats",
       "permanent": true
     },
@@ -54,7 +94,17 @@
       "permanent": true
     },
     {
+      "source": "/actubia/",
+      "destination": "/actualites",
+      "permanent": true
+    },
+    {
       "source": "/actu-bia",
+      "destination": "/actualites",
+      "permanent": true
+    },
+    {
+      "source": "/actu-bia/",
       "destination": "/actualites",
       "permanent": true
     },
@@ -64,7 +114,17 @@
       "permanent": true
     },
     {
+      "source": "/ACTUBia/",
+      "destination": "/actualites",
+      "permanent": true
+    },
+    {
       "source": "/blog",
+      "destination": "/actualites",
+      "permanent": true
+    },
+    {
+      "source": "/blog/",
       "destination": "/actualites",
       "permanent": true
     },
@@ -74,12 +134,27 @@
       "permanent": true
     },
     {
+      "source": "/Blog/",
+      "destination": "/actualites",
+      "permanent": true
+    },
+    {
       "source": "/nous-contacter",
       "destination": "/contact",
       "permanent": true
     },
     {
+      "source": "/nous-contacter/",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
       "source": "/prendre-contact",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/prendre-contact/",
       "destination": "/contact",
       "permanent": true
     },

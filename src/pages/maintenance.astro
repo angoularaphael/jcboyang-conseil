@@ -11,9 +11,11 @@
     <style>
       body { font-family: Inter, system-ui, sans-serif; }
       h1 { font-family: "Playfair Display", Georgia, serif; }
+      #dev-modal { display: none; }
+      #dev-modal.open { display: flex; }
     </style>
   </head>
-  <body class="min-h-screen flex flex-col items-center justify-center px-6 bg-[#0b1f3a] text-white">
+  <body class="min-h-screen flex flex-col items-center justify-center px-6 bg-[#0b1f3a] text-white relative">
     <div class="max-w-md w-full text-center">
       <img src="/images/logo.png" alt="JCBO Conseil" width="72" height="84" class="mx-auto mb-8" />
       <h1 class="text-2xl font-bold mb-3">Site en maintenance</h1>
@@ -24,7 +26,44 @@
         Nous contacter
       </a>
     </div>
+
+    <button
+      type="button"
+      id="dev-open"
+      class="absolute bottom-6 left-6 text-xs text-white/30 hover:text-white/60 transition underline-offset-2 hover:underline"
+    >
+      Espace développeur
+    </button>
     <p class="absolute bottom-6 text-xs text-white/25">&copy; JCBO Conseil</p>
+
+    <div
+      id="dev-modal"
+      class="fixed inset-0 z-50 items-center justify-center bg-black/60 px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dev-modal-title"
+    >
+      <div class="w-full max-w-sm rounded-2xl bg-[#0b1f3a] border border-white/10 p-6 shadow-2xl">
+        <h2 id="dev-modal-title" class="text-lg font-bold mb-1">Espace développeur</h2>
+        <p class="text-xs text-white/50 mb-4">Accès réservé pendant la maintenance du site.</p>
+        <label for="dev-password" class="block text-xs font-semibold text-white/70 mb-1.5">Mot de passe</label>
+        <input
+          type="password"
+          id="dev-password"
+          autocomplete="current-password"
+          class="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-[#d4a762] mb-2"
+        />
+        <p id="dev-error" class="hidden text-xs text-red-400 mb-3"></p>
+        <div class="flex gap-3 mt-4">
+          <button type="button" id="dev-cancel" class="flex-1 rounded-xl border border-white/15 py-2.5 text-sm text-white/70 hover:bg-white/5">
+            Annuler
+          </button>
+          <button type="button" id="dev-submit" class="flex-1 rounded-xl bg-[#d4a762] py-2.5 text-sm font-semibold text-[#0b1f3a] hover:opacity-90">
+            Accéder
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script>
       async function checkVitrineMaintenance() {
@@ -41,6 +80,72 @@
 
       checkVitrineMaintenance();
       setInterval(checkVitrineMaintenance, 3000);
+
+      const modal = document.getElementById("dev-modal");
+      const openBtn = document.getElementById("dev-open");
+      const cancelBtn = document.getElementById("dev-cancel");
+      const submitBtn = document.getElementById("dev-submit");
+      const passwordInput = document.getElementById("dev-password");
+      const errorEl = document.getElementById("dev-error");
+
+      function openModal() {
+        modal?.classList.add("open");
+        if (passwordInput instanceof HTMLInputElement) {
+          passwordInput.value = "";
+          passwordInput.focus();
+        }
+        errorEl?.classList.add("hidden");
+      }
+
+      function closeModal() {
+        modal?.classList.remove("open");
+      }
+
+      openBtn?.addEventListener("click", openModal);
+      cancelBtn?.addEventListener("click", closeModal);
+      modal?.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      async function submitDevAccess() {
+        if (!(passwordInput instanceof HTMLInputElement) || !(submitBtn instanceof HTMLButtonElement)) return;
+        const password = passwordInput.value.trim();
+        if (!password) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Vérification…";
+        errorEl?.classList.add("hidden");
+
+        try {
+          const res = await fetch("/api/dev-bypass", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            if (errorEl) {
+              errorEl.textContent = data.error || "Accès refusé";
+              errorEl.classList.remove("hidden");
+            }
+            return;
+          }
+          window.location.replace("/");
+        } catch {
+          if (errorEl) {
+            errorEl.textContent = "Erreur réseau";
+            errorEl.classList.remove("hidden");
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Accéder";
+        }
+      }
+
+      submitBtn?.addEventListener("click", submitDevAccess);
+      passwordInput?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") submitDevAccess();
+      });
     </script>
   </body>
 </html>

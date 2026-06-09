@@ -80,9 +80,13 @@ export async function createInstallmentPlan(input: {
   sessionId: SessionId;
   sessionLabel: string;
   totalXaf: number;
-}): Promise<{ plan: InstallmentPlan | null; error?: string }> {
+}): Promise<{ plan: InstallmentPlan | null; error?: string; detail?: string }> {
   if (!isSupabaseConfigured()) {
-    return { plan: null, error: "Base de données non configurée sur le serveur." };
+    return {
+      plan: null,
+      error: "Base de données non configurée sur le serveur.",
+      detail: "Ajoutez SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY sur Vercel (projet vitrine), puis redéployez.",
+    };
   }
   try {
     const installmentAmounts = computeInstallmentAmounts(input.totalXaf);
@@ -106,24 +110,42 @@ export async function createInstallmentPlan(input: {
         paid_references: [],
         status: "pending",
       })
-      .select()
-      .single();
+      .select("*");
 
-    if (error || !data) {
+    if (error) {
       console.error("[installment] création échouée :", error);
-      const msg = error?.message ?? "";
+      const msg = error.message ?? "";
       if (isMissingTableError(msg)) {
         return {
           plan: null,
-          error: "Le suivi des échéances n'est pas encore activé. Contactez le support ou réessayez plus tard.",
+          error: "Le suivi des échéances n'est pas encore activé.",
+          detail: "Exécutez la migration 018_vitrine_installment_plans.sql sur le même projet Supabase que les clés Vercel.",
         };
       }
-      return { plan: null, error: "Impossible d'enregistrer le plan de paiement." };
+      return {
+        plan: null,
+        error: "Impossible d'enregistrer le plan de paiement.",
+        detail: msg,
+      };
     }
-    return { plan: mapRow(data as PlanRow) };
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) {
+      return {
+        plan: null,
+        error: "Impossible d'enregistrer le plan de paiement.",
+        detail: "Aucune ligne retournée après insertion.",
+      };
+    }
+    return { plan: mapRow(row as PlanRow) };
   } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
     console.error("[installment] création exception :", err);
-    return { plan: null, error: "Erreur technique lors de la préparation du paiement." };
+    return {
+      plan: null,
+      error: "Erreur technique lors de la préparation du paiement.",
+      detail,
+    };
   }
 }
 

@@ -300,7 +300,7 @@ export function initReserverBooking(): void {
           message: messageVal.trim(),
         }),
       });
-      let data: { url?: string; redirectUrl?: string; error?: string } = {};
+      let data: { url?: string; redirectUrl?: string; error?: string; detail?: string } = {};
       try {
         data = await res.json();
       } catch {
@@ -310,7 +310,15 @@ export function initReserverBooking(): void {
         return;
       }
       if (!res.ok) {
-        alert(data.error || 'Erreur lors de la création du paiement.');
+        const detail =
+          data && typeof data === 'object' && 'detail' in data && typeof data.detail === 'string'
+            ? data.detail
+            : '';
+        alert(
+          detail
+            ? `${data.error || 'Erreur lors de la création du paiement.'}\n\nDétail : ${detail}`
+            : data.error || 'Erreur lors de la création du paiement.'
+        );
         payBtn.disabled = false;
         payBtn.innerHTML = originalText;
         return;

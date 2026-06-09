@@ -11,6 +11,7 @@ import {
   getNextInstallmentAmount,
   getNextInstallmentNumber,
 } from "../../../lib/installment-plans";
+import { readServerEnv } from "../../../lib/supabase";
 
 const BASE_URL = "https://api.notchpay.co";
 
@@ -93,9 +94,9 @@ async function initNotchpayPayment(params: {
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
-  const notchPayKey = import.meta.env.NOTCHPAY_PUBLIC_KEY;
+  const notchPayKey = readServerEnv("NOTCHPAY_PUBLIC_KEY");
   if (!notchPayKey) {
     return new Response(
       JSON.stringify({ error: "Paiement Mobile Money non configuré." }),
@@ -117,7 +118,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const data = parsed.data;
   const origin = new URL(request.url).origin;
-  const connectedAccountId = import.meta.env.NOTCHPAY_CONNECTED_ACCOUNT_ID;
+  const connectedAccountId = readServerEnv("NOTCHPAY_CONNECTED_ACCOUNT_ID");
   const customer = { name: data.name, email: data.email, phone: data.phone };
 
   const baseMeta = {
@@ -219,12 +220,16 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (!created.plan) {
-      return new Response(
-        JSON.stringify({
-          error: created.error ?? "Impossible de préparer le paiement en 3 fois.",
-        }),
-        { status: 500, headers: JSON_HEADERS }
-      );
+      const payload: Record<string, string> = {
+        error: created.error ?? "Impossible de préparer le paiement en 3 fois.",
+      };
+      if (locals.devBypass && created.detail) {
+        payload.detail = created.detail;
+      }
+      return new Response(JSON.stringify(payload), {
+        status: 500,
+        headers: JSON_HEADERS,
+      });
     }
 
     const plan = created.plan;

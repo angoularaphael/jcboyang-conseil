@@ -9,11 +9,6 @@
       "permanent": true
     },
     {
-      "source": "/favicon.ico",
-      "destination": "/images/logo.png",
-      "permanent": true
-    },
-    {
       "source": "/formations",
       "destination": "/prestations#formations",
       "permanent": true

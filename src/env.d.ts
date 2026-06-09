@@ -1,5 +1,11 @@
 /// <reference path="../.astro/types.d.ts" />
 
+declare namespace App {
+  interface Locals {
+    devBypass: boolean;
+  }
+}
+
 interface ImportMetaEnv {
   readonly PUBLIC_API_URL?: string;
   readonly PUBLIC_ADHESION_URL?: string;

@@ -19,12 +19,12 @@ async function isVitrineInMaintenance(): Promise<boolean> {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const path = new URL(context.request.url).pathname;
+  const devBypass = hasDevBypass(context.request.headers.get("cookie"));
+  context.locals.devBypass = devBypass;
 
   if (path.startsWith("/api/maintenance-status") || path.startsWith("/api/dev-bypass")) {
     return next();
   }
-
-  const devBypass = hasDevBypass(context.request.headers.get("cookie"));
   const inMaintenance = await isVitrineInMaintenance();
 
   if (path.startsWith("/maintenance")) {

@@ -1,0 +1,51 @@
+---
+/** Bandeau visible uniquement en mode développeur (bypass maintenance). */
+---
+<div
+  id="dev-mode-banner"
+  class="fixed top-0 left-0 right-0 z-[1100] flex items-center justify-center gap-4 px-4 py-2 bg-amber-500 text-[#0b1f3a] text-xs sm:text-sm font-semibold shadow-md"
+  role="status"
+  aria-live="polite"
+>
+  <span class="flex items-center gap-2">
+    <span class="inline-block w-2 h-2 rounded-full bg-[#0b1f3a] animate-pulse" aria-hidden="true"></span>
+    Mode développeur — le site est en maintenance pour les visiteurs
+  </span>
+  <button
+    type="button"
+    id="dev-logout"
+    class="shrink-0 rounded-full border border-[#0b1f3a]/30 bg-[#0b1f3a]/10 px-3 py-1 text-xs font-bold hover:bg-[#0b1f3a]/20 transition"
+  >
+    Quitter
+  </button>
+</div>
+
+<style is:global>
+  html.dev-mode-active {
+    --dev-banner-h: 2.5rem;
+  }
+  html.dev-mode-active #header {
+    top: var(--dev-banner-h);
+  }
+  html.dev-mode-active #dev-mode-banner {
+    height: var(--dev-banner-h);
+  }
+</style>
+
+<script>
+  document.getElementById("dev-logout")?.addEventListener("click", async () => {
+    const btn = document.getElementById("dev-logout");
+    if (btn instanceof HTMLButtonElement) {
+      btn.disabled = true;
+      btn.textContent = "Déconnexion…";
+    }
+    try {
+      await fetch("/api/dev-bypass", { method: "DELETE" });
+      const res = await fetch("/api/maintenance-status", { cache: "no-store" });
+      const data = await res.json();
+      window.location.href = data.vitrine ? "/maintenance" : "/";
+    } catch {
+      window.location.href = "/maintenance";
+    }
+  });
+</script>

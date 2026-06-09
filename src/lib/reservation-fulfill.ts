@@ -11,7 +11,15 @@ import {
   getNextInstallmentAmount,
   recordInstallmentPayment,
 } from "./installment-plans";
-import { getSupabase, isSupabaseConfigured } from "./supabase";
+import {
+  getNotchpayFailureReason,
+  getPaymentStatusMessage,
+  isSuccessfulPaymentStatus,
+  normalizeNotchpayStatus,
+  normalizeStripePaymentStatus,
+  type PaymentStatus,
+} from "./payment-status";
+import { getSupabase, isSupabaseConfigured, readServerEnv } from "./supabase";
 
 export type FulfillResult = {
   ok: boolean;
@@ -19,6 +27,8 @@ export type FulfillResult = {
   emailSent?: boolean;
   factureUrl?: string;
   error?: string;
+  paymentStatus?: PaymentStatus;
+  statusMessage?: string;
   installment?: {
     planId: string;
     paidCount: number;
@@ -78,7 +88,7 @@ function buildPayload(
 async function fetchNotchpayTransaction(
   reference: string
 ): Promise<Record<string, unknown> | null> {
-  const notchPayKey = import.meta.env.NOTCHPAY_PUBLIC_KEY;
+  const notchPayKey = readServerEnv("NOTCHPAY_PUBLIC_KEY");
   if (!notchPayKey) return null;
   try {
     const res = await fetch(`${NOTCHPAY_BASE}/payments/${reference}`, {
@@ -86,17 +96,30 @@ async function fetchNotchpayTransaction(
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return (data.transaction ?? data) as Record<string, unknown>;
+    return (data.transaction ?? data.data ?? data) as Record<string, unknown>;
   } catch {
     return null;
   }
+}
+
+function getNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
+  return normalizeNotchpayStatus(tx.status ?? tx.payment_status);
+}
+
+function rejectNotchpayPayment(
+  tx: Record<string, unknown>
+): FulfillResult {
+  const paymentStatus = getNotchpayPaymentStatus(tx);
+  const reason = getNotchpayFailureReason(tx);
+  const statusMessage = getPaymentStatusMessage("notchpay", paymentStatus, reason);
+  return { ok: false, paymentStatus, statusMessage, error: statusMessage };
 }
 
 function buildNotchpayPayload(
   tx: Record<string, unknown>,
   reference: string
 ): ReservationPayload | null {
-  if (String(tx.status ?? "") !== "complete") return null;
+  if (!isSuccessfulPaymentStatus(getNotchpayPaymentStatus(tx))) return null;
 
   const meta = (tx.metadata ?? {}) as Record<string, string>;
   if (meta.source && meta.source !== "vitrine") return null;
@@ -259,8 +282,10 @@ export async function fulfillReservation(
     return { ok: false, error: "Session non reconnue" };
   }
 
-  if (session.payment_status !== "paid") {
-    return { ok: false, error: "Paiement non confirmé" };
+  const paymentStatus = normalizeStripePaymentStatus(session.payment_status);
+  if (!isSuccessfulPaymentStatus(paymentStatus)) {
+    const statusMessage = getPaymentStatusMessage("stripe", paymentStatus);
+    return { ok: false, paymentStatus, statusMessage, error: statusMessage };
   }
 
   if (await isAlreadyFulfilled(sessionId)) {
@@ -397,14 +422,22 @@ async function isPlanFullyFulfilled(planId: string): Promise<boolean> {
 
 /** Confirme un paiement NotchPay, envoie e-mails et notifie l'admin (idempotent). */
 export async function fulfillNotchpayReservation(reference: string): Promise<FulfillResult> {
-  const notchPayKey = import.meta.env.NOTCHPAY_PUBLIC_KEY;
+  const notchPayKey = readServerEnv("NOTCHPAY_PUBLIC_KEY");
   if (!notchPayKey) {
     return { ok: false, error: "NotchPay non configuré" };
   }
 
   const tx = await fetchNotchpayTransaction(reference);
-  if (!tx) return { ok: false, error: "Paiement introuvable" };
+  if (!tx) {
+    return {
+      ok: false,
+      paymentStatus: "unknown",
+      statusMessage: "Paiement introuvable ou non encore enregistré.",
+      error: "Paiement introuvable",
+    };
+  }
 
+  const paymentStatus = getNotchpayPaymentStatus(tx);
   const meta = (tx.metadata ?? {}) as Record<string, string>;
   const planId = meta.planId?.trim();
 
@@ -435,8 +468,8 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
       };
     }
 
-    if (String(tx.status ?? "") !== "complete") {
-      return { ok: false, error: "Paiement non confirmé" };
+    if (!isSuccessfulPaymentStatus(paymentStatus)) {
+      return rejectNotchpayPayment(tx);
     }
 
     const updatedPlan = await recordInstallmentPayment(planId, reference, installmentNumber);
@@ -575,8 +608,12 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
     return { ok: true, alreadyDone: true, emailSent: true, factureUrl };
   }
 
+  if (!isSuccessfulPaymentStatus(paymentStatus)) {
+    return rejectNotchpayPayment(tx);
+  }
+
   const payload = buildNotchpayPayload(tx, reference);
-  if (!payload) return { ok: false, error: "Paiement non confirmé" };
+  if (!payload) return rejectNotchpayPayment(tx);
 
   const amountXaf = payload.amount;
 

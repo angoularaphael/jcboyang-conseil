@@ -2,8 +2,31 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+
+const provider = Astro.url.searchParams.get('provider') ?? '';
+const status = Astro.url.searchParams.get('status') ?? '';
+const message = Astro.url.searchParams.get('msg') ?? '';
+const reference = Astro.url.searchParams.get('reference') ?? '';
+
+const defaultTitle = 'Paiement non finalisé';
+const titles: Record<string, string> = {
+  failed: 'Paiement refusé',
+  unpaid: 'Paiement refusé',
+  canceled: 'Paiement annulé',
+  cancelled: 'Paiement annulé',
+  expired: 'Paiement expiré',
+  pending: 'Paiement en attente',
+  processing: 'Paiement en cours',
+};
+
+const title = titles[status] ?? defaultTitle;
+const body =
+  message ||
+  (status === 'pending' || status === 'processing'
+    ? 'Votre paiement est encore en cours de traitement. Vérifiez votre téléphone (Mobile Money) ou réessayez dans quelques instants.'
+    : 'Aucun montant n\'a été débité. Vous pouvez relancer le processus de réservation, ou nous contacter pour une autre solution de paiement.');
 ---
-<Layout title="Paiement annulé — JCBO Conseil" description="Le paiement a été annulé. Vous pouvez relancer la réservation à tout moment." noindex>
+<Layout title={`${title} — JCBO Conseil`} description="Le paiement n'a pas été finalisé." noindex>
   <Header />
   <div class="pt-24"></div>
 
@@ -15,11 +38,13 @@ import Footer from '../../components/Footer.astro';
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
         </div>
-        <h1 class="font-heading text-3xl font-bold text-navy mb-3">Paiement <span class="text-gold">non finalisé</span></h1>
+        <h1 class="font-heading text-3xl font-bold text-navy mb-3">{title}</h1>
         <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
-        <p class="text-gray-500 mb-8 leading-relaxed">
-          Aucun montant n'a été débité. Vous pouvez relancer le processus de réservation, ou nous contacter pour étudier le paiement Mobile Money.
-        </p>
+        <p class="text-gray-500 mb-4 leading-relaxed">{body}</p>
+        {reference && (
+          <p class="text-xs text-gray-400 mb-8">Référence : <code class="font-mono">{reference}</code></p>
+        )}
+        {provider && !reference && <div class="mb-8"></div>}
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
           <a href="/reserver" class="bg-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold-light transition-all">
             Reprendre la réservation

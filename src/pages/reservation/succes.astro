@@ -18,6 +18,7 @@ const factureHref =
     : factureId
       ? `/api/reservation/facture?provider=stripe&session_id=${encodeURIComponent(factureId)}`
       : '';
+const shouldVerify = !!(sessionId || (provider === 'notchpay' && notchReference));
 ---
 <Layout title="Paiement confirmé — JCBO Conseil" description="Votre réservation est confirmée. Notre équipe vous recontactera très rapidement." noindex>
   <Header />
@@ -25,7 +26,14 @@ const factureHref =
 
   <section class="py-20 bg-offwhite">
     <div class="max-w-[720px] mx-auto px-6">
-      <div class="bg-white rounded-2xl p-10 text-center border border-gold/10 shadow-sm">
+      {shouldVerify && (
+        <div id="verify-loading" class="bg-white rounded-2xl p-10 text-center border border-gold/10 shadow-sm">
+          <div class="w-12 h-12 mx-auto mb-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
+          <p class="text-gray-500">Vérification du paiement en cours…</p>
+        </div>
+      )}
+
+      <div id="success-card" class:list={["bg-white rounded-2xl p-10 text-center border border-gold/10 shadow-sm", shouldVerify && "hidden"]}>
         <div class="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center bg-green-50" id="success-icon">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12"/>
@@ -74,10 +82,25 @@ const factureHref =
   <Footer />
 </Layout>
 
-{(sessionId || (provider === 'notchpay' && notchReference)) && (
+{shouldVerify && (
   <script define:vars={{ sessionId, provider, notchReference }}>
     function formatXaf(n) {
       return `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
+    }
+
+    function redirectToFailure(data, paymentRef) {
+      const params = new URLSearchParams({
+        provider: provider || "stripe",
+        status: data.paymentStatus || "failed",
+        msg: data.statusMessage || data.error || "Paiement non finalisé.",
+      });
+      if (paymentRef) params.set("reference", paymentRef);
+      window.location.replace(`/reservation/echec?${params}`);
+    }
+
+    function showSuccessCard() {
+      document.getElementById("verify-loading")?.classList.add("hidden");
+      document.getElementById("success-card")?.classList.remove("hidden");
     }
 
     (async () => {
@@ -86,6 +109,7 @@ const factureHref =
       const installmentBlock = document.getElementById("installment-block");
       const successMessage = document.getElementById("success-message");
       const successTitle = document.getElementById("success-title");
+      const paymentRef = provider === "notchpay" ? notchReference : sessionId;
 
       try {
         const url =
@@ -93,7 +117,25 @@ const factureHref =
             ? `/api/notchpay/fulfill?reference=${encodeURIComponent(notchReference)}`
             : `/api/stripe/fulfill?session_id=${encodeURIComponent(sessionId)}`;
         const res = await fetch(url, { method: "POST" });
-        const data = await res.json();
+        let data = {};
+        try {
+          data = await res.json();
+        } catch {
+          redirectToFailure({ statusMessage: "Impossible de vérifier le paiement." }, paymentRef);
+          return;
+        }
+
+        if (!data.ok) {
+          const pending = data.paymentStatus === "pending" || data.paymentStatus === "processing";
+          if (pending) {
+            redirectToFailure(data, paymentRef);
+            return;
+          }
+          redirectToFailure(data, paymentRef);
+          return;
+        }
+
+        showSuccessCard();
 
         if (data.installment) {
           const inst = data.installment;
@@ -147,7 +189,7 @@ const factureHref =
           }
         }
       } catch {
-        /* le webhook peut aussi déclencher l'envoi */
+        redirectToFailure({ statusMessage: "Erreur réseau lors de la vérification du paiement." }, paymentRef);
       }
     })();
   </script>

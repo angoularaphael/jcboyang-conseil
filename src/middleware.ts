@@ -28,6 +28,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     path.startsWith("/api/installment-plan") ||
     path.startsWith("/api/notchpay/") ||
     path.startsWith("/reservation/succes") ||
+    path.startsWith("/reservation/echec") ||
     path.startsWith("/reservation/echeances")
   ) {
     return next();

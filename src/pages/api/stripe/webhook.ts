@@ -28,6 +28,14 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(`Webhook invalide: ${msg}`, { status: 400 });
   }
 
+  if (
+    event.type === "checkout.session.async_payment_failed" ||
+    event.type === "checkout.session.expired"
+  ) {
+    console.info(`[stripe webhook] ${event.type} ignoré`);
+    return new Response(JSON.stringify({ recu: true, ignored: event.type }), { status: 200 });
+  }
+
   if (event.type !== "checkout.session.completed") {
     return new Response(JSON.stringify({ recu: true, ignored: event.type }), { status: 200 });
   }

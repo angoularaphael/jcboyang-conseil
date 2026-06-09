@@ -1,11 +1,13 @@
 /**
- * @astrojs/vercel 7.x génère encore nodejs18.x — Vercel ne l'accepte plus.
- * Ce script met à jour le runtime vers nodejs20.x après `astro build`.
+ * @astrojs/vercel 7.x génère nodejs18.x ou nodejs20.x — on force nodejs22.x
+ * (WebSocket natif requis par @supabase/realtime-js).
  */
 import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 
 const OUTPUT = ".vercel/output/functions";
+const TARGET_RUNTIME = "nodejs22.x";
+const LEGACY_RUNTIMES = new Set(["nodejs18.x", "nodejs20.x"]);
 
 function patchVcConfig(dir) {
   for (const name of readdirSync(dir)) {
@@ -14,10 +16,10 @@ function patchVcConfig(dir) {
       const cfgPath = join(full, ".vc-config.json");
       try {
         const cfg = JSON.parse(readFileSync(cfgPath, "utf8"));
-        if (cfg.runtime === "nodejs18.x") {
-          cfg.runtime = "nodejs20.x";
+        if (LEGACY_RUNTIMES.has(cfg.runtime)) {
+          cfg.runtime = TARGET_RUNTIME;
           writeFileSync(cfgPath, JSON.stringify(cfg, null, "\t") + "\n");
-          console.log(`✓ ${cfgPath} → nodejs20.x`);
+          console.log(`✓ ${cfgPath} → ${TARGET_RUNTIME}`);
         }
       } catch {
         /* pas de .vc-config.json */

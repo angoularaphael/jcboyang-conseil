@@ -29,7 +29,7 @@ const shouldVerify = !!(sessionId || (provider === 'notchpay' && notchReference)
       {shouldVerify && (
         <div id="verify-loading" class="bg-white rounded-2xl p-10 text-center border border-gold/10 shadow-sm">
           <div class="w-12 h-12 mx-auto mb-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
-          <p class="text-gray-500">Vérification du paiement en cours…</p>
+          <p class="text-gray-500" id="verify-loading-text">Vérification du paiement en cours…</p>
         </div>
       )}
 
@@ -103,41 +103,33 @@ const shouldVerify = !!(sessionId || (provider === 'notchpay' && notchReference)
       document.getElementById("success-card")?.classList.remove("hidden");
     }
 
-    (async () => {
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function isFinalFailure(data) {
+      return ["failed", "canceled", "expired", "unpaid"].includes(data.paymentStatus);
+    }
+
+    function shouldRetryVerification(data) {
+      return (
+        data.retryable ||
+        data.paymentStatus === "pending" ||
+        data.paymentStatus === "processing" ||
+        data.paymentStatus === "unknown"
+      );
+    }
+
+    function applySuccessUi(data) {
       const statusEl = document.getElementById("invoice-status");
       const factureLink = document.getElementById("facture-link");
       const installmentBlock = document.getElementById("installment-block");
       const successMessage = document.getElementById("success-message");
       const successTitle = document.getElementById("success-title");
-      const paymentRef = provider === "notchpay" ? notchReference : sessionId;
 
-      try {
-        const url =
-          provider === "notchpay" && notchReference
-            ? `/api/notchpay/fulfill?reference=${encodeURIComponent(notchReference)}`
-            : `/api/stripe/fulfill?session_id=${encodeURIComponent(sessionId)}`;
-        const res = await fetch(url, { method: "POST" });
-        let data = {};
-        try {
-          data = await res.json();
-        } catch {
-          redirectToFailure({ statusMessage: "Impossible de vérifier le paiement." }, paymentRef);
-          return;
-        }
+      showSuccessCard();
 
-        if (!data.ok) {
-          const pending = data.paymentStatus === "pending" || data.paymentStatus === "processing";
-          if (pending) {
-            redirectToFailure(data, paymentRef);
-            return;
-          }
-          redirectToFailure(data, paymentRef);
-          return;
-        }
-
-        showSuccessCard();
-
-        if (data.installment) {
+      if (data.installment) {
           const inst = data.installment;
           if (inst.complete) {
             if (successTitle) successTitle.innerHTML = 'Réservation <span class="text-gold">confirmée</span>';
@@ -182,12 +174,69 @@ const shouldVerify = !!(sessionId || (provider === 'notchpay' && notchReference)
           statusEl.classList.remove("hidden");
         }
 
-        if (data.factureUrl && factureLink instanceof HTMLAnchorElement) {
-          if (!data.installment || data.installment.complete) {
-            factureLink.href = data.factureUrl;
-            factureLink.classList.remove("hidden");
-          }
+      if (data.factureUrl && factureLink instanceof HTMLAnchorElement) {
+        if (!data.installment || data.installment.complete) {
+          factureLink.href = data.factureUrl;
+          factureLink.classList.remove("hidden");
         }
+      }
+    }
+
+    (async () => {
+      const paymentRef = provider === "notchpay" ? notchReference : sessionId;
+      const loadingText = document.getElementById("verify-loading-text");
+      const verifyUrl =
+        provider === "notchpay" && notchReference
+          ? `/api/notchpay/fulfill?reference=${encodeURIComponent(notchReference)}`
+          : `/api/stripe/fulfill?session_id=${encodeURIComponent(sessionId)}`;
+      const maxAttempts = provider === "notchpay" ? 15 : 4;
+
+      try {
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          const res = await fetch(verifyUrl, { method: "POST" });
+          let data = {};
+          try {
+            data = await res.json();
+          } catch {
+            if (attempt < maxAttempts - 1) {
+              await sleep(2000);
+              continue;
+            }
+            redirectToFailure({ statusMessage: "Impossible de vérifier le paiement." }, paymentRef);
+            return;
+          }
+
+          if (data.ok) {
+            applySuccessUi(data);
+            return;
+          }
+
+          if (isFinalFailure(data)) {
+            redirectToFailure(data, paymentRef);
+            return;
+          }
+
+          if (shouldRetryVerification(data) && attempt < maxAttempts - 1) {
+            if (loadingText) {
+              loadingText.textContent =
+                data.statusMessage || "Vérification du paiement Mobile Money en cours…";
+            }
+            await sleep(2000);
+            continue;
+          }
+
+          redirectToFailure(data, paymentRef);
+          return;
+        }
+
+        redirectToFailure(
+          {
+            paymentStatus: "pending",
+            statusMessage:
+              "Impossible de confirmer le paiement pour le moment. Si vous avez validé sur votre téléphone, vérifiez votre e-mail ou contactez-nous.",
+          },
+          paymentRef
+        );
       } catch {
         redirectToFailure({ statusMessage: "Erreur réseau lors de la vérification du paiement." }, paymentRef);
       }

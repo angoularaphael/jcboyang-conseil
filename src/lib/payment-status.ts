@@ -1,3 +1,5 @@
+import type Stripe from "stripe";
+
 export type PaymentStatus =
   | "complete"
   | "pending"
@@ -24,6 +26,50 @@ export function normalizeStripePaymentStatus(status: unknown): PaymentStatus {
   if (value === "paid" || value === "no_payment_required") return "complete";
   if (value === "unpaid") return "unpaid";
   return "unknown";
+}
+
+export function getStripeFailureReason(session: Stripe.Checkout.Session): string | undefined {
+  const pi = session.payment_intent;
+  if (typeof pi !== "object" || !pi) return undefined;
+  const err = pi.last_payment_error;
+  if (!err) return undefined;
+  if (err.decline_code === "insufficient_funds") return "insufficient funds";
+  if (err.code === "card_declined") return err.message ?? "card declined";
+  return err.message ?? undefined;
+}
+
+/** Statut réel d'une session Checkout Stripe (refus, expiration, annulation…). */
+export function resolveStripeCheckoutStatus(session: Stripe.Checkout.Session): {
+  status: PaymentStatus;
+  reason?: string;
+} {
+  if (session.status === "expired") {
+    return { status: "expired" };
+  }
+  if (session.status === "open") {
+    return { status: "pending" };
+  }
+
+  const paid = normalizeStripePaymentStatus(session.payment_status);
+  if (isSuccessfulPaymentStatus(paid)) {
+    return { status: "complete" };
+  }
+
+  const reason = getStripeFailureReason(session);
+  const pi = session.payment_intent;
+  if (typeof pi === "object" && pi) {
+    if (pi.status === "canceled") return { status: "canceled", reason };
+    if (pi.status === "processing") return { status: "processing", reason };
+    if (
+      pi.status === "requires_payment_method" ||
+      pi.status === "requires_action" ||
+      pi.status === "requires_confirmation"
+    ) {
+      return { status: "failed", reason: reason ?? "Paiement refusé par la banque." };
+    }
+  }
+
+  return { status: paid === "unpaid" ? "unpaid" : "failed", reason };
 }
 
 export function getNotchpayFailureReason(tx: Record<string, unknown>): string | undefined {

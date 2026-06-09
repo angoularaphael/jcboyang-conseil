@@ -14,9 +14,10 @@ import {
 import {
   getNotchpayFailureReason,
   getPaymentStatusMessage,
+  isPendingPaymentStatus,
   isSuccessfulPaymentStatus,
   normalizeNotchpayStatus,
-  normalizeStripePaymentStatus,
+  resolveStripeCheckoutStatus,
   type PaymentStatus,
 } from "./payment-status";
 import { getSupabase, isSupabaseConfigured, readServerEnv } from "./supabase";
@@ -29,6 +30,8 @@ export type FulfillResult = {
   error?: string;
   paymentStatus?: PaymentStatus;
   statusMessage?: string;
+  /** Le client peut relancer la vérification (délai NotchPay). */
+  retryable?: boolean;
   installment?: {
     planId: string;
     paidCount: number;
@@ -85,21 +88,54 @@ function buildPayload(
   };
 }
 
+function parseNotchpayTransactionPayload(
+  data: Record<string, unknown>
+): Record<string, unknown> | null {
+  const tx = data.transaction ?? data.data;
+  if (tx && typeof tx === "object" && !Array.isArray(tx)) {
+    return tx as Record<string, unknown>;
+  }
+  if (data.reference && data.status) {
+    return data;
+  }
+  return null;
+}
+
 async function fetchNotchpayTransaction(
   reference: string
 ): Promise<Record<string, unknown> | null> {
   const notchPayKey = readServerEnv("NOTCHPAY_PUBLIC_KEY");
   if (!notchPayKey) return null;
   try {
-    const res = await fetch(`${NOTCHPAY_BASE}/payments/${reference}`, {
-      headers: { Authorization: notchPayKey },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return (data.transaction ?? data.data ?? data) as Record<string, unknown>;
-  } catch {
+    const res = await fetch(
+      `${NOTCHPAY_BASE}/payments/${encodeURIComponent(reference)}`,
+      { headers: { Authorization: notchPayKey }, cache: "no-store" }
+    );
+    const data = (await res.json()) as Record<string, unknown>;
+    if (!res.ok) {
+      if (res.status !== 404) {
+        console.warn("[notchpay] retrieve", res.status, data.message ?? data);
+      }
+      return null;
+    }
+    return parseNotchpayTransactionPayload(data);
+  } catch (err) {
+    console.error("[notchpay] retrieve exception :", err);
     return null;
   }
+}
+
+async function fetchNotchpayTransactionWithRetry(
+  reference: string
+): Promise<Record<string, unknown> | null> {
+  const attempts = 5;
+  const delayMs = 1200;
+  for (let i = 0; i < attempts; i++) {
+    const tx = await fetchNotchpayTransaction(reference);
+    if (tx) return tx;
+    if (i < attempts - 1) await sleep(delayMs);
+  }
+  return null;
 }
 
 function getNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
@@ -112,7 +148,13 @@ function rejectNotchpayPayment(
   const paymentStatus = getNotchpayPaymentStatus(tx);
   const reason = getNotchpayFailureReason(tx);
   const statusMessage = getPaymentStatusMessage("notchpay", paymentStatus, reason);
-  return { ok: false, paymentStatus, statusMessage, error: statusMessage };
+  return {
+    ok: false,
+    paymentStatus,
+    statusMessage,
+    error: statusMessage,
+    retryable: isPendingPaymentStatus(paymentStatus),
+  };
 }
 
 function buildNotchpayPayload(
@@ -171,11 +213,11 @@ export async function getFacturePayload(
     try {
       const stripe = new Stripe(stripeKey);
       const session = await stripe.checkout.sessions.retrieve(trimmed, {
-        expand: ["invoice"],
+        expand: ["invoice", "payment_intent"],
       });
-      if (session.metadata?.source !== "vitrine" || session.payment_status !== "paid") {
-        return null;
-      }
+      if (session.metadata?.source !== "vitrine") return null;
+      const { status } = resolveStripeCheckoutStatus(session);
+      if (!isSuccessfulPaymentStatus(status)) return null;
       const invoice = await loadInvoice(stripe, session);
       return buildPayload(session, invoice);
     } catch {
@@ -272,19 +314,24 @@ export async function fulfillReservation(
   let session: Stripe.Checkout.Session;
   try {
     session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["invoice"],
+      expand: ["invoice", "payment_intent"],
     });
   } catch {
-    return { ok: false, error: "Session Stripe introuvable" };
+    return {
+      ok: false,
+      paymentStatus: "unknown",
+      statusMessage: "Session de paiement introuvable.",
+      error: "Session Stripe introuvable",
+    };
   }
 
   if (session.metadata?.source !== "vitrine") {
     return { ok: false, error: "Session non reconnue" };
   }
 
-  const paymentStatus = normalizeStripePaymentStatus(session.payment_status);
+  const { status: paymentStatus, reason } = resolveStripeCheckoutStatus(session);
   if (!isSuccessfulPaymentStatus(paymentStatus)) {
-    const statusMessage = getPaymentStatusMessage("stripe", paymentStatus);
+    const statusMessage = getPaymentStatusMessage("stripe", paymentStatus, reason);
     return { ok: false, paymentStatus, statusMessage, error: statusMessage };
   }
 
@@ -427,13 +474,15 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
     return { ok: false, error: "NotchPay non configuré" };
   }
 
-  const tx = await fetchNotchpayTransaction(reference);
+  const tx = await fetchNotchpayTransactionWithRetry(reference);
   if (!tx) {
     return {
       ok: false,
-      paymentStatus: "unknown",
-      statusMessage: "Paiement introuvable ou non encore enregistré.",
-      error: "Paiement introuvable",
+      paymentStatus: "pending",
+      statusMessage:
+        "Validation Mobile Money en cours. Patientez quelques secondes pendant la confirmation.",
+      error: "Paiement en attente de confirmation",
+      retryable: true,
     };
   }
 

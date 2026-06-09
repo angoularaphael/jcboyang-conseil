@@ -30,9 +30,11 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (
     event.type === "checkout.session.async_payment_failed" ||
-    event.type === "checkout.session.expired"
+    event.type === "checkout.session.expired" ||
+    event.type === "payment_intent.payment_failed" ||
+    event.type === "payment_intent.canceled"
   ) {
-    console.info(`[stripe webhook] ${event.type} ignoré`);
+    console.info(`[stripe webhook] ${event.type} ignoré (aucune confirmation envoyée)`);
     return new Response(JSON.stringify({ recu: true, ignored: event.type }), { status: 200 });
   }
 

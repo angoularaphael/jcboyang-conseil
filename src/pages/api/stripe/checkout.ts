@@ -93,8 +93,8 @@ export const POST: APIRoute = async ({ request }) => {
       desiredDate: data.date,
       customerMessage: data.message,
     },
-    success_url: `${origin}/reservation/succes?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/reservation/echec`,
+    success_url: `${origin}/reservation/succes?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/reservation/echec?provider=stripe&status=canceled`,
   };
 
   const paymentIntentData: Stripe.Checkout.SessionCreateParams.PaymentIntentData = {

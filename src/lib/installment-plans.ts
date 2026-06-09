@@ -66,6 +66,10 @@ export function getInstallmentPaymentUrl(planId: string, origin?: string): strin
   return `${base}/reservation/echeances?plan=${encodeURIComponent(planId)}`;
 }
 
+function isMissingTableError(message: string): boolean {
+  return /vitrine_installment_plans|relation.*does not exist|schema cache/i.test(message);
+}
+
 export async function createInstallmentPlan(input: {
   customerEmail: string;
   customerName: string;
@@ -76,49 +80,67 @@ export async function createInstallmentPlan(input: {
   sessionId: SessionId;
   sessionLabel: string;
   totalXaf: number;
-}): Promise<InstallmentPlan | null> {
-  if (!isSupabaseConfigured()) return null;
-  const installmentAmounts = computeInstallmentAmounts(input.totalXaf);
-  const id = makePlanId();
-  const supa = getSupabase();
-  const { data, error } = await supa
-    .from("vitrine_installment_plans")
-    .insert({
-      id,
-      customer_email: input.customerEmail,
-      customer_name: input.customerName,
-      customer_phone: input.customerPhone,
-      company: input.company ?? "",
-      desired_date: input.desiredDate ?? "",
-      customer_message: input.customerMessage ?? "",
-      session_id: input.sessionId,
-      session_label: input.sessionLabel,
-      total_xaf: input.totalXaf,
-      installment_amounts: installmentAmounts,
-      paid_count: 0,
-      paid_references: [],
-      status: "pending",
-    })
-    .select()
-    .single();
-
-  if (error || !data) {
-    console.error("[installment] création échouée :", error);
-    return null;
+}): Promise<{ plan: InstallmentPlan | null; error?: string }> {
+  if (!isSupabaseConfigured()) {
+    return { plan: null, error: "Base de données non configurée sur le serveur." };
   }
-  return mapRow(data as PlanRow);
+  try {
+    const installmentAmounts = computeInstallmentAmounts(input.totalXaf);
+    const id = makePlanId();
+    const supa = getSupabase();
+    const { data, error } = await supa
+      .from("vitrine_installment_plans")
+      .insert({
+        id,
+        customer_email: input.customerEmail,
+        customer_name: input.customerName,
+        customer_phone: input.customerPhone,
+        company: input.company ?? "",
+        desired_date: input.desiredDate ?? "",
+        customer_message: input.customerMessage ?? "",
+        session_id: input.sessionId,
+        session_label: input.sessionLabel,
+        total_xaf: input.totalXaf,
+        installment_amounts: installmentAmounts,
+        paid_count: 0,
+        paid_references: [],
+        status: "pending",
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error("[installment] création échouée :", error);
+      const msg = error?.message ?? "";
+      if (isMissingTableError(msg)) {
+        return {
+          plan: null,
+          error: "Le suivi des échéances n'est pas encore activé. Contactez le support ou réessayez plus tard.",
+        };
+      }
+      return { plan: null, error: "Impossible d'enregistrer le plan de paiement." };
+    }
+    return { plan: mapRow(data as PlanRow) };
+  } catch (err) {
+    console.error("[installment] création exception :", err);
+    return { plan: null, error: "Erreur technique lors de la préparation du paiement." };
+  }
 }
 
 export async function getInstallmentPlan(planId: string): Promise<InstallmentPlan | null> {
   if (!isSupabaseConfigured()) return null;
-  const supa = getSupabase();
-  const { data, error } = await supa
-    .from("vitrine_installment_plans")
-    .select("*")
-    .eq("id", planId)
-    .maybeSingle();
-  if (error || !data) return null;
-  return mapRow(data as PlanRow);
+  try {
+    const supa = getSupabase();
+    const { data, error } = await supa
+      .from("vitrine_installment_plans")
+      .select("*")
+      .eq("id", planId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return mapRow(data as PlanRow);
+  } catch {
+    return null;
+  }
 }
 
 export function getNextInstallmentAmount(plan: InstallmentPlan): number | null {
@@ -148,22 +170,26 @@ export async function recordInstallmentPayment(
   const paidReferences = [...plan.paidReferences, reference];
 
   if (!isSupabaseConfigured()) return null;
-  const supa = getSupabase();
-  const { data, error } = await supa
-    .from("vitrine_installment_plans")
-    .update({
-      paid_count: newPaidCount,
-      paid_references: paidReferences,
-      status,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", planId)
-    .select()
-    .single();
+  try {
+    const supa = getSupabase();
+    const { data, error } = await supa
+      .from("vitrine_installment_plans")
+      .update({
+        paid_count: newPaidCount,
+        paid_references: paidReferences,
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", planId)
+      .select()
+      .single();
 
-  if (error || !data) {
-    console.error("[installment] mise à jour échouée :", error);
+    if (error || !data) {
+      console.error("[installment] mise à jour échouée :", error);
+      return null;
+    }
+    return mapRow(data as PlanRow);
+  } catch {
     return null;
   }
-  return mapRow(data as PlanRow);
 }

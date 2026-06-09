@@ -300,11 +300,15 @@ export function initReserverBooking(): void {
           message: messageVal.trim(),
         }),
       });
-      const data = (await res.json()) as {
-        url?: string;
-        redirectUrl?: string;
-        error?: string;
-      };
+      let data: { url?: string; redirectUrl?: string; error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        alert('Réponse serveur invalide. Vérifiez votre connexion ou réessayez.');
+        payBtn.disabled = false;
+        payBtn.innerHTML = originalText;
+        return;
+      }
       if (!res.ok) {
         alert(data.error || 'Erreur lors de la création du paiement.');
         payBtn.disabled = false;
@@ -319,8 +323,9 @@ export function initReserverBooking(): void {
         return;
       }
       window.location.href = target;
-    } catch {
-      alert("Erreur réseau. Veuillez réessayer.");
+    } catch (err) {
+      console.error('[reserver] paiement échoué :', err);
+      alert('Connexion impossible au serveur de paiement. Vérifiez votre réseau et réessayez.');
       payBtn.disabled = false;
       payBtn.innerHTML = originalText;
     }

@@ -67,43 +67,51 @@ async function initNotchpayPayment(params: {
     };
   }
 
-  const res = await fetch(`${BASE_URL}/payments`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: params.notchPayKey,
-    },
-    body: JSON.stringify(paymentBody),
-  });
+  try {
+    const res = await fetch(`${BASE_URL}/payments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: params.notchPayKey,
+      },
+      body: JSON.stringify(paymentBody),
+    });
 
-  if (!res.ok) {
-    return { error: parseNotchpayError(await res.text()) };
+    if (!res.ok) {
+      return { error: parseNotchpayError(await res.text()) };
+    }
+
+    const result = await res.json();
+    const authUrl = result.authorization_url ?? result.transaction?.authorization_url ?? "";
+    if (!authUrl) return { error: "URL de paiement introuvable" };
+    return { url: authUrl, reference: params.reference };
+  } catch (err) {
+    console.error("[notchpay checkout] appel API échoué :", err);
+    return { error: "Connexion au service de paiement impossible. Réessayez dans un instant." };
   }
-
-  const result = await res.json();
-  const authUrl = result.authorization_url ?? result.transaction?.authorization_url ?? "";
-  if (!authUrl) return { error: "URL de paiement introuvable" };
-  return { url: authUrl, reference: params.reference };
 }
 
+const JSON_HEADERS = { "Content-Type": "application/json" };
+
 export const POST: APIRoute = async ({ request }) => {
+  try {
   const notchPayKey = import.meta.env.NOTCHPAY_PUBLIC_KEY;
   if (!notchPayKey) {
     return new Response(
-      JSON.stringify({ error: "Paiement Mobile Money non configuré (NotchPay)." }),
-      { status: 503, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ error: "Paiement Mobile Money non configuré." }),
+      { status: 503, headers: JSON_HEADERS }
     );
   }
 
   let body: unknown;
   try { body = await request.json(); }
-  catch { return new Response(JSON.stringify({ error: "Corps invalide" }), { status: 400 }); }
+  catch { return new Response(JSON.stringify({ error: "Corps invalide" }), { status: 400, headers: JSON_HEADERS }); }
 
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
     return new Response(
       JSON.stringify({ error: parsed.error.issues[0].message }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: JSON_HEADERS }
     );
   }
 
@@ -198,7 +206,7 @@ export const POST: APIRoute = async ({ request }) => {
   const totalXaf = sessionInfo.priceXaf;
 
   if (needsInstallments(totalXaf)) {
-    const plan = await createInstallmentPlan({
+    const created = await createInstallmentPlan({
       customerEmail: data.email,
       customerName: data.name,
       customerPhone: data.phone,
@@ -210,13 +218,16 @@ export const POST: APIRoute = async ({ request }) => {
       totalXaf,
     });
 
-    if (!plan) {
+    if (!created.plan) {
       return new Response(
-        JSON.stringify({ error: "Impossible de créer le plan de paiement en plusieurs fois." }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: created.error ?? "Impossible de préparer le paiement en 3 fois.",
+        }),
+        { status: 500, headers: JSON_HEADERS }
       );
     }
 
+    const plan = created.plan;
     const installmentNumber = 1;
     const amountXaf = plan.installmentAmounts[0];
     const reference = `vitrine-${plan.id}-e1-${Date.now()}`;
@@ -288,6 +299,13 @@ export const POST: APIRoute = async ({ request }) => {
 
   return new Response(JSON.stringify({ url: result.url, reference }), {
     status: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_HEADERS,
   });
+  } catch (err) {
+    console.error("[notchpay checkout] erreur inattendue :", err);
+    return new Response(
+      JSON.stringify({ error: "Erreur technique lors de la préparation du paiement. Réessayez." }),
+      { status: 500, headers: JSON_HEADERS }
+    );
+  }
 };

@@ -22,7 +22,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const devBypass = hasDevBypass(context.request.headers.get("cookie"));
   context.locals.devBypass = devBypass;
 
-  if (path.startsWith("/api/maintenance-status") || path.startsWith("/api/dev-bypass")) {
+  if (
+    path.startsWith("/api/maintenance-status") ||
+    path.startsWith("/api/dev-bypass") ||
+    path.startsWith("/api/installment-plan") ||
+    path.startsWith("/api/notchpay/") ||
+    path.startsWith("/reservation/succes") ||
+    path.startsWith("/reservation/echeances")
+  ) {
     return next();
   }
   const inMaintenance = await isVitrineInMaintenance();

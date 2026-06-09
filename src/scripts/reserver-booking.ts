@@ -30,8 +30,8 @@ const pricesCfa: Record<SessionId, string> = {
   premium: '1 500 000',
 };
 
-function isNotchpayAvailable(sessionId: SessionId): boolean {
-  return pricesXaf[sessionId] <= NOTCHPAY_MAX_XAF;
+function needsInstallments(sessionId: SessionId): boolean {
+  return pricesXaf[sessionId] > NOTCHPAY_MAX_XAF;
 }
 
 function formatCfaPrice(sessionId: SessionId): string {
@@ -107,14 +107,11 @@ export function initReserverBooking(): void {
   const notchpayLimitInfo = document.getElementById('notchpay-limit-info');
 
   function updatePaymentOptionsForZone(zone: string, sessionId?: SessionId): void {
-    const mobileAllowed = zone !== 'afrique' || (sessionId ? isNotchpayAvailable(sessionId) : true);
+    const useInstallments = zone === 'afrique' && sessionId && needsInstallments(sessionId);
 
     document.querySelectorAll<HTMLElement>('[data-payment-zone]').forEach((el) => {
       const allowed = el.dataset.paymentZone;
-      let visible = allowed === 'all' || allowed === zone;
-      if (allowed === 'afrique' && zone === 'afrique' && !mobileAllowed) {
-        visible = false;
-      }
+      const visible = allowed === 'all' || allowed === zone;
       el.classList.toggle('hidden', !visible);
       if (!visible) {
         const radio = el.querySelector<HTMLInputElement>('input[type="radio"]');
@@ -123,18 +120,16 @@ export function initReserverBooking(): void {
     });
 
     if (notchpayLimitInfo) {
-      notchpayLimitInfo.classList.toggle('hidden', !(zone === 'afrique' && sessionId && !mobileAllowed));
+      notchpayLimitInfo.classList.toggle('hidden', !useInstallments);
     }
 
     if (payBtn instanceof HTMLButtonElement) {
-      const blockPay = zone === 'afrique' && sessionId && !mobileAllowed;
-      payBtn.disabled = !!blockPay;
-      payBtn.classList.toggle('opacity-50', !!blockPay);
-      payBtn.classList.toggle('cursor-not-allowed', !!blockPay);
+      payBtn.disabled = false;
+      payBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     }
 
     const defaultPayment =
-      zone === 'afrique' && mobileAllowed
+      zone === 'afrique'
         ? document.querySelector<HTMLInputElement>('input[name="payment"][value="mobile"]')
         : document.querySelector<HTMLInputElement>('input[name="payment"][value="card"]');
     defaultPayment?.click();
@@ -274,13 +269,6 @@ export function initReserverBooking(): void {
     if (zone === 'afrique' && !isValidAfricanPhone(phoneInput.value.trim())) {
       alert(
         'Renseignez un numéro Mobile Money africain valide avec l\'indicatif pays avant de payer (ex. +237 6XX XXX XXX).'
-      );
-      return;
-    }
-    const sessionId = sessionRadio.value as SessionId;
-    if (zone === 'afrique' && !isNotchpayAvailable(sessionId)) {
-      alert(
-        'Cette prestation dépasse la limite Mobile Money (500 000 FCFA). Contactez-nous à contact@jcbo-conseil.com pour un paiement en plusieurs fois.'
       );
       return;
     }

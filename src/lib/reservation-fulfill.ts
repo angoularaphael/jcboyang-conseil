@@ -2,8 +2,15 @@ import Stripe from "stripe";
 import {
   sendAdminReservationEmail,
   sendCustomerReservationEmail,
+  sendInstallmentProgressEmail,
   type ReservationPayload,
 } from "./email";
+import {
+  getInstallmentPaymentUrl,
+  getInstallmentPlan,
+  getNextInstallmentAmount,
+  recordInstallmentPayment,
+} from "./installment-plans";
 import { getSupabase, isSupabaseConfigured } from "./supabase";
 
 export type FulfillResult = {
@@ -12,6 +19,15 @@ export type FulfillResult = {
   emailSent?: boolean;
   factureUrl?: string;
   error?: string;
+  installment?: {
+    planId: string;
+    paidCount: number;
+    totalInstallments: number;
+    complete: boolean;
+    nextPaymentUrl?: string;
+    nextInstallmentNumber?: number;
+    nextInstallmentAmount?: number;
+  };
 };
 
 const NOTCHPAY_BASE = "https://api.notchpay.co";
@@ -333,6 +349,52 @@ async function saveNotchpayNotification(
   });
 }
 
+async function isInstallmentReferenceHandled(planId: string, reference: string): Promise<boolean> {
+  const plan = await getInstallmentPlan(planId);
+  return !!plan?.paidReferences.includes(reference);
+}
+
+async function saveInstallmentPartialNotification(
+  planId: string,
+  reference: string,
+  paidCount: number,
+  totalInstallments: number,
+  sessionLabel: string,
+  customerName: string,
+  customerEmail: string,
+  amountXaf: number
+): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  const supa = getSupabase();
+  await supa.from("admin_notifications").insert({
+    id: `NOTIF-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    type: "paiement_vitrine_mobile",
+    titre: `Échéance ${paidCount}/${totalInstallments} — ${sessionLabel}`,
+    message:
+      `${customerName} (${customerEmail}) a payé l'échéance ${paidCount}/${totalInstallments} ` +
+      `(${amountXaf} XAF) pour « ${sessionLabel} ».`,
+    metadata: { planId, reference, paidCount, totalInstallments, amountXaf, partial: true },
+    lue: false,
+  });
+}
+
+async function isPlanFullyFulfilled(planId: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+  try {
+    const supa = getSupabase();
+    const { data } = await supa
+      .from("admin_notifications")
+      .select("id")
+      .eq("type", "paiement_vitrine_mobile")
+      .filter("metadata->>planId", "eq", planId)
+      .filter("metadata->>installmentComplete", "eq", "true")
+      .limit(1);
+    return (data?.length ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Confirme un paiement NotchPay, envoie e-mails et notifie l'admin (idempotent). */
 export async function fulfillNotchpayReservation(reference: string): Promise<FulfillResult> {
   const notchPayKey = import.meta.env.NOTCHPAY_PUBLIC_KEY;
@@ -340,14 +402,178 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
     return { ok: false, error: "NotchPay non configuré" };
   }
 
+  const tx = await fetchNotchpayTransaction(reference);
+  if (!tx) return { ok: false, error: "Paiement introuvable" };
+
+  const meta = (tx.metadata ?? {}) as Record<string, string>;
+  const planId = meta.planId?.trim();
+
+  // ── Paiement en plusieurs échéances ──────────────────────────────
+  if (planId) {
+    const installmentNumber = Number(meta.installmentNumber ?? 0);
+    const installmentTotal = Number(meta.installmentTotal ?? 0);
+    const amountXaf = Number(tx.amount ?? meta.amountXaf ?? 0);
+
+    if (await isInstallmentReferenceHandled(planId, reference)) {
+      const plan = await getInstallmentPlan(planId);
+      const paymentUrl = getInstallmentPaymentUrl(planId);
+      return {
+        ok: true,
+        alreadyDone: true,
+        emailSent: true,
+        installment: plan
+          ? {
+              planId,
+              paidCount: plan.paidCount,
+              totalInstallments: plan.installmentAmounts.length,
+              complete: plan.status === "complete",
+              nextPaymentUrl: plan.status === "complete" ? undefined : paymentUrl,
+              nextInstallmentNumber: plan.status === "complete" ? undefined : plan.paidCount + 1,
+              nextInstallmentAmount: getNextInstallmentAmount(plan) ?? undefined,
+            }
+          : undefined,
+      };
+    }
+
+    if (String(tx.status ?? "") !== "complete") {
+      return { ok: false, error: "Paiement non confirmé" };
+    }
+
+    const updatedPlan = await recordInstallmentPayment(planId, reference, installmentNumber);
+    if (!updatedPlan) {
+      return { ok: false, error: "Impossible d'enregistrer l'échéance" };
+    }
+
+    const paymentUrl = getInstallmentPaymentUrl(planId);
+    const nextAmount = getNextInstallmentAmount(updatedPlan);
+    const installmentInfo = {
+      planId,
+      paidCount: updatedPlan.paidCount,
+      totalInstallments: updatedPlan.installmentAmounts.length,
+      complete: updatedPlan.status === "complete",
+      nextPaymentUrl: updatedPlan.status === "complete" ? undefined : paymentUrl,
+      nextInstallmentNumber:
+        updatedPlan.status === "complete" ? undefined : updatedPlan.paidCount + 1,
+      nextInstallmentAmount: nextAmount ?? undefined,
+    };
+
+    const emailRes = await sendInstallmentProgressEmail({
+      customerName: meta.customerName ?? updatedPlan.customerName,
+      customerEmail: meta.customerEmail ?? updatedPlan.customerEmail,
+      sessionLabel: meta.sessionLabel ?? updatedPlan.sessionLabel,
+      paidCount: updatedPlan.paidCount,
+      totalInstallments: installmentTotal || updatedPlan.installmentAmounts.length,
+      lastAmountXaf: amountXaf,
+      nextAmountXaf: nextAmount ?? undefined,
+      totalXaf: updatedPlan.totalXaf,
+      nextPaymentUrl: paymentUrl,
+      complete: updatedPlan.status === "complete",
+    });
+
+    try {
+      await saveInstallmentPartialNotification(
+        planId,
+        reference,
+        updatedPlan.paidCount,
+        updatedPlan.installmentAmounts.length,
+        updatedPlan.sessionLabel,
+        updatedPlan.customerName,
+        updatedPlan.customerEmail,
+        amountXaf
+      );
+    } catch (err) {
+      console.error("[fulfill notchpay] Notification échéance échouée :", err);
+    }
+
+    if (updatedPlan.status !== "complete") {
+      return { ok: true, emailSent: emailRes.ok, installment: installmentInfo };
+    }
+
+    if (await isPlanFullyFulfilled(planId)) {
+      return {
+        ok: true,
+        alreadyDone: true,
+        emailSent: true,
+        installment: { ...installmentInfo, complete: true },
+      };
+    }
+
+    const totalXaf = updatedPlan.totalXaf;
+    const fullPayload: ReservationPayload = {
+      customerName: updatedPlan.customerName,
+      customerEmail: updatedPlan.customerEmail,
+      customerPhone: updatedPlan.customerPhone,
+      company: updatedPlan.company,
+      sessionLabel: updatedPlan.sessionLabel,
+      date: updatedPlan.desiredDate,
+      message: updatedPlan.customerMessage,
+      amount: totalXaf,
+      currency: "xaf",
+      stripeSessionId: planId,
+      paymentProvider: "notchpay",
+      invoiceNumber: `JCBO-${planId.replace(/[^a-zA-Z0-9]/g, "").slice(-12).toUpperCase()}`,
+      factureViewUrl: buildFactureViewUrl("notchpay", reference),
+      paidAt: new Date().toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }),
+    };
+
+    let emailSent = emailRes.ok;
+    try {
+      const [adminRes, customerRes] = await Promise.all([
+        sendAdminReservationEmail(fullPayload),
+        sendCustomerReservationEmail(fullPayload),
+      ]);
+      emailSent = customerRes.ok;
+      if (!customerRes.ok) {
+        return { ok: false, error: customerRes.error ?? "Envoi facture échoué", installment: installmentInfo };
+      }
+      if (!adminRes.ok) console.error("[fulfill notchpay] E-mail admin :", adminRes.error);
+    } catch (err) {
+      console.error("[fulfill notchpay] Envoi facture finale échoué :", err);
+      return { ok: false, error: "Envoi facture échoué", installment: installmentInfo };
+    }
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supa = getSupabase();
+        await supa.from("admin_notifications").insert({
+          id: `NOTIF-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          type: "paiement_vitrine_mobile",
+          titre: `Paiement complet (3 échéances) — ${updatedPlan.sessionLabel}`,
+          message:
+            `${updatedPlan.customerName} a terminé le paiement en ${updatedPlan.installmentAmounts.length} échéances ` +
+            `(${totalXaf} XAF) pour « ${updatedPlan.sessionLabel} ».`,
+          metadata: {
+            planId,
+            reference,
+            installmentComplete: true,
+            totalXaf,
+            paidReferences: updatedPlan.paidReferences,
+          },
+          lue: false,
+        });
+      } catch (err) {
+        console.error("[fulfill notchpay] Notification finale échouée :", err);
+      }
+    }
+
+    return {
+      ok: true,
+      emailSent,
+      factureUrl: fullPayload.factureViewUrl,
+      installment: installmentInfo,
+    };
+  }
+
+  // ── Paiement unique ──────────────────────────────────────────────
   const factureUrl = buildFactureViewUrl("notchpay", reference);
 
   if (await isNotchpayAlreadyFulfilled(reference)) {
     return { ok: true, alreadyDone: true, emailSent: true, factureUrl };
   }
-
-  const tx = await fetchNotchpayTransaction(reference);
-  if (!tx) return { ok: false, error: "Paiement introuvable" };
 
   const payload = buildNotchpayPayload(tx, reference);
   if (!payload) return { ok: false, error: "Paiement non confirmé" };

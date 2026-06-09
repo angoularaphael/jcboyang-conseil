@@ -1,0 +1,166 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+const planId = Astro.url.searchParams.get('plan') ?? '';
+---
+<Layout
+  title="Paiement en plusieurs fois — JCBO Conseil"
+  description="Suivez et réglez les échéances de votre réservation JCBO Conseil."
+  noindex
+>
+  <Header />
+  <div class="pt-24"></div>
+
+  <section class="py-16 bg-offwhite min-h-[60vh]">
+    <div class="max-w-[640px] mx-auto px-6">
+      {!planId ? (
+        <div class="bg-white rounded-2xl p-8 border border-gold/10 text-center">
+          <p class="text-gray-500">Lien de paiement invalide. Vérifiez l'e-mail reçu après votre première échéance.</p>
+        </div>
+      ) : (
+        <div class="bg-white rounded-2xl p-8 border border-gold/10 shadow-sm">
+          <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Mobile Money</span>
+          <h1 class="font-heading text-2xl font-bold text-navy mb-2">Paiement en plusieurs fois</h1>
+          <p id="plan-loading" class="text-sm text-gray-400 mb-6">Chargement du plan de paiement…</p>
+
+          <div id="plan-content" class="hidden">
+            <p class="text-sm text-gray-500 mb-4" id="plan-session"></p>
+
+            <div class="bg-offwhite rounded-xl p-5 mb-6">
+              <p class="text-xs font-bold uppercase tracking-wider text-gold-dark mb-3">Progression</p>
+              <div class="flex items-center justify-between text-sm mb-2">
+                <span class="text-gray-500">Échéances payées</span>
+                <span class="font-bold text-navy" id="plan-progress">—</span>
+              </div>
+              <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div id="plan-progress-bar" class="h-full bg-gold transition-all duration-500" style="width:0%"></div>
+              </div>
+              <p class="text-xs text-gray-400 mt-3" id="plan-total"></p>
+            </div>
+
+            <div id="plan-next-block">
+              <p class="text-sm text-gray-600 mb-4" id="plan-next-text"></p>
+              <button
+                type="button"
+                id="plan-pay-btn"
+                class="w-full bg-gold text-navy font-bold py-4 rounded-full hover:bg-gold-light transition-all shadow-lg shadow-gold/20"
+              >
+                Payer l'échéance
+              </button>
+            </div>
+
+            <div id="plan-complete-block" class="hidden text-center">
+              <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <p class="font-semibold text-navy mb-2">Toutes les échéances sont payées</p>
+              <p class="text-sm text-gray-500 mb-6">Votre réservation est confirmée. Consultez votre e-mail pour la facture complète.</p>
+              <a href="/" class="inline-flex bg-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold-light transition-all">Accueil</a>
+            </div>
+          </div>
+
+          <p id="plan-error" class="hidden text-sm text-red-600"></p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+{planId && (
+  <script define:vars={{ planId }}>
+    const loadingEl = document.getElementById("plan-loading");
+    const contentEl = document.getElementById("plan-content");
+    const errorEl = document.getElementById("plan-error");
+    const payBtn = document.getElementById("plan-pay-btn");
+
+    let planData = null;
+
+    function formatXaf(n) {
+      return `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
+    }
+
+    async function loadPlan() {
+      try {
+        const res = await fetch(`/api/installment-plan?plan=${encodeURIComponent(planId)}`, {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Plan introuvable");
+        planData = data;
+
+        loadingEl?.classList.add("hidden");
+        contentEl?.classList.remove("hidden");
+
+        const sessionEl = document.getElementById("plan-session");
+        const progressEl = document.getElementById("plan-progress");
+        const barEl = document.getElementById("plan-progress-bar");
+        const totalEl = document.getElementById("plan-total");
+        const nextTextEl = document.getElementById("plan-next-text");
+        const nextBlock = document.getElementById("plan-next-block");
+        const completeBlock = document.getElementById("plan-complete-block");
+
+        if (sessionEl) sessionEl.textContent = `Prestation : ${data.sessionLabel}`;
+        if (progressEl) progressEl.textContent = `${data.paidCount} / ${data.totalInstallments}`;
+        if (barEl) barEl.style.width = `${(data.paidCount / data.totalInstallments) * 100}%`;
+        if (totalEl) totalEl.textContent = `Montant total : ${formatXaf(data.totalXaf)}`;
+
+        if (data.complete) {
+          nextBlock?.classList.add("hidden");
+          completeBlock?.classList.remove("hidden");
+        } else if (nextTextEl) {
+          nextTextEl.textContent =
+            `Prochaine étape : régler l'échéance ${data.nextInstallmentNumber} sur ${data.totalInstallments} ` +
+            `(${formatXaf(data.nextInstallmentAmount)}).`;
+        }
+      } catch (err) {
+        loadingEl?.classList.add("hidden");
+        if (errorEl) {
+          errorEl.textContent = err instanceof Error ? err.message : "Erreur de chargement";
+          errorEl.classList.remove("hidden");
+        }
+      }
+    }
+
+    payBtn?.addEventListener("click", async () => {
+      if (!planData || planData.complete) return;
+      const email = prompt("Confirmez votre adresse e-mail pour continuer :", planData.customerEmail || "");
+      if (!email?.trim()) return;
+
+      if (!(payBtn instanceof HTMLButtonElement)) return;
+      payBtn.disabled = true;
+      payBtn.textContent = "Redirection vers NotchPay…";
+
+      try {
+        const res = await fetch("/api/notchpay/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            planId: planData.id,
+            sessionId: planData.sessionId,
+            name: planData.customerName,
+            email: email.trim(),
+            phone: planData.customerPhone,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.url) {
+          alert(data.error || "Impossible de lancer le paiement.");
+          payBtn.disabled = false;
+          payBtn.textContent = "Payer l'échéance";
+          return;
+        }
+        window.location.href = data.url;
+      } catch {
+        alert("Erreur réseau.");
+        payBtn.disabled = false;
+        payBtn.textContent = "Payer l'échéance";
+      }
+    });
+
+    loadPlan();
+  </script>
+)}

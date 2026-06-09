@@ -26,30 +26,41 @@ const factureHref =
   <section class="py-20 bg-offwhite">
     <div class="max-w-[720px] mx-auto px-6">
       <div class="bg-white rounded-2xl p-10 text-center border border-gold/10 shadow-sm">
-        <div class="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center bg-green-50">
+        <div class="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center bg-green-50" id="success-icon">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
         </div>
         <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Merci</span>
-        <h1 class="font-heading text-3xl font-bold text-navy mb-3">Paiement <span class="text-gold">confirmé</span></h1>
+        <h1 class="font-heading text-3xl font-bold text-navy mb-3" id="success-title">Paiement <span class="text-gold">confirmé</span></h1>
         <div class="w-14 h-0.5 bg-gold mx-auto mb-5"></div>
-        <p class="text-gray-500 mb-4 leading-relaxed">
+        <p class="text-gray-500 mb-4 leading-relaxed" id="success-message">
           Votre réservation a bien été enregistrée. Votre <strong class="text-navy">facture</strong> vous sera envoyée par e-mail dans quelques instants (vérifiez aussi les spams).
           L'équipe JCBO Conseil vous recontactera très rapidement pour planifier votre séance.
         </p>
-        <p id="invoice-status" class="text-sm text-gold-dark mb-4 hidden" role="status"></p>
-        {factureHref && (
+
+        <div id="installment-block" class="hidden text-left bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
+          <p class="text-sm font-bold text-navy mb-2" id="installment-progress"></p>
+          <p class="text-sm text-amber-900 mb-4" id="installment-next"></p>
           <a
-            id="facture-link"
-            href={factureHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 border-2 border-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold/10 transition-all mb-4"
+            id="installment-pay-link"
+            href="#"
+            class="inline-flex w-full justify-center items-center gap-2 bg-gold text-navy font-bold py-3 px-6 rounded-full hover:bg-gold-light transition-all"
           >
-            Voir ma facture
+            Payer l'échéance suivante
           </a>
-        )}
+        </div>
+
+        <p id="invoice-status" class="text-sm text-gold-dark mb-4 hidden" role="status"></p>
+        <a
+          id="facture-link"
+          href={factureHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          class:list={["inline-flex items-center gap-2 border-2 border-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold/10 transition-all mb-4", !factureHref && "hidden"]}
+        >
+          Voir ma facture
+        </a>
         {paymentRef && (
           <p class="text-xs text-gray-400 mb-8">Référence paiement : <code class="font-mono">{paymentRef}</code></p>
         )}
@@ -65,8 +76,17 @@ const factureHref =
 
 {(sessionId || (provider === 'notchpay' && notchReference)) && (
   <script define:vars={{ sessionId, provider, notchReference }}>
+    function formatXaf(n) {
+      return `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
+    }
+
     (async () => {
       const statusEl = document.getElementById("invoice-status");
+      const factureLink = document.getElementById("facture-link");
+      const installmentBlock = document.getElementById("installment-block");
+      const successMessage = document.getElementById("success-message");
+      const successTitle = document.getElementById("success-title");
+
       try {
         const url =
           provider === "notchpay" && notchReference
@@ -74,14 +94,56 @@ const factureHref =
             : `/api/stripe/fulfill?session_id=${encodeURIComponent(sessionId)}`;
         const res = await fetch(url, { method: "POST" });
         const data = await res.json();
-        if (statusEl && data.ok && data.emailSent) {
+
+        if (data.installment) {
+          const inst = data.installment;
+          if (inst.complete) {
+            if (successTitle) successTitle.innerHTML = 'Réservation <span class="text-gold">confirmée</span>';
+            if (successMessage) {
+              successMessage.innerHTML =
+                "Les <strong class=\"text-navy\">3 échéances</strong> ont été réglées. Votre facture complète vous est envoyée par e-mail. L'équipe JCBO vous recontactera pour planifier votre séance.";
+            }
+            if (statusEl && data.emailSent) {
+              statusEl.textContent = "Facture complète envoyée par e-mail.";
+              statusEl.classList.remove("hidden");
+            }
+          } else {
+            if (successTitle) successTitle.innerHTML = `Échéance <span class="text-gold">${inst.paidCount}/${inst.totalInstallments}</span> reçue`;
+            if (successMessage) {
+              successMessage.textContent =
+                "Merci ! Votre paiement a bien été enregistré. Un e-mail de confirmation vient de vous être envoyé avec le lien pour la prochaine étape.";
+            }
+            if (installmentBlock) installmentBlock.classList.remove("hidden");
+            const progressEl = document.getElementById("installment-progress");
+            const nextEl = document.getElementById("installment-next");
+            const payLink = document.getElementById("installment-pay-link");
+            if (progressEl) {
+              progressEl.textContent = `Progression : ${inst.paidCount} sur ${inst.totalInstallments} échéances payées`;
+            }
+            if (nextEl && inst.nextInstallmentNumber) {
+              nextEl.textContent =
+                `Prochaine étape : payer l'échéance ${inst.nextInstallmentNumber}` +
+                (inst.nextInstallmentAmount ? ` (${formatXaf(inst.nextInstallmentAmount)})` : "") +
+                " pour finaliser votre réservation.";
+            }
+            if (payLink instanceof HTMLAnchorElement && inst.nextPaymentUrl) {
+              payLink.href = inst.nextPaymentUrl;
+            }
+            if (factureLink) factureLink.classList.add("hidden");
+            if (statusEl && data.emailSent) {
+              statusEl.textContent = "E-mail de suivi envoyé avec le lien de la prochaine échéance.";
+              statusEl.classList.remove("hidden");
+            }
+          }
+        } else if (statusEl && data.ok && data.emailSent) {
           statusEl.textContent = "Votre facture a été envoyée à votre adresse e-mail.";
           statusEl.classList.remove("hidden");
         }
-        if (data.factureUrl) {
-          const factureLink = document.getElementById("facture-link");
-          if (factureLink instanceof HTMLAnchorElement) {
+
+        if (data.factureUrl && factureLink instanceof HTMLAnchorElement) {
+          if (!data.installment || data.installment.complete) {
             factureLink.href = data.factureUrl;
+            factureLink.classList.remove("hidden");
           }
         }
       } catch {

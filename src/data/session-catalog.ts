@@ -10,15 +10,22 @@ export const SESSION_CATALOG = {
 
 export type SessionId = keyof typeof SESSION_CATALOG;
 
-export function isNotchpayAmountAllowed(amountXaf: number): boolean {
-  return amountXaf > 0 && amountXaf <= NOTCHPAY_MAX_XAF;
+/** Découpe un montant XAF en échéances ≤ plafond NotchPay. */
+export function computeInstallmentAmounts(totalXaf: number): number[] {
+  const amounts: number[] = [];
+  let remaining = totalXaf;
+  while (remaining > 0) {
+    const chunk = Math.min(remaining, NOTCHPAY_MAX_XAF);
+    amounts.push(chunk);
+    remaining -= chunk;
+  }
+  return amounts;
 }
 
-export function notchpayLimitMessage(amountXaf: number): string {
-  const formatted = amountXaf.toLocaleString("fr-FR");
-  return (
-    `Le montant de cette prestation (${formatted} FCFA) dépasse la limite Mobile Money NotchPay ` +
-    `(max. ${NOTCHPAY_MAX_XAF.toLocaleString("fr-FR")} FCFA par transaction). ` +
-    `Contactez-nous à contact@jcbo-conseil.com pour un paiement en plusieurs fois.`
-  );
+export function needsInstallments(totalXaf: number): boolean {
+  return totalXaf > NOTCHPAY_MAX_XAF;
+}
+
+export function isNotchpayAmountAllowed(amountXaf: number): boolean {
+  return amountXaf > 0 && amountXaf <= NOTCHPAY_MAX_XAF;
 }

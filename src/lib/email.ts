@@ -318,6 +318,88 @@ export async function sendCustomerVirementEmail(
   }
 }
 
+export type InstallmentEmailPayload = {
+  customerName: string;
+  customerEmail: string;
+  sessionLabel: string;
+  paidCount: number;
+  totalInstallments: number;
+  lastAmountXaf: number;
+  nextAmountXaf?: number;
+  totalXaf: number;
+  nextPaymentUrl: string;
+  complete: boolean;
+};
+
+function buildInstallmentHtml(payload: InstallmentEmailPayload): string {
+  const lastFormatted = formatReservationMoney(payload.lastAmountXaf, "xaf");
+  const totalFormatted = formatReservationMoney(payload.totalXaf, "xaf");
+  const progress = `${payload.paidCount} / ${payload.totalInstallments}`;
+
+  const nextBlock = payload.complete
+    ? `<p style="margin:0 0 20px;font-size:14px;color:#16a34a;font-weight:600;">
+         Toutes vos échéances sont réglées. Votre réservation est confirmée et la facture complète vous sera envoyée séparément.
+       </p>`
+    : `<p style="margin:0 0 16px;font-size:14px;color:#6b7280;line-height:1.7;">
+         Prochaine étape : régler l'<strong>échéance ${payload.paidCount + 1} sur ${payload.totalInstallments}</strong>
+         (${payload.nextAmountXaf ? formatReservationMoney(payload.nextAmountXaf, "xaf") : "voir lien ci-dessous"}).
+       </p>
+       <p style="margin:0 0 20px;">
+         <a href="${payload.nextPaymentUrl}" style="display:inline-block;background:#d4a762;color:#0b1f3a;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:999px;font-size:13px;">
+           Payer l'échéance ${payload.paidCount + 1}
+         </a>
+       </p>`;
+
+  return `<!DOCTYPE html>
+<html lang="fr"><body style="margin:0;padding:0;background:#f8f6f2;font-family:Georgia,serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f6f2;padding:40px 20px;">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;border:1px solid rgba(212,167,98,0.25);max-width:560px;">
+<tr><td style="background:linear-gradient(135deg,#0b1f3a,#162d4f);padding:28px 32px;">
+<p style="margin:0;font-size:11px;font-weight:600;letter-spacing:0.2em;color:rgba(212,167,98,0.8);text-transform:uppercase;">JCBO Conseil</p>
+<h1 style="margin:8px 0 0;font-size:20px;color:#fff;">Paiement en plusieurs fois</h1>
+</td></tr>
+<tr><td style="padding:32px;">
+<p style="margin:0 0 12px;font-size:14px;color:#374151;">Bonjour <strong>${payload.customerName}</strong>,</p>
+<p style="margin:0 0 16px;font-size:14px;color:#6b7280;line-height:1.7;">
+  Nous avons bien reçu votre échéance de <strong>${lastFormatted}</strong> pour « <strong>${payload.sessionLabel}</strong> ».
+</p>
+<p style="margin:0 0 20px;padding:14px 18px;background:rgba(212,167,98,0.1);border-radius:12px;font-size:14px;color:#0b1f3a;">
+  Progression : <strong>${progress}</strong> échéance(s) payée(s) — total prestation : <strong>${totalFormatted}</strong>
+</p>
+${nextBlock}
+<p style="margin:0;font-size:11px;color:#9ca3af;">Conservez cet e-mail pour retrouver le lien de paiement des prochaines échéances.</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>`;
+}
+
+export async function sendInstallmentProgressEmail(
+  payload: InstallmentEmailPayload
+): Promise<{ ok: boolean; error?: string }> {
+  if (!isSmtpConfigured()) return { ok: false, error: "SMTP non configuré" };
+  if (!payload.customerEmail) return { ok: false, error: "E-mail client manquant" };
+
+  const subject = payload.complete
+    ? `Paiement complet — ${payload.sessionLabel} — JCBO Conseil`
+    : `Échéance ${payload.paidCount}/${payload.totalInstallments} reçue — ${payload.sessionLabel}`;
+
+  try {
+    await createTransport().sendMail({
+      from: getFromEmail(),
+      replyTo: getReplyToEmail(),
+      to: payload.customerEmail,
+      subject,
+      html: buildInstallmentHtml(payload),
+    });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
+  }
+}
+
 export async function sendCustomerReservationEmail(
   payload: ReservationPayload
 ): Promise<{ ok: boolean; error?: string }> {

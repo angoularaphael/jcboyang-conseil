@@ -2,13 +2,14 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import { pickVitrineReferenceFromUrl } from '../../lib/notchpay-reference';
 
 const sessionId = Astro.url.searchParams.get('session_id') ?? '';
 const provider = Astro.url.searchParams.get('provider') ?? '';
 const notchReference =
-  Astro.url.searchParams.get('reference') ??
-  Astro.url.searchParams.get('trxref') ??
-  '';
+  provider === 'notchpay'
+    ? pickVitrineReferenceFromUrl(Astro.url.searchParams)
+    : Astro.url.searchParams.get('reference') ?? Astro.url.searchParams.get('trxref') ?? '';
 const paymentRef = provider === 'notchpay' ? notchReference : sessionId;
 const factureParam = provider === 'notchpay' ? 'reference' : 'session_id';
 const factureId = provider === 'notchpay' ? notchReference : sessionId;
@@ -182,61 +183,134 @@ const shouldVerify = !!(sessionId || (provider === 'notchpay' && notchReference)
       }
     }
 
-    (async () => {
-      const paymentRef = provider === "notchpay" ? notchReference : sessionId;
-      const loadingText = document.getElementById("verify-loading-text");
-      const verifyUrl =
-        provider === "notchpay" && notchReference
-          ? `/api/notchpay/fulfill?reference=${encodeURIComponent(notchReference)}`
-          : `/api/stripe/fulfill?session_id=${encodeURIComponent(sessionId)}`;
-      const maxAttempts = provider === "notchpay" ? 15 : 4;
+    async function verifyNotchpayPayment(paymentRef, loadingText) {
+      const statusUrl = `/api/notchpay/payment-status?reference=${encodeURIComponent(paymentRef)}`;
+      const fulfillUrl = `/api/notchpay/fulfill?reference=${encodeURIComponent(paymentRef)}`;
+      const maxAttempts = 12;
 
-      try {
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-          const res = await fetch(verifyUrl, { method: "POST" });
-          let data = {};
-          try {
-            data = await res.json();
-          } catch {
-            if (attempt < maxAttempts - 1) {
-              await sleep(2000);
-              continue;
-            }
-            redirectToFailure({ statusMessage: "Impossible de vérifier le paiement." }, paymentRef);
-            return;
-          }
-
-          if (data.ok) {
-            applySuccessUi(data);
-            return;
-          }
-
-          if (isFinalFailure(data)) {
-            redirectToFailure(data, paymentRef);
-            return;
-          }
-
-          if (shouldRetryVerification(data) && attempt < maxAttempts - 1) {
-            if (loadingText) {
-              loadingText.textContent =
-                data.statusMessage || "Vérification du paiement Mobile Money en cours…";
-            }
-            await sleep(2000);
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        let data = {};
+        try {
+          const res = await fetch(statusUrl);
+          data = await res.json();
+        } catch {
+          if (attempt < maxAttempts - 1) {
+            await sleep(1500);
             continue;
           }
+          redirectToFailure({ statusMessage: "Impossible de vérifier le paiement." }, paymentRef);
+          return;
+        }
 
+        if (data.fulfilled && data.ok) {
+          applySuccessUi(data);
+          return;
+        }
+
+        if (isFinalFailure(data)) {
           redirectToFailure(data, paymentRef);
           return;
         }
 
-        redirectToFailure(
-          {
-            paymentStatus: "pending",
-            statusMessage:
-              "Impossible de confirmer le paiement pour le moment. Si vous avez validé sur votre téléphone, vérifiez votre e-mail ou contactez-nous.",
-          },
-          paymentRef
-        );
+        if (data.needsFulfill && data.ok) {
+          try {
+            const fulfillRes = await fetch(fulfillUrl, { method: "POST" });
+            const fulfillData = await fulfillRes.json();
+            if (fulfillData.ok) {
+              applySuccessUi(fulfillData);
+              return;
+            }
+            if (isFinalFailure(fulfillData)) {
+              redirectToFailure(fulfillData, paymentRef);
+              return;
+            }
+            data = fulfillData;
+          } catch {
+            if (attempt < maxAttempts - 1) {
+              await sleep(1500);
+              continue;
+            }
+            redirectToFailure({ statusMessage: "Erreur réseau lors de la confirmation." }, paymentRef);
+            return;
+          }
+        }
+
+        if (shouldRetryVerification(data) && attempt < maxAttempts - 1) {
+          if (loadingText) {
+            loadingText.textContent =
+              data.statusMessage || "Vérification du paiement Mobile Money en cours…";
+          }
+          await sleep(1500);
+          continue;
+        }
+
+        redirectToFailure(data, paymentRef);
+        return;
+      }
+
+      redirectToFailure(
+        {
+          paymentStatus: "pending",
+          statusMessage:
+            "Impossible de confirmer le paiement pour le moment. Si vous avez validé sur votre téléphone, vérifiez votre e-mail ou contactez-nous.",
+        },
+        paymentRef
+      );
+    }
+
+    async function verifyStripePayment(paymentRef, loadingText) {
+      const verifyUrl = `/api/stripe/fulfill?session_id=${encodeURIComponent(sessionId)}`;
+      const maxAttempts = 4;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        let data = {};
+        try {
+          const res = await fetch(verifyUrl, { method: "POST" });
+          data = await res.json();
+        } catch {
+          if (attempt < maxAttempts - 1) {
+            await sleep(1500);
+            continue;
+          }
+          redirectToFailure({ statusMessage: "Impossible de vérifier le paiement." }, paymentRef);
+          return;
+        }
+
+        if (data.ok) {
+          applySuccessUi(data);
+          return;
+        }
+
+        if (isFinalFailure(data)) {
+          redirectToFailure(data, paymentRef);
+          return;
+        }
+
+        if (shouldRetryVerification(data) && attempt < maxAttempts - 1) {
+          if (loadingText) {
+            loadingText.textContent = data.statusMessage || "Vérification du paiement en cours…";
+          }
+          await sleep(1500);
+          continue;
+        }
+
+        redirectToFailure(data, paymentRef);
+        return;
+      }
+
+      redirectToFailure({ statusMessage: "Paiement non confirmé." }, paymentRef);
+    }
+
+    (async () => {
+      const paymentRef = provider === "notchpay" ? notchReference : sessionId;
+      const loadingText = document.getElementById("verify-loading-text");
+
+      try {
+        if (provider === "notchpay" && notchReference) {
+          await verifyNotchpayPayment(paymentRef, loadingText);
+        } else {
+          await verifyStripePayment(paymentRef, loadingText);
+        }
       } catch {
         redirectToFailure({ statusMessage: "Erreur réseau lors de la vérification du paiement." }, paymentRef);
       }

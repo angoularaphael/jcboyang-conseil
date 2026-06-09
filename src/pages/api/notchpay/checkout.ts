@@ -11,6 +11,7 @@ import {
   getNextInstallmentAmount,
   getNextInstallmentNumber,
 } from "../../../lib/installment-plans";
+import { buildNotchpayCallbackUrl } from "../../../lib/notchpay-reference";
 import { readServerEnv } from "../../../lib/supabase";
 
 const BASE_URL = "https://api.notchpay.co";
@@ -56,7 +57,7 @@ async function initNotchpayPayment(params: {
     customer: params.customer,
     description: params.description,
     reference: params.reference,
-    callback: `${params.origin}/reservation/succes?provider=notchpay&reference=${encodeURIComponent(params.reference)}`,
+    callback: buildNotchpayCallbackUrl(params.origin, params.reference),
     metadata: params.metadata,
   };
 

@@ -20,6 +20,7 @@ import {
   resolveStripeCheckoutStatus,
   type PaymentStatus,
 } from "./payment-status";
+import { extractPlanIdFromVitrineReference } from "./notchpay-reference";
 import { getSupabase, isSupabaseConfigured, readServerEnv } from "./supabase";
 
 export type FulfillResult = {
@@ -32,6 +33,10 @@ export type FulfillResult = {
   statusMessage?: string;
   /** Le client peut relancer la vérification (délai NotchPay). */
   retryable?: boolean;
+  /** Déjà confirmé en base (webhook ou appel précédent). */
+  fulfilled?: boolean;
+  /** Statut NotchPay = complete mais e-mails pas encore envoyés. */
+  needsFulfill?: boolean;
   installment?: {
     planId: string;
     paidCount: number;
@@ -125,17 +130,73 @@ async function fetchNotchpayTransaction(
   }
 }
 
-async function fetchNotchpayTransactionWithRetry(
-  reference: string
-): Promise<Record<string, unknown> | null> {
-  const attempts = 5;
-  const delayMs = 1200;
-  for (let i = 0; i < attempts; i++) {
-    const tx = await fetchNotchpayTransaction(reference);
-    if (tx) return tx;
-    if (i < attempts - 1) await sleep(delayMs);
+async function buildInstallmentFulfillResult(
+  planId: string,
+  alreadyDone: boolean
+): Promise<FulfillResult> {
+  const plan = await getInstallmentPlan(planId);
+  const paymentUrl = getInstallmentPaymentUrl(planId);
+  if (!plan) {
+    return { ok: true, alreadyDone, emailSent: alreadyDone, paymentStatus: "complete" };
   }
-  return null;
+  return {
+    ok: true,
+    alreadyDone,
+    emailSent: alreadyDone,
+    paymentStatus: "complete",
+    installment: {
+      planId,
+      paidCount: plan.paidCount,
+      totalInstallments: plan.installmentAmounts.length,
+      complete: plan.status === "complete",
+      nextPaymentUrl: plan.status === "complete" ? undefined : paymentUrl,
+      nextInstallmentNumber: plan.status === "complete" ? undefined : plan.paidCount + 1,
+      nextInstallmentAmount: getNextInstallmentAmount(plan) ?? undefined,
+    },
+  };
+}
+
+/** Vérification légère (sans e-mail) — utilisée par le polling client. */
+export async function checkNotchpayPaymentStatus(reference: string): Promise<FulfillResult> {
+  if (await isNotchpayAlreadyFulfilled(reference)) {
+    return {
+      ok: true,
+      fulfilled: true,
+      alreadyDone: true,
+      emailSent: true,
+      paymentStatus: "complete",
+      factureUrl: buildFactureViewUrl("notchpay", reference),
+    };
+  }
+
+  const planId = extractPlanIdFromVitrineReference(reference);
+  if (planId && (await isInstallmentReferenceHandled(planId, reference))) {
+    const result = await buildInstallmentFulfillResult(planId, true);
+    return { ...result, fulfilled: true };
+  }
+
+  const tx = await fetchNotchpayTransaction(reference);
+  if (!tx) {
+    return {
+      ok: false,
+      fulfilled: false,
+      paymentStatus: "pending",
+      statusMessage: "Validation Mobile Money en cours…",
+      retryable: true,
+    };
+  }
+
+  const paymentStatus = getNotchpayPaymentStatus(tx);
+  if (!isSuccessfulPaymentStatus(paymentStatus)) {
+    return { ...rejectNotchpayPayment(tx), fulfilled: false };
+  }
+
+  return {
+    ok: true,
+    fulfilled: false,
+    needsFulfill: true,
+    paymentStatus: "complete",
+  };
 }
 
 function getNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
@@ -474,21 +535,43 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
     return { ok: false, error: "NotchPay non configuré" };
   }
 
-  const tx = await fetchNotchpayTransactionWithRetry(reference);
+  if (await isNotchpayAlreadyFulfilled(reference)) {
+    return {
+      ok: true,
+      fulfilled: true,
+      alreadyDone: true,
+      emailSent: true,
+      factureUrl: buildFactureViewUrl("notchpay", reference),
+    };
+  }
+
+  const planIdFromRef = extractPlanIdFromVitrineReference(reference);
+  if (planIdFromRef && (await isInstallmentReferenceHandled(planIdFromRef, reference))) {
+    return { ...(await buildInstallmentFulfillResult(planIdFromRef, true)), fulfilled: true };
+  }
+
+  let tx = await fetchNotchpayTransaction(reference);
+  if (!tx) {
+    await sleep(600);
+    tx = await fetchNotchpayTransaction(reference);
+  }
   if (!tx) {
     return {
       ok: false,
       paymentStatus: "pending",
-      statusMessage:
-        "Validation Mobile Money en cours. Patientez quelques secondes pendant la confirmation.",
+      statusMessage: "Paiement en attente de confirmation NotchPay.",
       error: "Paiement en attente de confirmation",
       retryable: true,
     };
   }
 
   const paymentStatus = getNotchpayPaymentStatus(tx);
+  if (!isSuccessfulPaymentStatus(paymentStatus)) {
+    return rejectNotchpayPayment(tx);
+  }
+
   const meta = (tx.metadata ?? {}) as Record<string, string>;
-  const planId = meta.planId?.trim();
+  const planId = meta.planId?.trim() || planIdFromRef || "";
 
   // ── Paiement en plusieurs échéances ──────────────────────────────
   if (planId) {
@@ -497,28 +580,20 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
     const amountXaf = Number(tx.amount ?? meta.amountXaf ?? 0);
 
     if (await isInstallmentReferenceHandled(planId, reference)) {
-      const plan = await getInstallmentPlan(planId);
-      const paymentUrl = getInstallmentPaymentUrl(planId);
-      return {
-        ok: true,
-        alreadyDone: true,
-        emailSent: true,
-        installment: plan
-          ? {
-              planId,
-              paidCount: plan.paidCount,
-              totalInstallments: plan.installmentAmounts.length,
-              complete: plan.status === "complete",
-              nextPaymentUrl: plan.status === "complete" ? undefined : paymentUrl,
-              nextInstallmentNumber: plan.status === "complete" ? undefined : plan.paidCount + 1,
-              nextInstallmentAmount: getNextInstallmentAmount(plan) ?? undefined,
-            }
-          : undefined,
-      };
+      return { ...(await buildInstallmentFulfillResult(planId, true)), fulfilled: true };
     }
 
-    if (!isSuccessfulPaymentStatus(paymentStatus)) {
-      return rejectNotchpayPayment(tx);
+    const currentPlan = await getInstallmentPlan(planId);
+    if (!currentPlan) {
+      return { ok: false, error: "Plan de paiement introuvable." };
+    }
+    if (installmentNumber !== currentPlan.paidCount + 1) {
+      return {
+        ok: false,
+        paymentStatus: "failed",
+        statusMessage: "Cette échéance ne correspond pas à l'étape attendue du plan.",
+        error: "Échéance invalide",
+      };
     }
 
     const updatedPlan = await recordInstallmentPayment(planId, reference, installmentNumber);
@@ -652,14 +727,6 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
 
   // ── Paiement unique ──────────────────────────────────────────────
   const factureUrl = buildFactureViewUrl("notchpay", reference);
-
-  if (await isNotchpayAlreadyFulfilled(reference)) {
-    return { ok: true, alreadyDone: true, emailSent: true, factureUrl };
-  }
-
-  if (!isSuccessfulPaymentStatus(paymentStatus)) {
-    return rejectNotchpayPayment(tx);
-  }
 
   const payload = buildNotchpayPayload(tx, reference);
   if (!payload) return rejectNotchpayPayment(tx);

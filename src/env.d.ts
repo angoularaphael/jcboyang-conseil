@@ -12,6 +12,11 @@ interface ImportMetaEnv {
   readonly PUBLIC_STRIPE_PUBLISHABLE_KEY?: string;
   readonly STRIPE_CONNECTED_ACCOUNT_ID?: string;
 
+  // NotchPay (Mobile Money)
+  readonly NOTCHPAY_PUBLIC_KEY?: string;
+  readonly NOTCHPAY_CONNECTED_ACCOUNT_ID?: string;
+  readonly NOTCHPAY_WEBHOOK_SECRET?: string;
+
   // Supabase (partage la même base que adhesion-jcbo)
   readonly SUPABASE_URL?: string;
   readonly SUPABASE_SERVICE_ROLE_KEY?: string;

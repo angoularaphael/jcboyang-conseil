@@ -14,6 +14,27 @@ const pricesEur: Record<SessionId, number> = {
   premium: 2400,
 };
 
+const pricesCfa: Record<SessionId, string> = {
+  diagnostic: '320 000',
+  coaching: '150 000',
+  pack3: '420 000',
+  premium: '1 500 000',
+};
+
+function formatCfaPrice(sessionId: SessionId): string {
+  return `${pricesCfa[sessionId]} FCFA`;
+}
+
+function normalizePhone(phone: string): string {
+  return phone.replace(/[\s\-().]/g, '');
+}
+
+/** Numéro Mobile Money : indicatif pays obligatoire (ex. +237 6XX XXX XXX). */
+function isValidAfricanPhone(phone: string): boolean {
+  const cleaned = normalizePhone(phone);
+  return /^\+?[1-9]\d{8,14}$/.test(cleaned);
+}
+
 function getInput(id: string): HTMLInputElement | null {
   const el = document.getElementById(id);
   return el instanceof HTMLInputElement ? el : null;
@@ -48,6 +69,52 @@ export function initReserverBooking(): void {
   }
 
   const steps = [step1, step2, step3];
+
+  const phoneHintAfrique = document.getElementById('phone-hint-afrique');
+  const phoneInput = getInput('bk-phone');
+  const virementInfo = document.getElementById('virement-info');
+
+  function getSelectedZone(): string {
+    return getCheckedRadio('zone')?.value ?? 'euro';
+  }
+
+  function updatePhoneHint(): void {
+    const zone = getSelectedZone();
+    if (phoneHintAfrique) {
+      phoneHintAfrique.classList.toggle('hidden', zone !== 'afrique');
+    }
+    if (phoneInput) {
+      phoneInput.placeholder =
+        zone === 'afrique'
+          ? '+237 6XX XXX XXX (indicatif pays obligatoire)'
+          : '+33 6 XX XX XX XX';
+    }
+  }
+
+  function updatePaymentOptionsForZone(zone: string): void {
+    document.querySelectorAll<HTMLElement>('[data-payment-zone]').forEach((el) => {
+      const allowed = el.dataset.paymentZone;
+      const visible = allowed === 'all' || allowed === zone;
+      el.classList.toggle('hidden', !visible);
+      if (!visible) {
+        const radio = el.querySelector<HTMLInputElement>('input[type="radio"]');
+        if (radio) radio.checked = false;
+      }
+    });
+    const defaultPayment =
+      zone === 'afrique'
+        ? document.querySelector<HTMLInputElement>('input[name="payment"][value="mobile"]')
+        : document.querySelector<HTMLInputElement>('input[name="payment"][value="card"]');
+    defaultPayment?.click();
+    if (virementInfo) {
+      virementInfo.classList.add('hidden');
+    }
+  }
+
+  document.querySelectorAll<HTMLInputElement>('input[name="zone"]').forEach((radio) => {
+    radio.addEventListener('change', updatePhoneHint);
+  });
+  updatePhoneHint();
 
   document.querySelectorAll<HTMLInputElement>('input[name="session"]').forEach((radio) => {
     radio.addEventListener('change', () => {
@@ -90,13 +157,19 @@ export function initReserverBooking(): void {
     const name = nameInput.value.trim();
     const email = emailInput.value.trim();
     const phone = phoneInput.value.trim();
+    const zone = zoneRadio.value;
     if (!name || !email || !phone) {
       alert('Veuillez remplir les champs obligatoires.');
       return;
     }
+    if (zone === 'afrique' && !isValidAfricanPhone(phone)) {
+      alert(
+        'Pour la zone Afrique, renseignez un numéro Mobile Money valide avec l\'indicatif pays (ex. +237 6XX XXX XXX pour le Cameroun, +225 XX XX XX XX pour la Côte d\'Ivoire).'
+      );
+      return;
+    }
 
     const sel = sessionRadio.value as SessionId;
-    const zone = zoneRadio.value;
     const summarySession = document.getElementById('summary-session');
     const summaryPrice = document.getElementById('summary-price');
     const summaryName = document.getElementById('summary-name');
@@ -116,17 +189,19 @@ export function initReserverBooking(): void {
     }
 
     summarySession.textContent = sessionLabels[sel] ?? sel;
-    summaryPrice.textContent = zone === 'euro' ? `${pricesEur[sel]} €` : '—  FCFA';
+    summaryPrice.textContent =
+      zone === 'euro' ? `${pricesEur[sel]} €` : formatCfaPrice(sel);
     summaryName.textContent = name;
     summaryEmail.textContent = email;
     summaryDate.textContent = dateInput?.value || 'À convenir';
-    payAmount.textContent = zone === 'euro' ? `${pricesEur[sel]} €` : '';
+    payAmount.textContent =
+      zone === 'euro' ? `${pricesEur[sel]} €` : formatCfaPrice(sel);
+    updatePaymentOptionsForZone(zone);
     showStep(3);
   });
 
   backStep2Btn.addEventListener('click', () => showStep(2));
 
-  const virementInfo = document.getElementById('virement-info');
   document.querySelectorAll<HTMLInputElement>('input[name="payment"]').forEach((radio) => {
     radio.addEventListener('change', () => {
       if (!virementInfo) return;
@@ -158,9 +233,22 @@ export function initReserverBooking(): void {
       return;
     }
 
-    const paymentMethod = paymentRadio?.value ?? 'card';
+    const zone = zoneRadio.value;
+    const paymentMethod =
+      zone === 'afrique' ? 'mobile' : (paymentRadio?.value ?? 'card');
     const isMobileMoney = paymentMethod === 'mobile';
     const isVirement = paymentMethod === 'virement';
+
+    if (zone === 'afrique' && !isValidAfricanPhone(phoneInput.value.trim())) {
+      alert(
+        'Renseignez un numéro Mobile Money africain valide avec l\'indicatif pays avant de payer (ex. +237 6XX XXX XXX).'
+      );
+      return;
+    }
+    if (zone === 'afrique' && !isMobileMoney) {
+      alert('Pour la zone Afrique, choisissez le paiement Mobile Money.');
+      return;
+    }
     const endpoint = isMobileMoney
       ? '/api/notchpay/checkout'
       : isVirement

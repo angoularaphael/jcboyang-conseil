@@ -62,7 +62,19 @@ export const POST: APIRoute = async ({ request }) => {
     },
     description: `${sessionInfo.label} — JCBO Conseil`,
     reference,
-    callback: `${origin}/api/notchpay/webhook`,
+    callback: `${origin}/reservation/succes?provider=notchpay&reference=${encodeURIComponent(reference)}`,
+    metadata: {
+      source: "vitrine",
+      sessionId: data.sessionId,
+      sessionLabel: sessionInfo.label,
+      customerName: data.name,
+      customerEmail: data.email,
+      customerPhone: data.phone,
+      customerCompany: data.company,
+      desiredDate: data.date,
+      customerMessage: data.message,
+      amountXaf: String(amountXaf),
+    },
   };
 
   if (applicationFee && connectedAccountId) {

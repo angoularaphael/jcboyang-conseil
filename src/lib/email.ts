@@ -33,21 +33,39 @@ export type ReservationPayload = {
   invoiceNumber?: string;
   invoicePdfUrl?: string;
   hostedInvoiceUrl?: string;
+  factureViewUrl?: string;
+  paymentProvider?: "stripe" | "notchpay";
   paidAt?: string;
 };
 
-function formatMoney(amount: number, currency: string): string {
-  return `${amount.toFixed(2)} ${currency.toUpperCase()}`;
+export function formatReservationMoney(amount: number, currency: string): string {
+  const cur = currency.toLowerCase();
+  if (cur === "xaf") {
+    return `${Math.round(amount).toLocaleString("fr-FR")} FCFA`;
+  }
+  return `${amount.toFixed(2)} ${cur.toUpperCase()}`;
 }
 
-function buildFactureHtml(payload: ReservationPayload): string {
+function formatMoney(amount: number, currency: string): string {
+  return formatReservationMoney(amount, currency);
+}
+
+function paymentMethodLabel(provider?: ReservationPayload["paymentProvider"]): string {
+  if (provider === "notchpay") return "Mobile Money (NotchPay)";
+  return "Carte bancaire (Stripe)";
+}
+
+export function buildFactureHtml(payload: ReservationPayload): string {
   const ttc = payload.amount;
   const ht = ttc / 1.2;
   const tva = ttc - ht;
   const ref =
     payload.invoiceNumber ??
-    `JCBO-${payload.stripeSessionId.replace(/^cs_(test_)?/, "").slice(0, 12).toUpperCase()}`;
+    (payload.paymentProvider === "notchpay"
+      ? `JCBO-${payload.stripeSessionId.replace(/[^a-zA-Z0-9]/g, "").slice(-12).toUpperCase()}`
+      : `JCBO-${payload.stripeSessionId.replace(/^cs_(test_)?/, "").slice(0, 12).toUpperCase()}`);
   const paidAt = payload.paidAt ?? new Date().toLocaleDateString("fr-FR");
+  const viewUrl = payload.hostedInvoiceUrl ?? payload.factureViewUrl;
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -97,6 +115,7 @@ function buildFactureHtml(payload: ReservationPayload): string {
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
           <tr><td align="right" style="padding:4px 0;font-size:13px;color:#6b7280;">TVA (20 %)</td><td align="right" style="padding:4px 0;font-size:13px;color:#374151;width:120px;">${formatMoney(tva, payload.currency)}</td></tr>
           <tr><td align="right" style="padding:4px 0;font-size:15px;font-weight:700;color:#0b1f3a;">Total TTC payé</td><td align="right" style="padding:4px 0;font-size:15px;font-weight:700;color:#16a34a;width:120px;">${formatMoney(ttc, payload.currency)}</td></tr>
+          <tr><td align="right" style="padding:4px 0;font-size:12px;color:#6b7280;">Mode de paiement</td><td align="right" style="padding:4px 0;font-size:12px;color:#374151;width:120px;">${paymentMethodLabel(payload.paymentProvider)}</td></tr>
         </table>
         <p style="margin:0 0 8px;font-size:13px;color:#374151;">Bonjour <strong>${payload.customerName}</strong>,</p>
         <p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.7;">
@@ -105,8 +124,8 @@ function buildFactureHtml(payload: ReservationPayload): string {
           Notre équipe vous recontactera très rapidement pour planifier votre séance.
         </p>
         ${
-          payload.hostedInvoiceUrl
-            ? `<p style="margin:0 0 20px;"><a href="${payload.hostedInvoiceUrl}" style="display:inline-block;background:#d4a762;color:#0b1f3a;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:999px;font-size:13px;">Télécharger la facture PDF</a></p>`
+          viewUrl
+            ? `<p style="margin:0 0 20px;"><a href="${viewUrl}" style="display:inline-block;background:#d4a762;color:#0b1f3a;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:999px;font-size:13px;">${payload.hostedInvoiceUrl ? "Télécharger la facture PDF" : "Voir ma facture en ligne"}</a></p>`
             : ""
         }
         <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.6;">
@@ -160,20 +179,20 @@ export async function sendAdminReservationEmail(
       <tr><td style="padding:36px 40px;">
         <p style="margin:0 0 16px;font-size:15px;color:#374151;">Bonjour,</p>
         <p style="margin:0 0 24px;font-size:14px;color:#6b7280;line-height:1.7;">
-          Un visiteur du site vitrine vient de confirmer un paiement sur Stripe pour une séance.
+          Un visiteur du site vitrine vient de confirmer un paiement (${paymentMethodLabel(payload.paymentProvider)}) pour une séance.
         </p>
         <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(212,167,98,0.06);border-radius:12px;border:1px solid rgba(212,167,98,0.2);margin-bottom:28px;">
           <tr><td style="padding:20px 24px;">
             <p style="margin:0 0 12px;font-size:10px;font-weight:700;letter-spacing:0.2em;color:#d4a762;text-transform:uppercase;">Détails de la réservation</p>
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;width:42%;">Prestation</td><td style="padding:5px 0;font-size:13px;font-weight:600;color:#0b1f3a;">${payload.sessionLabel}</td></tr>
-              <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;">Montant payé</td><td style="padding:5px 0;font-size:14px;font-weight:700;color:#16a34a;">${payload.amount.toFixed(2)} ${payload.currency.toUpperCase()}</td></tr>
+              <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;">Montant payé</td><td style="padding:5px 0;font-size:14px;font-weight:700;color:#16a34a;">${formatReservationMoney(payload.amount, payload.currency)}</td></tr>
               <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;">Client</td><td style="padding:5px 0;font-size:13px;font-weight:600;color:#0b1f3a;">${payload.customerName}</td></tr>
               <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;">E-mail</td><td style="padding:5px 0;font-size:13px;color:#0b1f3a;">${payload.customerEmail}</td></tr>
               <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;">Téléphone</td><td style="padding:5px 0;font-size:13px;color:#0b1f3a;">${payload.customerPhone || "—"}</td></tr>
               <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;">Entreprise</td><td style="padding:5px 0;font-size:13px;color:#0b1f3a;">${payload.company || "—"}</td></tr>
               <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;">Date souhaitée</td><td style="padding:5px 0;font-size:13px;color:#0b1f3a;">${payload.date || "À convenir"}</td></tr>
-              <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;">Réf. Stripe</td><td style="padding:5px 0;font-size:11px;font-family:monospace;color:#9ca3af;">${payload.stripeSessionId}</td></tr>
+              <tr><td style="padding:5px 0;font-size:13px;color:#6b7280;">Réf. paiement</td><td style="padding:5px 0;font-size:11px;font-family:monospace;color:#9ca3af;">${payload.stripeSessionId}</td></tr>
             </table>
           </td></tr>
         </table>
@@ -194,7 +213,7 @@ export async function sendAdminReservationEmail(
     await createTransport().sendMail({
       ...mail,
       to: adminEmail,
-      subject: `[JCBO] Paiement reçu — ${payload.sessionLabel} (${payload.amount.toFixed(2)} ${payload.currency.toUpperCase()})`,
+      subject: `[JCBO] Paiement reçu — ${payload.sessionLabel} (${formatReservationMoney(payload.amount, payload.currency)})`,
       html,
       replyTo: payload.customerEmail,
     });

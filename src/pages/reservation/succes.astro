@@ -4,6 +4,20 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 
 const sessionId = Astro.url.searchParams.get('session_id') ?? '';
+const provider = Astro.url.searchParams.get('provider') ?? '';
+const notchReference =
+  Astro.url.searchParams.get('reference') ??
+  Astro.url.searchParams.get('trxref') ??
+  '';
+const paymentRef = provider === 'notchpay' ? notchReference : sessionId;
+const factureParam = provider === 'notchpay' ? 'reference' : 'session_id';
+const factureId = provider === 'notchpay' ? notchReference : sessionId;
+const factureHref =
+  factureId && provider
+    ? `/api/reservation/facture?provider=${encodeURIComponent(provider)}&${factureParam}=${encodeURIComponent(factureId)}`
+    : factureId
+      ? `/api/reservation/facture?provider=stripe&session_id=${encodeURIComponent(factureId)}`
+      : '';
 ---
 <Layout title="Paiement confirmé — JCBO Conseil" description="Votre réservation est confirmée. Notre équipe vous recontactera très rapidement." noindex>
   <Header />
@@ -24,9 +38,20 @@ const sessionId = Astro.url.searchParams.get('session_id') ?? '';
           Votre réservation a bien été enregistrée. Votre <strong class="text-navy">facture</strong> vous sera envoyée par e-mail dans quelques instants (vérifiez aussi les spams).
           L'équipe JCBO Conseil vous recontactera très rapidement pour planifier votre séance.
         </p>
-        <p id="invoice-status" class="text-sm text-gold-dark mb-6 hidden" role="status"></p>
-        {sessionId && (
-          <p class="text-xs text-gray-400 mb-8">Référence paiement : <code class="font-mono">{sessionId}</code></p>
+        <p id="invoice-status" class="text-sm text-gold-dark mb-4 hidden" role="status"></p>
+        {factureHref && (
+          <a
+            id="facture-link"
+            href={factureHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 border-2 border-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold/10 transition-all mb-4"
+          >
+            Voir ma facture
+          </a>
+        )}
+        {paymentRef && (
+          <p class="text-xs text-gray-400 mb-8">Référence paiement : <code class="font-mono">{paymentRef}</code></p>
         )}
         <a href="/" class="inline-flex items-center gap-2 bg-gold text-navy font-bold py-3 px-8 rounded-full hover:bg-gold-light transition-all">
           Retour à l'accueil
@@ -38,21 +63,29 @@ const sessionId = Astro.url.searchParams.get('session_id') ?? '';
   <Footer />
 </Layout>
 
-{sessionId && (
-  <script define:vars={{ sessionId }}>
+{(sessionId || (provider === 'notchpay' && notchReference)) && (
+  <script define:vars={{ sessionId, provider, notchReference }}>
     (async () => {
       const statusEl = document.getElementById("invoice-status");
       try {
-        const res = await fetch(`/api/stripe/fulfill?session_id=${encodeURIComponent(sessionId)}`, {
-          method: "POST",
-        });
+        const url =
+          provider === "notchpay" && notchReference
+            ? `/api/notchpay/fulfill?reference=${encodeURIComponent(notchReference)}`
+            : `/api/stripe/fulfill?session_id=${encodeURIComponent(sessionId)}`;
+        const res = await fetch(url, { method: "POST" });
         const data = await res.json();
         if (statusEl && data.ok && data.emailSent) {
-          statusEl.textContent = "Facture envoyée à votre adresse e-mail.";
+          statusEl.textContent = "Votre facture a été envoyée à votre adresse e-mail.";
           statusEl.classList.remove("hidden");
         }
+        if (data.factureUrl) {
+          const factureLink = document.getElementById("facture-link");
+          if (factureLink instanceof HTMLAnchorElement) {
+            factureLink.href = data.factureUrl;
+          }
+        }
       } catch {
-        /* le webhook Stripe peut aussi déclencher l'envoi */
+        /* le webhook peut aussi déclencher l'envoi */
       }
     })();
   </script>

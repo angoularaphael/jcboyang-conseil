@@ -14,6 +14,7 @@ import {
 import {
   getNotchpayFailureReason,
   getPaymentStatusMessage,
+  isNotchpayApiWrapperStatus,
   isPendingPaymentStatus,
   isSuccessfulPaymentStatus,
   normalizeNotchpayStatus,
@@ -96,14 +97,44 @@ function buildPayload(
 function parseNotchpayTransactionPayload(
   data: Record<string, unknown>
 ): Record<string, unknown> | null {
-  const tx = data.transaction ?? data.data;
-  if (tx && typeof tx === "object" && !Array.isArray(tx)) {
-    return tx as Record<string, unknown>;
+  const nested = data.transaction ?? data.data;
+  if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+    const tx = nested as Record<string, unknown>;
+    if (tx.status != null || tx.payment_status != null || tx.reference != null) {
+      return tx;
+    }
   }
-  if (data.reference && data.status) {
+
+  if (data.reference && (data.payment_status != null || data.amount != null)) {
+    const status = String(data.status ?? "");
+    if (isNotchpayApiWrapperStatus(status) && data.payment_status == null) {
+      return null;
+    }
     return data;
   }
+
   return null;
+}
+
+function resolveNotchpayReference(
+  tx: Record<string, unknown> | null | undefined,
+  fallback: string
+): string {
+  const fromTx = String(tx?.reference ?? "").trim();
+  return fromTx || fallback;
+}
+
+function resolvePlanIdFromNotchpay(
+  reference: string,
+  canonicalRef: string,
+  tx?: Record<string, unknown> | null
+): string | null {
+  const fromMeta = String(((tx?.metadata ?? {}) as Record<string, string>).planId ?? "").trim();
+  return (
+    extractPlanIdFromVitrineReference(reference) ??
+    extractPlanIdFromVitrineReference(canonicalRef) ??
+    (fromMeta || null)
+  );
 }
 
 async function fetchNotchpayTransaction(
@@ -156,26 +187,68 @@ async function buildInstallmentFulfillResult(
   };
 }
 
+async function resolveInstallmentFulfillIfPaid(
+  planId: string,
+  reference: string,
+  tx?: Record<string, unknown> | null
+): Promise<FulfillResult | null> {
+  if (await isInstallmentReferenceHandled(planId, reference, tx)) {
+    return { ...(await buildInstallmentFulfillResult(planId, true)), fulfilled: true };
+  }
+
+  const plan = await getInstallmentPlan(planId);
+  if (!plan || !tx) return null;
+
+  const meta = (tx.metadata ?? {}) as Record<string, string>;
+  const installmentNumber = Number(meta.installmentNumber ?? 0);
+  if (installmentNumber > 0 && installmentNumber <= plan.paidCount) {
+    return { ...(await buildInstallmentFulfillResult(planId, true)), fulfilled: true };
+  }
+
+  return null;
+}
+
+/** Vérifie le statut réel côté API (utilisé par le webhook avant confirmation). */
+export async function verifyNotchpayPaymentIsComplete(reference: string): Promise<{
+  complete: boolean;
+  reference: string;
+  paymentStatus: PaymentStatus;
+}> {
+  const tx = await fetchNotchpayTransaction(reference);
+  if (!tx) {
+    return { complete: false, reference, paymentStatus: "pending" };
+  }
+  const canonicalRef = resolveNotchpayReference(tx, reference);
+  const paymentStatus = getNotchpayPaymentStatus(tx);
+  return {
+    complete: isSuccessfulPaymentStatus(paymentStatus),
+    reference: canonicalRef,
+    paymentStatus,
+  };
+}
+
 /** Vérification légère (sans e-mail) — utilisée par le polling client. */
 export async function checkNotchpayPaymentStatus(reference: string): Promise<FulfillResult> {
-  if (await isNotchpayAlreadyFulfilled(reference)) {
+  let tx = await fetchNotchpayTransaction(reference);
+  const canonicalRef = resolveNotchpayReference(tx, reference);
+
+  if (await isNotchpayAlreadyFulfilled(canonicalRef)) {
     return {
       ok: true,
       fulfilled: true,
       alreadyDone: true,
       emailSent: true,
       paymentStatus: "complete",
-      factureUrl: buildFactureViewUrl("notchpay", reference),
+      factureUrl: buildFactureViewUrl("notchpay", canonicalRef),
     };
   }
 
-  const planId = extractPlanIdFromVitrineReference(reference);
-  if (planId && (await isInstallmentReferenceHandled(planId, reference))) {
-    const result = await buildInstallmentFulfillResult(planId, true);
-    return { ...result, fulfilled: true };
+  const planId = resolvePlanIdFromNotchpay(reference, canonicalRef, tx);
+  if (planId) {
+    const installmentResult = await resolveInstallmentFulfillIfPaid(planId, canonicalRef, tx);
+    if (installmentResult) return installmentResult;
   }
 
-  const tx = await fetchNotchpayTransaction(reference);
   if (!tx) {
     return {
       ok: false,
@@ -200,7 +273,11 @@ export async function checkNotchpayPaymentStatus(reference: string): Promise<Ful
 }
 
 function getNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
-  return normalizeNotchpayStatus(tx.status ?? tx.payment_status);
+  const raw = tx.payment_status ?? tx.status;
+  if (isNotchpayApiWrapperStatus(raw) && tx.payment_status == null) {
+    return "unknown";
+  }
+  return normalizeNotchpayStatus(raw);
 }
 
 function rejectNotchpayPayment(
@@ -482,9 +559,17 @@ async function saveNotchpayNotification(
   });
 }
 
-async function isInstallmentReferenceHandled(planId: string, reference: string): Promise<boolean> {
+async function isInstallmentReferenceHandled(
+  planId: string,
+  reference: string,
+  tx?: Record<string, unknown> | null
+): Promise<boolean> {
   const plan = await getInstallmentPlan(planId);
-  return !!plan?.paidReferences.includes(reference);
+  if (!plan) return false;
+  const refs = new Set(plan.paidReferences);
+  if (refs.has(reference)) return true;
+  const fromTx = tx ? String(tx.reference ?? "").trim() : "";
+  return !!fromTx && refs.has(fromTx);
 }
 
 async function saveInstallmentPartialNotification(
@@ -535,26 +620,33 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
     return { ok: false, error: "NotchPay non configuré" };
   }
 
-  if (await isNotchpayAlreadyFulfilled(reference)) {
-    return {
-      ok: true,
-      fulfilled: true,
-      alreadyDone: true,
-      emailSent: true,
-      factureUrl: buildFactureViewUrl("notchpay", reference),
-    };
-  }
-
-  const planIdFromRef = extractPlanIdFromVitrineReference(reference);
-  if (planIdFromRef && (await isInstallmentReferenceHandled(planIdFromRef, reference))) {
-    return { ...(await buildInstallmentFulfillResult(planIdFromRef, true)), fulfilled: true };
-  }
-
   let tx = await fetchNotchpayTransaction(reference);
   if (!tx) {
     await sleep(600);
     tx = await fetchNotchpayTransaction(reference);
   }
+  const canonicalRef = resolveNotchpayReference(tx, reference);
+  const planIdFromRef = resolvePlanIdFromNotchpay(reference, canonicalRef, tx);
+
+  if (await isNotchpayAlreadyFulfilled(canonicalRef)) {
+    return {
+      ok: true,
+      fulfilled: true,
+      alreadyDone: true,
+      emailSent: true,
+      factureUrl: buildFactureViewUrl("notchpay", canonicalRef),
+    };
+  }
+
+  if (planIdFromRef) {
+    const installmentResult = await resolveInstallmentFulfillIfPaid(
+      planIdFromRef,
+      canonicalRef,
+      tx
+    );
+    if (installmentResult) return installmentResult;
+  }
+
   if (!tx) {
     return {
       ok: false,
@@ -579,13 +671,16 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
     const installmentTotal = Number(meta.installmentTotal ?? 0);
     const amountXaf = Number(tx.amount ?? meta.amountXaf ?? 0);
 
-    if (await isInstallmentReferenceHandled(planId, reference)) {
+    if (await isInstallmentReferenceHandled(planId, canonicalRef, tx)) {
       return { ...(await buildInstallmentFulfillResult(planId, true)), fulfilled: true };
     }
 
     const currentPlan = await getInstallmentPlan(planId);
     if (!currentPlan) {
       return { ok: false, error: "Plan de paiement introuvable." };
+    }
+    if (installmentNumber > 0 && installmentNumber <= currentPlan.paidCount) {
+      return { ...(await buildInstallmentFulfillResult(planId, true)), fulfilled: true };
     }
     if (installmentNumber !== currentPlan.paidCount + 1) {
       return {
@@ -596,7 +691,7 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
       };
     }
 
-    const updatedPlan = await recordInstallmentPayment(planId, reference, installmentNumber);
+    const updatedPlan = await recordInstallmentPayment(planId, canonicalRef, installmentNumber);
     if (!updatedPlan) {
       return { ok: false, error: "Impossible d'enregistrer l'échéance" };
     }
@@ -630,7 +725,7 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
     try {
       await saveInstallmentPartialNotification(
         planId,
-        reference,
+        canonicalRef,
         updatedPlan.paidCount,
         updatedPlan.installmentAmounts.length,
         updatedPlan.sessionLabel,
@@ -643,14 +738,22 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
     }
 
     if (updatedPlan.status !== "complete") {
-      return { ok: true, emailSent: emailRes.ok, installment: installmentInfo };
+      return {
+        ok: true,
+        fulfilled: true,
+        emailSent: emailRes.ok,
+        paymentStatus: "complete",
+        installment: installmentInfo,
+      };
     }
 
     if (await isPlanFullyFulfilled(planId)) {
       return {
         ok: true,
+        fulfilled: true,
         alreadyDone: true,
         emailSent: true,
+        paymentStatus: "complete",
         installment: { ...installmentInfo, complete: true },
       };
     }
@@ -669,7 +772,7 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
       stripeSessionId: planId,
       paymentProvider: "notchpay",
       invoiceNumber: `JCBO-${planId.replace(/[^a-zA-Z0-9]/g, "").slice(-12).toUpperCase()}`,
-      factureViewUrl: buildFactureViewUrl("notchpay", reference),
+      factureViewUrl: buildFactureViewUrl("notchpay", canonicalRef),
       paidAt: new Date().toLocaleDateString("fr-FR", {
         day: "2-digit",
         month: "long",
@@ -705,7 +808,7 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
             `(${totalXaf} XAF) pour « ${updatedPlan.sessionLabel} ».`,
           metadata: {
             planId,
-            reference,
+            reference: canonicalRef,
             installmentComplete: true,
             totalXaf,
             paidReferences: updatedPlan.paidReferences,
@@ -719,16 +822,18 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
 
     return {
       ok: true,
+      fulfilled: true,
       emailSent,
+      paymentStatus: "complete",
       factureUrl: fullPayload.factureViewUrl,
       installment: installmentInfo,
     };
   }
 
   // ── Paiement unique ──────────────────────────────────────────────
-  const factureUrl = buildFactureViewUrl("notchpay", reference);
+  const factureUrl = buildFactureViewUrl("notchpay", canonicalRef);
 
-  const payload = buildNotchpayPayload(tx, reference);
+  const payload = buildNotchpayPayload(tx, canonicalRef);
   if (!payload) return rejectNotchpayPayment(tx);
 
   const amountXaf = payload.amount;
@@ -750,10 +855,16 @@ export async function fulfillNotchpayReservation(reference: string): Promise<Ful
   }
 
   try {
-    await saveNotchpayNotification(payload, reference, amountXaf);
+    await saveNotchpayNotification(payload, canonicalRef, amountXaf);
   } catch (err) {
     console.error("[fulfill notchpay] Notification admin échouée :", err);
   }
 
-  return { ok: true, emailSent, factureUrl: payload.factureViewUrl };
+  return {
+    ok: true,
+    fulfilled: true,
+    emailSent,
+    paymentStatus: "complete",
+    factureUrl: payload.factureViewUrl,
+  };
 }

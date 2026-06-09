@@ -15,10 +15,24 @@ export function normalizeNotchpayStatus(status: unknown): PaymentStatus {
   if (value === "complete" || value === "completed" || value === "success") return "complete";
   if (value === "pending") return "pending";
   if (value === "processing") return "processing";
-  if (value === "failed" || value === "failure") return "failed";
+  if (
+    value === "failed" ||
+    value === "failure" ||
+    value === "refused" ||
+    value === "declined" ||
+    value === "rejected"
+  ) {
+    return "failed";
+  }
   if (value === "canceled" || value === "cancelled") return "canceled";
   if (value === "expired") return "expired";
   return "unknown";
+}
+
+/** Statuts d'enveloppe API NotchPay (≠ statut du paiement). */
+export function isNotchpayApiWrapperStatus(status: unknown): boolean {
+  const value = String(status ?? "").toLowerCase();
+  return value === "ok" || value === "accepted" || value === "created";
 }
 
 export function normalizeStripePaymentStatus(status: unknown): PaymentStatus {

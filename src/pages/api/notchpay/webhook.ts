@@ -1,6 +1,9 @@
 import type { APIRoute } from "astro";
 import { verifyNotchpayWebhookSignature } from "../../../lib/notchpay-webhook";
-import { fulfillNotchpayReservation } from "../../../lib/reservation-fulfill";
+import {
+  fulfillNotchpayReservation,
+  verifyNotchpayPaymentIsComplete,
+} from "../../../lib/reservation-fulfill";
 import { readServerEnv } from "../../../lib/supabase";
 
 /** Webhook serveur-à-serveur NotchPay (à configurer dans le dashboard, pas comme URL de retour client). */
@@ -35,7 +38,18 @@ export const POST: APIRoute = async ({ request }) => {
   const reference = String(txData.reference ?? txData.trxref ?? "");
   if (!reference) return new Response("Référence manquante", { status: 400 });
 
-  const result = await fulfillNotchpayReservation(reference);
+  const verification = await verifyNotchpayPaymentIsComplete(reference);
+  if (!verification.complete) {
+    console.info(
+      `[notchpay webhook] payment.complete ignoré (statut API: ${verification.paymentStatus})`
+    );
+    return new Response(
+      JSON.stringify({ ignored: true, paymentStatus: verification.paymentStatus }),
+      { status: 200 }
+    );
+  }
+
+  const result = await fulfillNotchpayReservation(verification.reference);
   if (!result.ok) {
     return new Response(JSON.stringify({ error: result.error, paymentStatus: result.paymentStatus }), {
       status: 400,

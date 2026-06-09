@@ -1,16 +1,13 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
+import {
+  isNotchpayAmountAllowed,
+  notchpayLimitMessage,
+  SESSION_CATALOG,
+  type SessionId,
+} from "../../../data/session-catalog";
 
 const BASE_URL = "https://api.notchpay.co";
-
-const SESSION_CATALOG = {
-  diagnostic: { label: "Diagnostic Stratégique", priceEur: 490, priceXaf: 320000 },
-  coaching: { label: "Coaching Stratégique", priceEur: 250, priceXaf: 150000 },
-  pack3: { label: "Pack 3 séances Coaching", priceEur: 650, priceXaf: 420000 },
-  premium: { label: "Accompagnement Premium 3 mois", priceEur: 2400, priceXaf: 1500000 },
-} as const;
-
-type SessionKey = keyof typeof SESSION_CATALOG;
 
 const bodySchema = z.object({
   sessionId: z.enum(["diagnostic", "coaching", "pack3", "premium"]),
@@ -21,6 +18,22 @@ const bodySchema = z.object({
   date: z.string().max(40).trim().optional().default(""),
   message: z.string().max(2000).trim().optional().default(""),
 });
+
+function parseNotchpayError(raw: string): string {
+  try {
+    const data = JSON.parse(raw) as {
+      message?: string;
+      errors?: { amount?: string[] };
+    };
+    if (data.errors?.amount?.[0]) {
+      return `Montant trop élevé pour Mobile Money (maximum 500 000 FCFA par paiement). Contactez-nous pour un arrangement.`;
+    }
+    if (data.message) return data.message;
+  } catch {
+    /* texte brut */
+  }
+  return "Impossible d'initialiser le paiement Mobile Money.";
+}
 
 export const POST: APIRoute = async ({ request }) => {
   const notchPayKey = import.meta.env.NOTCHPAY_PUBLIC_KEY;
@@ -44,12 +57,19 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const data = parsed.data;
-  const sessionInfo = SESSION_CATALOG[data.sessionId as SessionKey];
+  const sessionInfo = SESSION_CATALOG[data.sessionId as SessionId];
+  const amountXaf = sessionInfo.priceXaf;
+
+  if (!isNotchpayAmountAllowed(amountXaf)) {
+    return new Response(JSON.stringify({ error: notchpayLimitMessage(amountXaf) }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const origin = new URL(request.url).origin;
   const reference = `vitrine-${data.sessionId}-${Date.now()}`;
-
-  const amountXaf = sessionInfo.priceXaf;
-  const applicationFee = Math.round(amountXaf * 0.20); // 20% plateforme
+  const applicationFee = Math.round(amountXaf * 0.20);
   const connectedAccountId = import.meta.env.NOTCHPAY_CONNECTED_ACCOUNT_ID;
 
   const paymentBody: Record<string, unknown> = {
@@ -98,7 +118,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!res.ok) {
       const err = await res.text();
       return new Response(
-        JSON.stringify({ error: `Erreur NotchPay: ${err}` }),
+        JSON.stringify({ error: parseNotchpayError(err) }),
         { status: 502, headers: { "Content-Type": "application/json" } }
       );
     }

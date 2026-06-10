@@ -13,6 +13,7 @@ type SessionKey = keyof typeof SESSION_CATALOG;
 
 const bodySchema = z.object({
   sessionId: z.enum(["diagnostic", "coaching", "pack3", "premium"]),
+  zone: z.enum(["euro", "afrique"]).optional().default("euro"),
   name: z.string().min(2).max(120).trim(),
   email: z.string().email().max(200).trim().toLowerCase(),
   phone: z.string().min(4).max(40).trim(),
@@ -84,6 +85,7 @@ export const POST: APIRoute = async ({ request }) => {
     ],
     metadata: {
       source: "vitrine",
+      zone: data.zone,
       sessionKey: data.sessionId,
       sessionLabel: sessionInfo.label,
       customerName: data.name,

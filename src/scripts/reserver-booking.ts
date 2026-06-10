@@ -36,8 +36,8 @@ function normalizePhone(phone: string): string {
   return phone.replace(/[\s\-().]/g, '');
 }
 
-/** Numéro Mobile Money : indicatif pays obligatoire (ex. +237 6XX XXX XXX). */
-function isValidAfricanPhone(phone: string): boolean {
+/** Numéro avec indicatif pays (ex. +237 6XX XXX XXX). */
+function isValidPhoneWithCountryCode(phone: string): boolean {
   const cleaned = normalizePhone(phone);
   return /^\+?[1-9]\d{8,14}$/.test(cleaned);
 }
@@ -114,11 +114,7 @@ export function initReserverBooking(): void {
       payBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     }
 
-    const defaultPayment =
-      zone === 'afrique'
-        ? document.querySelector<HTMLInputElement>('input[name="payment"][value="mobile"]')
-        : document.querySelector<HTMLInputElement>('input[name="payment"][value="card"]');
-    defaultPayment?.click();
+    document.querySelector<HTMLInputElement>('input[name="payment"][value="card"]')?.click();
     if (virementInfo) {
       const virementSelected =
         document.querySelector<HTMLInputElement>('input[name="payment"][value="virement"]:checked') !=
@@ -178,9 +174,9 @@ export function initReserverBooking(): void {
       alert('Veuillez remplir les champs obligatoires.');
       return;
     }
-    if (zone === 'afrique' && !isValidAfricanPhone(phone)) {
+    if (zone === 'afrique' && !isValidPhoneWithCountryCode(phone)) {
       alert(
-        'Pour la zone Afrique, renseignez un numéro Mobile Money valide avec l\'indicatif pays (ex. +237 6XX XXX XXX pour le Cameroun, +225 XX XX XX XX pour la Côte d\'Ivoire).'
+        'Pour la zone Afrique, renseignez un numéro valide avec l\'indicatif pays (ex. +237 6XX XXX XXX pour le Cameroun, +225 XX XX XX XX pour la Côte d\'Ivoire).'
       );
       return;
     }
@@ -250,25 +246,16 @@ export function initReserverBooking(): void {
     }
 
     const zone = zoneRadio.value;
-    const paymentMethod = paymentRadio?.value ?? (zone === 'afrique' ? 'mobile' : 'card');
-    const isMobileMoney = paymentMethod === 'mobile';
+    const paymentMethod = paymentRadio?.value ?? 'card';
     const isVirement = paymentMethod === 'virement';
 
-    if (zone === 'afrique' && !isMobileMoney) {
-      alert('Le paiement en zone Afrique se fait par Mobile Money.');
-      return;
-    }
-    if (zone === 'afrique' && !isValidAfricanPhone(phoneInput.value.trim())) {
+    if (zone === 'afrique' && !isValidPhoneWithCountryCode(phoneInput.value.trim())) {
       alert(
-        'Renseignez un numéro Mobile Money africain valide avec l\'indicatif pays avant de payer (ex. +237 6XX XXX XXX).'
+        'Renseignez un numéro valide avec l\'indicatif pays avant de payer (ex. +237 6XX XXX XXX).'
       );
       return;
     }
-    const endpoint = isMobileMoney
-      ? '/api/notchpay/checkout'
-      : isVirement
-        ? '/api/reservation/virement'
-        : '/api/stripe/checkout';
+    const endpoint = isVirement ? '/api/reservation/virement' : '/api/stripe/checkout';
 
     const originalText = payBtn.innerHTML;
     payBtn.disabled = true;

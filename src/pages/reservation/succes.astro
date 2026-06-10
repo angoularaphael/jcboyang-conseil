@@ -263,7 +263,7 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
           return;
         }
 
-        if (data.ok && (data.fulfilled || data.installment)) {
+        if (data.ok && data.paymentStatus === "complete" && (data.fulfilled || data.installment)) {
           applySuccessUi(data);
           return;
         }
@@ -277,7 +277,7 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
           try {
             const fulfillRes = await fetch(fulfillUrl, { method: "POST" });
             const fulfillData = await fulfillRes.json();
-            if (fulfillData.ok) {
+            if (fulfillData.ok && fulfillData.paymentStatus === "complete") {
               applySuccessUi(fulfillData);
               return;
             }

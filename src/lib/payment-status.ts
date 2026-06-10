@@ -12,7 +12,9 @@ export type PaymentStatus =
 
 export function normalizeNotchpayStatus(status: unknown): PaymentStatus {
   const value = String(status ?? "").toLowerCase();
-  if (value === "complete" || value === "completed" || value === "success") return "complete";
+  if (value === "complete" || value === "completed" || value === "success" || value === "paid") {
+    return "complete";
+  }
   if (value === "pending") return "pending";
   if (value === "processing") return "processing";
   if (
@@ -90,14 +92,102 @@ export function resolveStripeCheckoutStatus(session: Stripe.Checkout.Session): {
 
 export function getNotchpayFailureReason(tx: Record<string, unknown>): string | undefined {
   const nestedError = tx.error as Record<string, unknown> | undefined;
+  const lastError = tx.last_error as Record<string, unknown> | undefined;
   const raw =
     tx.failure_reason ??
+    tx.failureReason ??
+    tx.failure_message ??
+    tx.decline_reason ??
     tx.reason ??
     tx.message ??
     nestedError?.message ??
-    nestedError?.description;
+    nestedError?.description ??
+    lastError?.message;
   const text = String(raw ?? "").trim();
   return text || undefined;
+}
+
+const NOTCHPAY_FAILURE_STATUS =
+  /failed|failure|refus|declin|reject|canceled|cancelled|expired|insufficient|unpaid|denied|échou|echou/;
+
+function notchpayStatusCandidates(tx: Record<string, unknown>): string[] {
+  const nestedError = tx.error as Record<string, unknown> | undefined;
+  return [
+    tx.payment_status,
+    tx.paymentStatus,
+    tx.status,
+    tx.state,
+    tx.authorization_status,
+    tx.transaction_status,
+    nestedError?.code,
+    nestedError?.type,
+  ]
+    .map((value) => String(value ?? "").toLowerCase())
+    .filter(Boolean);
+}
+
+/** Indicateurs explicites d'échec (prioritaires sur un `status` ambigu). */
+export function hasExplicitNotchpayFailure(tx: Record<string, unknown>): boolean {
+  const reason = getNotchpayFailureReason(tx);
+  if (isTerminalNotchpayFailureReason(reason)) return true;
+  if (tx.failed === true || tx.is_failed === true) return true;
+  if (tx.paid === false || tx.is_paid === false || tx.isPaid === false) {
+    return !!reason;
+  }
+  return notchpayStatusCandidates(tx).some(
+    (value) => NOTCHPAY_FAILURE_STATUS.test(value) && !isNotchpayApiWrapperStatus(value)
+  );
+}
+
+/** Confirmation explicite côté NotchPay (ne pas déduire depuis `status` seul). */
+export function hasExplicitNotchpaySuccess(tx: Record<string, unknown>): boolean {
+  if (tx.paid === true || tx.is_paid === true || tx.isPaid === true) return true;
+  if (tx.paid_at || tx.completed_at || tx.completedAt) {
+    const paymentField = tx.payment_status ?? tx.paymentStatus;
+    if (paymentField != null && !isSuccessfulPaymentStatus(normalizeNotchpayStatus(paymentField))) {
+      return false;
+    }
+    return true;
+  }
+
+  const paymentField = tx.payment_status ?? tx.paymentStatus;
+  if (paymentField == null) return false;
+  return isSuccessfulPaymentStatus(normalizeNotchpayStatus(paymentField));
+}
+
+/** Statut réel d'une transaction NotchPay (strict : pas de faux « complete »). */
+export function resolveNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
+  if (hasExplicitNotchpayFailure(tx)) {
+    const reason = getNotchpayFailureReason(tx);
+    const fromPaymentField = normalizeNotchpayStatus(tx.payment_status ?? tx.paymentStatus);
+    if (!isSuccessfulPaymentStatus(fromPaymentField) && fromPaymentField !== "unknown") {
+      return fromPaymentField;
+    }
+    if (isTerminalNotchpayFailureReason(reason)) return "failed";
+    return "failed";
+  }
+
+  if (hasExplicitNotchpaySuccess(tx)) {
+    return "complete";
+  }
+
+  const paymentStatusField = tx.payment_status ?? tx.paymentStatus;
+  if (paymentStatusField != null) {
+    return normalizeNotchpayStatus(paymentStatusField);
+  }
+
+  const raw = tx.status;
+  if (isNotchpayApiWrapperStatus(raw)) {
+    const reason = getNotchpayFailureReason(tx);
+    if (isTerminalNotchpayFailureReason(reason)) return "failed";
+    return "unknown";
+  }
+
+  const fromStatus = normalizeNotchpayStatus(raw);
+  if (fromStatus === "complete") {
+    return "unknown";
+  }
+  return fromStatus;
 }
 
 export function getPaymentStatusMessage(

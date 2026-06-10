@@ -19,6 +19,7 @@ import {
   isSuccessfulPaymentStatus,
   isTerminalNotchpayFailureReason,
   normalizeNotchpayStatus,
+  resolveNotchpayPaymentStatus,
   resolveStripeCheckoutStatus,
   type PaymentStatus,
 } from "./payment-status";
@@ -268,6 +269,9 @@ export async function checkNotchpayPaymentStatus(
 
   const planId = resolvePlanIdFromNotchpay(reference, canonicalRef, tx);
   if (await isNotchpayAlreadyFulfilled(canonicalRef)) {
+    if (tx && !isSuccessfulPaymentStatus(resolveNotchpayPaymentStatus(tx))) {
+      return { ...rejectNotchpayPayment(tx), fulfilled: false, alreadyDone: false };
+    }
     if (planId) {
       return {
         ...(await buildInstallmentFulfillResult(planId, true)),
@@ -303,7 +307,7 @@ export async function checkNotchpayPaymentStatus(
     };
   }
 
-  const paymentStatus = getNotchpayPaymentStatus(tx);
+  const paymentStatus = resolveNotchpayPaymentStatus(tx);
   if (!isSuccessfulPaymentStatus(paymentStatus)) {
     return { ...rejectNotchpayPayment(tx), fulfilled: false };
   }
@@ -317,14 +321,7 @@ export async function checkNotchpayPaymentStatus(
 }
 
 function getNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
-  const paymentStatusField = tx.payment_status ?? tx.paymentStatus;
-  const raw = paymentStatusField ?? tx.status;
-  if (isNotchpayApiWrapperStatus(raw) && paymentStatusField == null) {
-    const reason = getNotchpayFailureReason(tx);
-    if (isTerminalNotchpayFailureReason(reason)) return "failed";
-    return "unknown";
-  }
-  return normalizeNotchpayStatus(raw);
+  return resolveNotchpayPaymentStatus(tx);
 }
 
 function rejectNotchpayPayment(
@@ -682,6 +679,9 @@ export async function fulfillNotchpayReservation(
   const planIdFromRef = resolvePlanIdFromNotchpay(reference, canonicalRef, tx);
 
   if (await isNotchpayAlreadyFulfilled(canonicalRef)) {
+    if (tx && !isSuccessfulPaymentStatus(resolveNotchpayPaymentStatus(tx))) {
+      return { ...rejectNotchpayPayment(tx), fulfilled: false, alreadyDone: false };
+    }
     if (planIdFromRef) {
       return {
         ...(await buildInstallmentFulfillResult(planIdFromRef, true)),

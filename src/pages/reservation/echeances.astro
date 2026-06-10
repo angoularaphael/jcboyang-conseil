@@ -131,7 +131,12 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
         if (sessionEl) sessionEl.textContent = `Prestation : ${data.sessionLabel}`;
         if (progressEl) progressEl.textContent = `${data.paidCount} / ${data.totalInstallments}`;
         if (barEl) barEl.style.width = `${(data.paidCount / data.totalInstallments) * 100}%`;
-        if (totalEl) totalEl.textContent = `Montant total : ${formatXaf(data.totalXaf)}`;
+        if (totalEl) {
+          const collected = data.collectedXaf ?? 0;
+          totalEl.textContent =
+            `Montant total : ${formatXaf(data.totalXaf)}` +
+            (collected > 0 ? ` — déjà reçu : ${formatXaf(collected)}` : "");
+        }
 
         const phoneInput = document.getElementById("plan-phone");
         if (phoneInput instanceof HTMLInputElement && data.customerPhone) {
@@ -173,7 +178,7 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
 
       if (!(payBtn instanceof HTMLButtonElement)) return;
       payBtn.disabled = true;
-      payBtn.textContent = "Redirection vers NotchPay…";
+      payBtn.textContent = "Envoi de la demande sur votre téléphone…";
 
       try {
         const res = await fetch("/api/notchpay/checkout", {

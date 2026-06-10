@@ -130,9 +130,7 @@ export function initReserverBooking(): void {
 
     const defaultPayment =
       zone === 'afrique'
-        ? document.querySelector<HTMLInputElement>(
-            `input[name="payment"][value="${useInstallments ? 'virement' : 'mobile'}"]`
-          )
+        ? document.querySelector<HTMLInputElement>('input[name="payment"][value="mobile"]')
         : document.querySelector<HTMLInputElement>('input[name="payment"][value="card"]');
     defaultPayment?.click();
     if (virementInfo) {

@@ -159,7 +159,7 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
         }
 
         payBtn.disabled = true;
-        payBtn.textContent = "Redirection vers NotchPay…";
+        payBtn.textContent = "Envoi de la demande sur votre téléphone…";
 
         const checkoutRes = await fetch("/api/notchpay/checkout", {
           method: "POST",

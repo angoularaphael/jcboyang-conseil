@@ -10,7 +10,13 @@ import {
   getInstallmentPlan,
   getNextInstallmentAmount,
   getNextInstallmentNumber,
+  updateInstallmentPlanPhone,
 } from "../../../lib/installment-plans";
+import {
+  buildNotchpayPollingUrl,
+  normalizePhoneE164,
+  processNotchpayMobileMoney,
+} from "../../../lib/notchpay-mobile";
 import { buildNotchpayCallbackUrl } from "../../../lib/notchpay-reference";
 import { readServerEnv } from "../../../lib/supabase";
 
@@ -50,11 +56,12 @@ async function initNotchpayPayment(params: {
   notchPayKey: string;
   connectedAccountId?: string;
 }): Promise<{ url: string; reference: string } | { error: string }> {
+  const normalizedPhone = normalizePhoneE164(params.customer.phone);
   const applicationFee = Math.round(params.amountXaf * 0.2);
   const paymentBody: Record<string, unknown> = {
     amount: params.amountXaf,
     currency: "XAF",
-    customer: params.customer,
+    customer: { ...params.customer, phone: normalizedPhone },
     description: params.description,
     reference: params.reference,
     callback: buildNotchpayCallbackUrl(params.origin, params.reference),
@@ -85,7 +92,21 @@ async function initNotchpayPayment(params: {
 
     const result = await res.json();
     const authUrl = result.authorization_url ?? result.transaction?.authorization_url ?? "";
-    if (!authUrl) return { error: "URL de paiement introuvable" };
+
+    const processed = await processNotchpayMobileMoney(
+      params.reference,
+      normalizedPhone,
+      params.notchPayKey
+    );
+    if ("ok" in processed) {
+      return {
+        url: buildNotchpayPollingUrl(params.origin, params.reference),
+        reference: params.reference,
+      };
+    }
+
+    console.warn("[notchpay checkout] process direct échoué, repli authorization_url :", processed.error);
+    if (!authUrl) return { error: processed.error };
     return { url: authUrl, reference: params.reference };
   } catch (err) {
     console.error("[notchpay checkout] appel API échoué :", err);
@@ -120,7 +141,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const data = parsed.data;
   const origin = new URL(request.url).origin;
   const connectedAccountId = readServerEnv("NOTCHPAY_CONNECTED_ACCOUNT_ID");
-  const customer = { name: data.name, email: data.email, phone: data.phone };
+  const customer = {
+    name: data.name,
+    email: data.email,
+    phone: normalizePhoneE164(data.phone),
+  };
 
   const baseMeta = {
     source: "vitrine",
@@ -162,6 +187,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    await updateInstallmentPlanPhone(plan.id, customer.phone);
 
     const reference = `vitrine-${plan.id}-e${installmentNumber}-${Date.now()}`;
     const result = await initNotchpayPayment({

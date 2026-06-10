@@ -758,12 +758,32 @@ export async function fulfillNotchpayReservation(
       };
     }
 
+    const expectedAmount = currentPlan.installmentAmounts[installmentNumber - 1];
+    if (expectedAmount && amountXaf > 0 && amountXaf !== expectedAmount) {
+      return {
+        ok: false,
+        paymentStatus: "failed",
+        statusMessage: `Montant reçu (${amountXaf} FCFA) différent de l'échéance attendue (${expectedAmount} FCFA).`,
+        error: "Montant d'échéance incorrect",
+      };
+    }
+
+    await sleep(1500);
     const freshTx = await fetchNotchpayTransaction(canonicalRef, alternateReference);
     if (freshTx) {
       tx = freshTx;
       const freshStatus = getNotchpayPaymentStatus(freshTx);
       if (!isSuccessfulPaymentStatus(freshStatus)) {
         return rejectNotchpayPayment(freshTx);
+      }
+      const freshAmount = Number(freshTx.amount ?? amountXaf);
+      if (expectedAmount && freshAmount > 0 && freshAmount !== expectedAmount) {
+        return {
+          ok: false,
+          paymentStatus: "failed",
+          statusMessage: "Montant confirmé par NotchPay différent de l'échéance attendue.",
+          error: "Montant d'échéance incorrect",
+        };
       }
     }
 

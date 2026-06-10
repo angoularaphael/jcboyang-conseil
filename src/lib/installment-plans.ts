@@ -179,6 +179,27 @@ export function getNextInstallmentNumber(plan: InstallmentPlan): number | null {
   return plan.paidCount + 1;
 }
 
+export function getCollectedXaf(plan: InstallmentPlan): number {
+  return plan.installmentAmounts.slice(0, plan.paidCount).reduce((sum, n) => sum + n, 0);
+}
+
+export async function updateInstallmentPlanPhone(
+  planId: string,
+  phone: string
+): Promise<void> {
+  const id = normalizeInstallmentPlanId(planId) ?? planId.trim();
+  if (!id || !isSupabaseConfigured()) return;
+  try {
+    const supa = getSupabase();
+    await supa
+      .from("vitrine_installment_plans")
+      .update({ customer_phone: phone, updated_at: new Date().toISOString() })
+      .eq("id", id);
+  } catch (err) {
+    console.error("[installment] mise à jour téléphone échouée :", err);
+  }
+}
+
 export async function recordInstallmentPayment(
   planId: string,
   reference: string,

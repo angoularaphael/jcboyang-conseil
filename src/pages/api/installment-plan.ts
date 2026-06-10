@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import {
+  getCollectedXaf,
   getInstallmentPaymentUrl,
   getInstallmentPlan,
   getNextInstallmentAmount,
@@ -26,12 +27,15 @@ export const GET: APIRoute = async ({ url, request }) => {
   const origin = new URL(request.url).origin;
   const nextNumber = getNextInstallmentNumber(plan);
   const nextAmount = getNextInstallmentAmount(plan);
+  const collectedXaf = getCollectedXaf(plan);
 
   return new Response(
     JSON.stringify({
       id: plan.id,
       sessionLabel: plan.sessionLabel,
       totalXaf: plan.totalXaf,
+      collectedXaf,
+      remainingXaf: plan.totalXaf - collectedXaf,
       installmentAmounts: plan.installmentAmounts,
       paidCount: plan.paidCount,
       totalInstallments: plan.installmentAmounts.length,

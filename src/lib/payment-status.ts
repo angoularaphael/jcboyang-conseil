@@ -126,68 +126,78 @@ function notchpayStatusCandidates(tx: Record<string, unknown>): string[] {
     .filter(Boolean);
 }
 
-/** Indicateurs explicites d'échec (prioritaires sur un `status` ambigu). */
-export function hasExplicitNotchpayFailure(tx: Record<string, unknown>): boolean {
-  const reason = getNotchpayFailureReason(tx);
-  if (isTerminalNotchpayFailureReason(reason)) return true;
-  if (tx.failed === true || tx.is_failed === true) return true;
-  if (tx.paid === false || tx.is_paid === false || tx.isPaid === false) {
-    return !!reason;
-  }
-  return notchpayStatusCandidates(tx).some(
-    (value) => NOTCHPAY_FAILURE_STATUS.test(value) && !isNotchpayApiWrapperStatus(value)
-  );
+/** Statut de cycle de vie NotchPay (champ `transaction.status`, pas l'enveloppe API `OK`). */
+function isNotchpayLifecycleStatus(status: unknown): boolean {
+  const value = String(status ?? "").toLowerCase();
+  if (!value || isNotchpayApiWrapperStatus(value)) return false;
+  return normalizeNotchpayStatus(value) !== "unknown";
 }
 
-/** Confirmation explicite côté NotchPay (ne pas déduire depuis `status` seul). */
-export function hasExplicitNotchpaySuccess(tx: Record<string, unknown>): boolean {
-  if (tx.paid === true || tx.is_paid === true || tx.isPaid === true) return true;
-  if (tx.paid_at || tx.completed_at || tx.completedAt) {
-    const paymentField = tx.payment_status ?? tx.paymentStatus;
-    if (paymentField != null && !isSuccessfulPaymentStatus(normalizeNotchpayStatus(paymentField))) {
-      return false;
-    }
-    return true;
-  }
-
-  const paymentField = tx.payment_status ?? tx.paymentStatus;
-  if (paymentField == null) return false;
-  return isSuccessfulPaymentStatus(normalizeNotchpayStatus(paymentField));
-}
-
-/** Statut réel d'une transaction NotchPay (strict : pas de faux « complete »). */
-export function resolveNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
-  if (hasExplicitNotchpayFailure(tx)) {
-    const reason = getNotchpayFailureReason(tx);
-    const fromPaymentField = normalizeNotchpayStatus(tx.payment_status ?? tx.paymentStatus);
-    if (!isSuccessfulPaymentStatus(fromPaymentField) && fromPaymentField !== "unknown") {
-      return fromPaymentField;
-    }
-    if (isTerminalNotchpayFailureReason(reason)) return "failed";
-    return "failed";
-  }
-
-  if (hasExplicitNotchpaySuccess(tx)) {
-    return "complete";
-  }
-
+function resolveLifecycleStatus(tx: Record<string, unknown>): PaymentStatus {
   const paymentStatusField = tx.payment_status ?? tx.paymentStatus;
   if (paymentStatusField != null) {
     return normalizeNotchpayStatus(paymentStatusField);
   }
+  if (isNotchpayLifecycleStatus(tx.status)) {
+    return normalizeNotchpayStatus(tx.status);
+  }
+  return "unknown";
+}
 
-  const raw = tx.status;
-  if (isNotchpayApiWrapperStatus(raw)) {
-    const reason = getNotchpayFailureReason(tx);
-    if (isTerminalNotchpayFailureReason(reason)) return "failed";
-    return "unknown";
+/** Statut réel d'une transaction NotchPay (doc : `transaction.status === 'complete'`). */
+export function resolveNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
+  const reason = getNotchpayFailureReason(tx);
+
+  if (tx.failed === true || tx.is_failed === true) {
+    return "failed";
   }
 
-  const fromStatus = normalizeNotchpayStatus(raw);
-  if (fromStatus === "complete") {
-    return "unknown";
+  let status = resolveLifecycleStatus(tx);
+
+  if (status === "unknown" && isNotchpayApiWrapperStatus(tx.status)) {
+    if (tx.paid === true || tx.is_paid === true || tx.isPaid === true) {
+      status = "complete";
+    } else if (isTerminalNotchpayFailureReason(reason)) {
+      return "failed";
+    } else {
+      return "unknown";
+    }
   }
-  return fromStatus;
+
+  if (isTerminalNotchpayFailureReason(reason)) {
+    if (
+      isSuccessfulPaymentStatus(status) ||
+      status === "pending" ||
+      status === "processing" ||
+      status === "unknown"
+    ) {
+      return "failed";
+    }
+  }
+
+  if (tx.paid === false || tx.is_paid === false || tx.isPaid === false) {
+    if (isSuccessfulPaymentStatus(status)) return "failed";
+  }
+
+  if (
+    (tx.paid === true || tx.is_paid === true || tx.isPaid === true) &&
+    !isSuccessfulPaymentStatus(status) &&
+    status !== "failed" &&
+    status !== "canceled"
+  ) {
+    return "complete";
+  }
+
+  if (
+    !isSuccessfulPaymentStatus(status) &&
+    notchpayStatusCandidates(tx).some(
+      (value) => NOTCHPAY_FAILURE_STATUS.test(value) && !isNotchpayApiWrapperStatus(value)
+    )
+  ) {
+    return status === "unknown" ? "failed" : status;
+  }
+
+  return status;
 }
 
 export function getPaymentStatusMessage(
@@ -243,7 +253,12 @@ export function isPendingPaymentStatus(status: PaymentStatus): boolean {
 /** Échec définitif même si NotchPay renvoie encore `pending` (ex. fonds insuffisants). */
 export function isTerminalNotchpayFailureReason(reason?: string): boolean {
   const lower = reason?.toLowerCase() ?? "";
-  return /insufficient|fonds|balance|solde|refus|declin|reject|cancel|annul|échou|echou|fail|denied/.test(
-    lower
+  if (!lower) return false;
+  return (
+    /insufficient|fonds\s*insuff|solde\s*insuff/.test(lower) ||
+    /\b(refus\w*|declin\w*|reject\w*|denied)\b/.test(lower) ||
+    /\b(cancel\w*|annul\w*)\b/.test(lower) ||
+    /\b(échou\w*|echou\w*)\b/.test(lower) ||
+    /\b(fail\w*|failure)\b/.test(lower)
   );
 }

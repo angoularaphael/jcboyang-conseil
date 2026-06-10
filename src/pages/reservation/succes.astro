@@ -54,14 +54,7 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
 
         <div id="installment-block" class="hidden text-left bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
           <p class="text-sm font-bold text-navy mb-2" id="installment-progress"></p>
-          <p class="text-sm text-amber-900 mb-4" id="installment-next"></p>
-          <button
-            type="button"
-            id="installment-pay-btn"
-            class="inline-flex w-full justify-center items-center gap-2 bg-gold text-navy font-bold py-3 px-6 rounded-full hover:bg-gold-light transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            Payer l'échéance suivante
-          </button>
+          <p class="text-sm text-amber-900" id="installment-next"></p>
         </div>
 
         <p id="invoice-status" class="text-sm text-gold-dark mb-4 hidden" role="status"></p>
@@ -125,65 +118,6 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
       );
     }
 
-    function normalizePhone(phone) {
-      const cleaned = String(phone || "").replace(/[\s\-().]/g, "");
-      if (!cleaned) return "";
-      return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
-    }
-
-    function isValidAfricanPhone(phone) {
-      return /^\+[1-9]\d{8,14}$/.test(normalizePhone(phone));
-    }
-
-    async function startInstallmentCheckout(planId) {
-      const payBtn = document.getElementById("installment-pay-btn");
-      if (!(payBtn instanceof HTMLButtonElement) || !planId) return;
-
-      try {
-        const planRes = await fetch(`/api/installment-plan?plan=${encodeURIComponent(planId)}`, {
-          cache: "no-store",
-        });
-        const plan = await planRes.json();
-        if (!planRes.ok || plan.complete) {
-          throw new Error(plan.error || "Plan introuvable");
-        }
-
-        const promptedPhone = prompt(
-          "Numéro Mobile Money pour cette échéance (indicatif pays obligatoire) :",
-          plan.customerPhone || ""
-        );
-        if (!promptedPhone?.trim()) return;
-        const phone = normalizePhone(promptedPhone);
-        if (!isValidAfricanPhone(phone)) {
-          throw new Error("Numéro invalide. Exemple : +237670000000");
-        }
-
-        payBtn.disabled = true;
-        payBtn.textContent = "Envoi de la demande sur votre téléphone…";
-
-        const checkoutRes = await fetch("/api/notchpay/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            planId: plan.id,
-            sessionId: plan.sessionId,
-            name: plan.customerName,
-            email: plan.customerEmail,
-            phone,
-          }),
-        });
-        const checkout = await checkoutRes.json();
-        if (!checkoutRes.ok || !checkout.url) {
-          throw new Error(checkout.error || "Impossible de lancer le paiement.");
-        }
-        window.location.href = checkout.url;
-      } catch (err) {
-        payBtn.disabled = false;
-        payBtn.textContent = "Payer l'échéance suivante";
-        alert(err instanceof Error ? err.message : "Impossible de lancer le paiement.");
-      }
-    }
-
     function applySuccessUi(data) {
       const statusEl = document.getElementById("invoice-status");
       const factureLink = document.getElementById("facture-link");
@@ -214,19 +148,14 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
             if (installmentBlock) installmentBlock.classList.remove("hidden");
             const progressEl = document.getElementById("installment-progress");
             const nextEl = document.getElementById("installment-next");
-            const payBtn = document.getElementById("installment-pay-btn");
             if (progressEl) {
               progressEl.textContent = `Progression : ${inst.paidCount} sur ${inst.totalInstallments} échéances payées`;
             }
             if (nextEl && inst.nextInstallmentNumber) {
               nextEl.textContent =
-                `Prochaine étape : payer l'échéance ${inst.nextInstallmentNumber}` +
+                `Prochaine étape : utilisez le lien reçu par e-mail pour payer l'échéance ${inst.nextInstallmentNumber}` +
                 (inst.nextInstallmentAmount ? ` (${formatXaf(inst.nextInstallmentAmount)})` : "") +
-                " pour finaliser votre réservation.";
-            }
-            if (payBtn instanceof HTMLButtonElement && inst.planId) {
-              payBtn.disabled = false;
-              payBtn.onclick = () => startInstallmentCheckout(inst.planId);
+                " et finaliser votre réservation.";
             }
             if (factureLink) factureLink.classList.add("hidden");
             if (statusEl && data.emailSent) {

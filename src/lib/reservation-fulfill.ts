@@ -21,6 +21,7 @@ import {
   normalizeNotchpayStatus,
   resolveNotchpayPaymentStatus,
   resolveStripeCheckoutStatus,
+  shouldRejectNotchpayInsufficientFunds,
   type PaymentStatus,
 } from "./payment-status";
 import {
@@ -226,6 +227,14 @@ async function resolveInstallmentFulfillIfPaid(
   const paymentStatus = resolveNotchpayPaymentStatus(tx);
   if (!isSuccessfulPaymentStatus(paymentStatus)) return null;
 
+  const planForPhone = await getInstallmentPlan(planId);
+  if (
+    planForPhone &&
+    shouldRejectNotchpayInsufficientFunds(tx, [planForPhone.customerPhone])
+  ) {
+    return null;
+  }
+
   if (await isInstallmentReferenceHandled(planId, reference, tx)) {
     return { ...(await buildInstallmentFulfillResult(planId, true)), fulfilled: true };
   }
@@ -317,6 +326,19 @@ export async function checkNotchpayPaymentStatus(
     return { ...rejectNotchpayPayment(tx), fulfilled: false };
   }
 
+  if (planId) {
+    const planForPhone = await getInstallmentPlan(planId);
+    if (
+      planForPhone &&
+      shouldRejectNotchpayInsufficientFunds(tx, [planForPhone.customerPhone])
+    ) {
+      return {
+        ...rejectNotchpayPayment(tx, [planForPhone.customerPhone]),
+        fulfilled: false,
+      };
+    }
+  }
+
   return {
     ok: true,
     fulfilled: false,
@@ -330,11 +352,17 @@ function getNotchpayPaymentStatus(tx: Record<string, unknown>): PaymentStatus {
 }
 
 function rejectNotchpayPayment(
-  tx: Record<string, unknown>
+  tx: Record<string, unknown>,
+  extraPhones: string[] = []
 ): FulfillResult {
-  const reason = getNotchpayFailureReason(tx);
-  let paymentStatus = getNotchpayPaymentStatus(tx);
+  const insufficient = shouldRejectNotchpayInsufficientFunds(tx, extraPhones);
+  const reason =
+    getNotchpayFailureReason(tx) ?? (insufficient ? "fonds insuffisants" : undefined);
+  let paymentStatus = insufficient ? "failed" : getNotchpayPaymentStatus(tx);
   if (isTerminalNotchpayFailureReason(reason) && isPendingPaymentStatus(paymentStatus)) {
+    paymentStatus = "failed";
+  }
+  if (insufficient && isSuccessfulPaymentStatus(paymentStatus)) {
     paymentStatus = "failed";
   }
   const statusMessage = getPaymentStatusMessage("notchpay", paymentStatus, reason);
@@ -732,6 +760,14 @@ export async function fulfillNotchpayReservation(
   const meta = (tx.metadata ?? {}) as Record<string, string>;
   const planId = planIdFromRef || normalizeInstallmentPlanId(meta.planId ?? "") || "";
 
+  const planForPhoneCheck = planId ? await getInstallmentPlan(planId) : null;
+  if (
+    planForPhoneCheck &&
+    shouldRejectNotchpayInsufficientFunds(tx, [planForPhoneCheck.customerPhone])
+  ) {
+    return rejectNotchpayPayment(tx, [planForPhoneCheck.customerPhone]);
+  }
+
   // ── Paiement en plusieurs échéances ──────────────────────────────
   if (planId) {
     const installmentNumber = Number(meta.installmentNumber ?? 0);
@@ -774,7 +810,10 @@ export async function fulfillNotchpayReservation(
       tx = freshTx;
       const freshStatus = getNotchpayPaymentStatus(freshTx);
       if (!isSuccessfulPaymentStatus(freshStatus)) {
-        return rejectNotchpayPayment(freshTx);
+        return rejectNotchpayPayment(freshTx, [currentPlan.customerPhone]);
+      }
+      if (shouldRejectNotchpayInsufficientFunds(freshTx, [currentPlan.customerPhone])) {
+        return rejectNotchpayPayment(freshTx, [currentPlan.customerPhone]);
       }
       const freshAmount = Number(freshTx.amount ?? amountXaf);
       if (expectedAmount && freshAmount > 0 && freshAmount !== expectedAmount) {

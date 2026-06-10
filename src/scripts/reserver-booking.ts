@@ -1,7 +1,5 @@
 type SessionId = 'diagnostic' | 'coaching' | 'pack3' | 'premium';
 
-const NOTCHPAY_MAX_XAF = 500_000;
-
 const sessionLabels: Record<SessionId, string> = {
   diagnostic: 'Diagnostic Stratégique',
   coaching: 'Coaching Stratégique',
@@ -29,10 +27,6 @@ const pricesCfa: Record<SessionId, string> = {
   pack3: '420 000',
   premium: '1 500 000',
 };
-
-function needsInstallments(sessionId: SessionId): boolean {
-  return pricesXaf[sessionId] > NOTCHPAY_MAX_XAF;
-}
 
 function formatCfaPrice(sessionId: SessionId): string {
   return `${pricesCfa[sessionId]} FCFA`;
@@ -104,11 +98,7 @@ export function initReserverBooking(): void {
     }
   }
 
-  const notchpayLimitInfo = document.getElementById('notchpay-limit-info');
-
-  function updatePaymentOptionsForZone(zone: string, sessionId?: SessionId): void {
-    const useInstallments = zone === 'afrique' && sessionId && needsInstallments(sessionId);
-
+  function updatePaymentOptionsForZone(zone: string, _sessionId?: SessionId): void {
     document.querySelectorAll<HTMLElement>('[data-payment-zone]').forEach((el) => {
       const allowed = el.dataset.paymentZone;
       const visible = allowed === 'all' || allowed === zone;
@@ -118,10 +108,6 @@ export function initReserverBooking(): void {
         if (radio) radio.checked = false;
       }
     });
-
-    if (notchpayLimitInfo) {
-      notchpayLimitInfo.classList.toggle('hidden', !useInstallments);
-    }
 
     if (payBtn instanceof HTMLButtonElement) {
       payBtn.disabled = false;
@@ -264,18 +250,18 @@ export function initReserverBooking(): void {
     }
 
     const zone = zoneRadio.value;
-    const paymentMethod = paymentRadio?.value ?? (zone === 'afrique' ? 'virement' : 'card');
+    const paymentMethod = paymentRadio?.value ?? (zone === 'afrique' ? 'mobile' : 'card');
     const isMobileMoney = paymentMethod === 'mobile';
     const isVirement = paymentMethod === 'virement';
 
-    if (zone === 'afrique' && isMobileMoney && !isValidAfricanPhone(phoneInput.value.trim())) {
+    if (zone === 'afrique' && !isMobileMoney) {
+      alert('Le paiement en zone Afrique se fait par Mobile Money.');
+      return;
+    }
+    if (zone === 'afrique' && !isValidAfricanPhone(phoneInput.value.trim())) {
       alert(
         'Renseignez un numéro Mobile Money africain valide avec l\'indicatif pays avant de payer (ex. +237 6XX XXX XXX).'
       );
-      return;
-    }
-    if (zone === 'afrique' && !isMobileMoney && !isVirement) {
-      alert('Choisissez le virement bancaire ou le Mobile Money.');
       return;
     }
     const endpoint = isMobileMoney

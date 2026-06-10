@@ -90,26 +90,89 @@ export function resolveStripeCheckoutStatus(session: Stripe.Checkout.Session): {
   return { status: paid === "unpaid" ? "unpaid" : "failed", reason };
 }
 
+function collectNotchpayTextValues(value: unknown, depth = 0): string[] {
+  if (depth > 5 || value == null) return [];
+  if (typeof value === "string") return value.trim() ? [value.trim()] : [];
+  if (typeof value === "number" || typeof value === "boolean") return [String(value)];
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectNotchpayTextValues(item, depth + 1));
+  }
+  if (typeof value === "object") {
+    return Object.values(value as Record<string, unknown>).flatMap((item) =>
+      collectNotchpayTextValues(item, depth + 1)
+    );
+  }
+  return [];
+}
+
+const INSUFFICIENT_FUNDS_PATTERN =
+  /insufficient|fonds\s*insuff|solde\s*insuff|not\s*enough\s*balance|balance\s*insuff|pas\s*assez|low\s*balance/i;
+
+/** Numéros de test NotchPay : …000001 = fonds insuffisants (doc NotchPay). */
+export function isInsufficientFundsTestPhoneNumber(phone: string): boolean {
+  return /000001$/.test(phone.replace(/\D/g, ""));
+}
+
+/** Numéro « fonds insuffisants » dans la transaction NotchPay (customer ou metadata). */
+export function isNotchpayInsufficientFundsTestPhone(tx: Record<string, unknown>): boolean {
+  const customer = (tx.customer ?? {}) as Record<string, unknown>;
+  const meta = (tx.metadata ?? {}) as Record<string, string>;
+  const phone = String(customer.phone ?? meta.customerPhone ?? "");
+  return isInsufficientFundsTestPhoneNumber(phone);
+}
+
+/** Détecte un refus « fonds insuffisants » même si le statut affiché est « complete ». */
+export function hasInsufficientFundsSignal(tx: Record<string, unknown>): boolean {
+  if (isNotchpayInsufficientFundsTestPhone(tx)) return true;
+
+  const reason = getNotchpayFailureReason(tx);
+  if (reason && INSUFFICIENT_FUNDS_PATTERN.test(reason)) return true;
+
+  return collectNotchpayTextValues(tx).some((text) => INSUFFICIENT_FUNDS_PATTERN.test(text));
+}
+
+/** Rejette un paiement « complete » si fonds insuffisants (API, metadata ou numéro du plan). */
+export function shouldRejectNotchpayInsufficientFunds(
+  tx: Record<string, unknown>,
+  extraPhones: string[] = []
+): boolean {
+  if (hasInsufficientFundsSignal(tx)) return true;
+  return extraPhones.some((phone) => phone && isInsufficientFundsTestPhoneNumber(phone));
+}
+
 export function getNotchpayFailureReason(tx: Record<string, unknown>): string | undefined {
   const nestedError = tx.error as Record<string, unknown> | undefined;
   const lastError = tx.last_error as Record<string, unknown> | undefined;
   const channelResponse = tx.channel_response as Record<string, unknown> | undefined;
   const gatewayResponse = tx.gateway_response as Record<string, unknown> | undefined;
+  const operatorResponse = tx.operator_response as Record<string, unknown> | undefined;
+  const providerResponse = tx.provider_response as Record<string, unknown> | undefined;
   const raw =
     tx.failure_reason ??
     tx.failureReason ??
     tx.failure_message ??
     tx.decline_reason ??
+    tx.error_code ??
+    tx.code ??
     tx.reason ??
     tx.message ??
     channelResponse?.message ??
     channelResponse?.description ??
+    channelResponse?.status ??
     gatewayResponse?.message ??
+    operatorResponse?.message ??
+    providerResponse?.message ??
     nestedError?.message ??
     nestedError?.description ??
+    nestedError?.code ??
     lastError?.message;
   const text = String(raw ?? "").trim();
-  return text || undefined;
+  if (text && INSUFFICIENT_FUNDS_PATTERN.test(text)) return text;
+
+  const fromDeepScan = collectNotchpayTextValues(tx).find((t) =>
+    INSUFFICIENT_FUNDS_PATTERN.test(t)
+  );
+  return fromDeepScan || text || undefined;
 }
 
 const NOTCHPAY_FAILURE_STATUS =
@@ -202,6 +265,10 @@ export function resolveNotchpayPaymentStatus(tx: Record<string, unknown>): Payme
     return status === "unknown" ? "failed" : status;
   }
 
+  if (isSuccessfulPaymentStatus(status) && hasInsufficientFundsSignal(tx)) {
+    return "failed";
+  }
+
   return status;
 }
 
@@ -259,8 +326,8 @@ export function isPendingPaymentStatus(status: PaymentStatus): boolean {
 export function isTerminalNotchpayFailureReason(reason?: string): boolean {
   const lower = reason?.toLowerCase() ?? "";
   if (!lower) return false;
+  if (INSUFFICIENT_FUNDS_PATTERN.test(lower)) return true;
   return (
-    /insufficient|fonds\s*insuff|solde\s*insuff/.test(lower) ||
     /\b(refus\w*|declin\w*|reject\w*|denied)\b/.test(lower) ||
     /\b(cancel\w*|annul\w*)\b/.test(lower) ||
     /\b(échou\w*|echou\w*)\b/.test(lower) ||

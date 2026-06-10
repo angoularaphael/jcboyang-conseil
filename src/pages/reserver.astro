@@ -159,34 +159,17 @@ const sessions = [
             </div>
           </label>
           <label data-payment-zone="afrique" class="flex items-center gap-3 bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
-            <input type="radio" name="payment" value="virement" class="w-4 h-4 accent-[#d4a762]" />
-            <div class="flex items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1m-7 5h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2z"/></svg>
-              <span class="text-sm font-medium">Virement bancaire — montant unique <span class="text-gold font-semibold">(recommandé)</span></span>
-            </div>
-          </label>
-          <label data-payment-zone="afrique" class="flex items-center gap-3 bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
             <input type="radio" name="payment" value="mobile" class="w-4 h-4 accent-[#d4a762]" />
             <div class="flex items-center gap-2">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-              <span class="text-sm font-medium">Mobile Money — paiement en plusieurs fois</span>
+              <span class="text-sm font-medium">Mobile Money (Zone Afrique)</span>
             </div>
           </label>
         </div>
 
-        <div id="notchpay-limit-info" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 text-sm text-amber-900">
-          <p class="font-semibold text-navy mb-2">Mobile Money — 3 × 500 000 FCFA = 1 500 000 FCFA</p>
-          <p class="mb-2 leading-relaxed">
-            NotchPay limite chaque paiement à <strong>500 000 FCFA</strong>. Vous réglez donc <strong>3 échéances</strong> ; chaque montant est crédité sur le compte marchand au fur et à mesure.
-          </p>
-          <p class="text-xs text-amber-800 leading-relaxed">
-            Après chaque paiement, validez la demande sur votre téléphone. Un e-mail vous enverra le lien pour l'échéance suivante.
-          </p>
-        </div>
-
         <div id="virement-info" class="hidden bg-navy/5 border border-gold/20 rounded-xl p-5 mb-6 text-sm text-gray-600">
-          <p class="font-semibold text-navy mb-2">Paiement par virement — montant unique</p>
-          <p class="mb-2">Après validation, vous recevrez par e-mail les coordonnées bancaires (IBAN) et une référence unique à indiquer lors du virement. Aucun plafond de 500 000 FCFA : le montant total est réglé en une seule fois.</p>
+          <p class="font-semibold text-navy mb-2">Paiement par virement bancaire</p>
+          <p class="mb-2">Après validation, vous recevrez par e-mail les coordonnées bancaires (IBAN) et une référence unique à indiquer lors du virement.</p>
           <p class="text-xs text-gray-400">Titulaire : Jean-Christophe BOYANG-TSANG — IBAN FR76 1695 8000 0107 9747 1536 990</p>
         </div>
 

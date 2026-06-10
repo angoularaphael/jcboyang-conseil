@@ -127,8 +127,11 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
 
     payBtn?.addEventListener("click", async () => {
       if (!planData || planData.complete) return;
-      const email = prompt("Confirmez votre adresse e-mail pour continuer :", planData.customerEmail || "");
-      if (!email?.trim()) return;
+      const email = (planData.customerEmail || "").trim();
+      if (!email) {
+        alert("E-mail du plan introuvable. Utilisez le lien reçu par e-mail ou contactez-nous.");
+        return;
+      }
 
       if (!(payBtn instanceof HTMLButtonElement)) return;
       payBtn.disabled = true;
@@ -142,7 +145,7 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
             planId: planData.id,
             sessionId: planData.sessionId,
             name: planData.customerName,
-            email: email.trim(),
+            email,
             phone: planData.customerPhone,
           }),
         });

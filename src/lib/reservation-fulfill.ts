@@ -25,6 +25,7 @@ import {
 import {
   buildNotchpayLookupKeys,
   extractPlanIdFromVitrineReference,
+  normalizeInstallmentPlanId,
 } from "./notchpay-reference";
 import { getSupabase, isSupabaseConfigured, readServerEnv } from "./supabase";
 
@@ -139,12 +140,17 @@ function resolvePlanIdFromNotchpay(
   canonicalRef: string,
   tx?: Record<string, unknown> | null
 ): string | null {
-  const fromMeta = String(((tx?.metadata ?? {}) as Record<string, string>).planId ?? "").trim();
-  return (
+  const fromRef =
     extractPlanIdFromVitrineReference(reference) ??
-    extractPlanIdFromVitrineReference(canonicalRef) ??
-    (fromMeta || null)
+    extractPlanIdFromVitrineReference(canonicalRef);
+  if (fromRef) return fromRef;
+
+  const fromMeta = normalizeInstallmentPlanId(
+    String(((tx?.metadata ?? {}) as Record<string, string>).planId ?? "")
   );
+  if (fromMeta) return fromMeta;
+
+  return normalizeInstallmentPlanId(reference) ?? normalizeInstallmentPlanId(canonicalRef);
 }
 
 async function fetchNotchpayTransactionByKey(
@@ -260,7 +266,18 @@ export async function checkNotchpayPaymentStatus(
   let tx = await fetchNotchpayTransaction(reference, alternateReference);
   const canonicalRef = resolveNotchpayReference(tx, reference);
 
+  const planId = resolvePlanIdFromNotchpay(reference, canonicalRef, tx);
   if (await isNotchpayAlreadyFulfilled(canonicalRef)) {
+    if (planId) {
+      return {
+        ...(await buildInstallmentFulfillResult(planId, true)),
+        fulfilled: true,
+        alreadyDone: true,
+        emailSent: true,
+        paymentStatus: "complete",
+        factureUrl: buildFactureViewUrl("notchpay", canonicalRef),
+      };
+    }
     return {
       ok: true,
       fulfilled: true,
@@ -271,7 +288,6 @@ export async function checkNotchpayPaymentStatus(
     };
   }
 
-  const planId = resolvePlanIdFromNotchpay(reference, canonicalRef, tx);
   if (planId) {
     const installmentResult = await resolveInstallmentFulfillIfPaid(planId, canonicalRef, tx);
     if (installmentResult) return installmentResult;
@@ -666,6 +682,15 @@ export async function fulfillNotchpayReservation(
   const planIdFromRef = resolvePlanIdFromNotchpay(reference, canonicalRef, tx);
 
   if (await isNotchpayAlreadyFulfilled(canonicalRef)) {
+    if (planIdFromRef) {
+      return {
+        ...(await buildInstallmentFulfillResult(planIdFromRef, true)),
+        fulfilled: true,
+        alreadyDone: true,
+        emailSent: true,
+        factureUrl: buildFactureViewUrl("notchpay", canonicalRef),
+      };
+    }
     return {
       ok: true,
       fulfilled: true,
@@ -700,7 +725,7 @@ export async function fulfillNotchpayReservation(
   }
 
   const meta = (tx.metadata ?? {}) as Record<string, string>;
-  const planId = meta.planId?.trim() || planIdFromRef || "";
+  const planId = planIdFromRef || normalizeInstallmentPlanId(meta.planId ?? "") || "";
 
   // ── Paiement en plusieurs échéances ──────────────────────────────
   if (planId) {

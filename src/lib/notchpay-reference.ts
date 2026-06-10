@@ -27,6 +27,20 @@ export function extractPlanIdFromVitrineReference(reference: string): string | n
   return match?.[1] ?? null;
 }
 
+/** Normalise un identifiant de plan (référence NotchPay tronquée, métadonnées, etc.). */
+export function normalizeInstallmentPlanId(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  const fromVitrine = extractPlanIdFromVitrineReference(
+    trimmed.startsWith("vitrine-") ? trimmed : `vitrine-${trimmed}`
+  );
+  if (fromVitrine) return fromVitrine;
+
+  const direct = /^(INST-[A-Z0-9]+-[A-Z0-9]+)$/i.exec(trimmed);
+  return direct ? direct[1].toUpperCase() : null;
+}
+
 export function extractInstallmentNumberFromVitrineReference(reference: string): number | null {
   const match = /-e(\d+)-/i.exec(reference);
   if (!match) return null;

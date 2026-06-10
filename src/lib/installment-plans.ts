@@ -1,5 +1,6 @@
 import type { SessionId } from "../data/session-catalog";
 import { computeInstallmentAmounts } from "../data/session-catalog";
+import { normalizeInstallmentPlanId } from "./notchpay-reference";
 import { getSupabase, isSupabaseConfigured } from "./supabase";
 
 export type InstallmentPlanStatus = "pending" | "partial" | "complete";
@@ -62,8 +63,9 @@ function makePlanId(): string {
 }
 
 export function getInstallmentPaymentUrl(planId: string, origin?: string): string {
+  const normalized = normalizeInstallmentPlanId(planId) ?? planId.trim();
   const base = origin ?? import.meta.env.SITE ?? "https://www.jcbo-conseil.com";
-  return `${base}/reservation/echeances?plan=${encodeURIComponent(planId)}`;
+  return `${base}/reservation/echeances?plan=${encodeURIComponent(normalized)}`;
 }
 
 function isMissingTableError(message: string): boolean {
@@ -151,12 +153,14 @@ export async function createInstallmentPlan(input: {
 
 export async function getInstallmentPlan(planId: string): Promise<InstallmentPlan | null> {
   if (!isSupabaseConfigured()) return null;
+  const id = normalizeInstallmentPlanId(planId) ?? planId.trim();
+  if (!id) return null;
   try {
     const supa = getSupabase();
     const { data, error } = await supa
       .from("vitrine_installment_plans")
       .select("*")
-      .eq("id", planId)
+      .eq("id", id)
       .maybeSingle();
     if (error || !data) return null;
     return mapRow(data as PlanRow);
@@ -180,7 +184,8 @@ export async function recordInstallmentPayment(
   reference: string,
   installmentNumber: number
 ): Promise<InstallmentPlan | null> {
-  const plan = await getInstallmentPlan(planId);
+  const id = normalizeInstallmentPlanId(planId) ?? planId.trim();
+  const plan = await getInstallmentPlan(id);
   if (!plan) return null;
   if (plan.paidReferences.includes(reference)) return plan;
   if (installmentNumber !== plan.paidCount + 1) return null;
@@ -202,7 +207,7 @@ export async function recordInstallmentPayment(
         status,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", planId)
+      .eq("id", id)
       .select()
       .single();
 

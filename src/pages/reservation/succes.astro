@@ -55,13 +55,13 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
         <div id="installment-block" class="hidden text-left bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
           <p class="text-sm font-bold text-navy mb-2" id="installment-progress"></p>
           <p class="text-sm text-amber-900 mb-4" id="installment-next"></p>
-          <a
-            id="installment-pay-link"
-            href="#"
-            class="inline-flex w-full justify-center items-center gap-2 bg-gold text-navy font-bold py-3 px-6 rounded-full hover:bg-gold-light transition-all"
+          <button
+            type="button"
+            id="installment-pay-btn"
+            class="inline-flex w-full justify-center items-center gap-2 bg-gold text-navy font-bold py-3 px-6 rounded-full hover:bg-gold-light transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Payer l'échéance suivante
-          </a>
+          </button>
         </div>
 
         <p id="invoice-status" class="text-sm text-gold-dark mb-4 hidden" role="status"></p>
@@ -125,6 +125,45 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
       );
     }
 
+    async function startInstallmentCheckout(planId) {
+      const payBtn = document.getElementById("installment-pay-btn");
+      if (!(payBtn instanceof HTMLButtonElement) || !planId) return;
+
+      payBtn.disabled = true;
+      payBtn.textContent = "Redirection vers NotchPay…";
+
+      try {
+        const planRes = await fetch(`/api/installment-plan?plan=${encodeURIComponent(planId)}`, {
+          cache: "no-store",
+        });
+        const plan = await planRes.json();
+        if (!planRes.ok || plan.complete) {
+          throw new Error(plan.error || "Plan introuvable");
+        }
+
+        const checkoutRes = await fetch("/api/notchpay/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            planId: plan.id,
+            sessionId: plan.sessionId,
+            name: plan.customerName,
+            email: plan.customerEmail,
+            phone: plan.customerPhone,
+          }),
+        });
+        const checkout = await checkoutRes.json();
+        if (!checkoutRes.ok || !checkout.url) {
+          throw new Error(checkout.error || "Impossible de lancer le paiement.");
+        }
+        window.location.href = checkout.url;
+      } catch (err) {
+        payBtn.disabled = false;
+        payBtn.textContent = "Payer l'échéance suivante";
+        alert(err instanceof Error ? err.message : "Impossible de lancer le paiement.");
+      }
+    }
+
     function applySuccessUi(data) {
       const statusEl = document.getElementById("invoice-status");
       const factureLink = document.getElementById("facture-link");
@@ -155,7 +194,7 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
             if (installmentBlock) installmentBlock.classList.remove("hidden");
             const progressEl = document.getElementById("installment-progress");
             const nextEl = document.getElementById("installment-next");
-            const payLink = document.getElementById("installment-pay-link");
+            const payBtn = document.getElementById("installment-pay-btn");
             if (progressEl) {
               progressEl.textContent = `Progression : ${inst.paidCount} sur ${inst.totalInstallments} échéances payées`;
             }
@@ -165,8 +204,9 @@ const shouldVerify = !!(sessionId || provider === 'notchpay');
                 (inst.nextInstallmentAmount ? ` (${formatXaf(inst.nextInstallmentAmount)})` : "") +
                 " pour finaliser votre réservation.";
             }
-            if (payLink instanceof HTMLAnchorElement && inst.nextPaymentUrl) {
-              payLink.href = inst.nextPaymentUrl;
+            if (payBtn instanceof HTMLButtonElement && inst.planId) {
+              payBtn.disabled = false;
+              payBtn.onclick = () => startInstallmentCheckout(inst.planId);
             }
             if (factureLink) factureLink.classList.add("hidden");
             if (statusEl && data.emailSent) {

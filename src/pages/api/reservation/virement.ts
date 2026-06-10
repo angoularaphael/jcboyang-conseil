@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { bankDetails } from "../../../data/bank-details";
+import { SESSION_CATALOG, type SessionId } from "../../../data/session-catalog";
 import {
   sendAdminVirementEmail,
   sendCustomerVirementEmail,
@@ -8,15 +9,9 @@ import {
 } from "../../../lib/email";
 import { getSupabase, isSupabaseConfigured } from "../../../lib/supabase";
 
-const SESSION_CATALOG = {
-  diagnostic: { label: "Diagnostic Stratégique", priceEur: 490 },
-  coaching: { label: "Coaching Stratégique", priceEur: 250 },
-  pack3: { label: "Pack 3 séances Coaching", priceEur: 650 },
-  premium: { label: "Accompagnement Premium 3 mois", priceEur: 2400 },
-} as const;
-
 const bodySchema = z.object({
   sessionId: z.enum(["diagnostic", "coaching", "pack3", "premium"]),
+  zone: z.enum(["euro", "afrique"]).optional().default("euro"),
   name: z.string().min(2).max(120).trim(),
   email: z.string().email().max(200).trim().toLowerCase(),
   phone: z.string().min(4).max(40).trim(),
@@ -47,8 +42,9 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const data = parsed.data;
-  const sessionInfo = SESSION_CATALOG[data.sessionId];
+  const sessionInfo = SESSION_CATALOG[data.sessionId as SessionId];
   const reference = makeReference();
+  const useXaf = data.zone === "afrique";
 
   const payload: VirementPayload = {
     customerName: data.name,
@@ -58,8 +54,8 @@ export const POST: APIRoute = async ({ request }) => {
     sessionLabel: sessionInfo.label,
     date: data.date,
     message: data.message,
-    amount: sessionInfo.priceEur,
-    currency: "eur",
+    amount: useXaf ? sessionInfo.priceXaf : sessionInfo.priceEur,
+    currency: useXaf ? "xaf" : "eur",
     reference,
   };
 
@@ -87,7 +83,7 @@ export const POST: APIRoute = async ({ request }) => {
         titre: `Virement en attente — ${payload.sessionLabel}`,
         message:
           `${payload.customerName} (${payload.customerEmail}) a réservé par virement ` +
-          `${payload.amount.toFixed(2)} EUR. Réf. ${reference}.`,
+          `${useXaf ? `${payload.amount} XAF` : `${payload.amount.toFixed(2)} EUR`}. Réf. ${reference}.`,
         metadata: {
           paymentMethod: "virement",
           reference,
@@ -113,7 +109,8 @@ export const POST: APIRoute = async ({ request }) => {
   const origin = new URL(request.url).origin;
   const redirectUrl =
     `${origin}/reservation/virement?ref=${encodeURIComponent(reference)}` +
-    `&amount=${payload.amount}&session=${encodeURIComponent(payload.sessionLabel)}`;
+    `&amount=${payload.amount}&currency=${payload.currency}` +
+    `&session=${encodeURIComponent(payload.sessionLabel)}`;
 
   return new Response(
     JSON.stringify({

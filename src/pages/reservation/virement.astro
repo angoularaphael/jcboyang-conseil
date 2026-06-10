@@ -4,9 +4,17 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { bankDetails } from '../../data/bank-details';
 
+import { formatReservationMoney } from '../../lib/email';
+
 const ref = Astro.url.searchParams.get('ref') ?? '';
-const amount = Astro.url.searchParams.get('amount') ?? '';
+const amountRaw = Astro.url.searchParams.get('amount') ?? '';
+const currency = (Astro.url.searchParams.get('currency') ?? 'eur').toLowerCase();
 const session = Astro.url.searchParams.get('session') ?? '';
+const amountNum = Number(amountRaw);
+const amountLabel =
+  amountRaw && Number.isFinite(amountNum)
+    ? formatReservationMoney(amountNum, currency)
+    : '';
 ---
 <Layout title="Virement bancaire — JCBO Conseil" description="Coordonnées bancaires pour finaliser votre réservation par virement." noindex>
   <Header />
@@ -32,8 +40,8 @@ const session = Astro.url.searchParams.get('session') ?? '';
           </div>
         )}
 
-        {amount && (
-          <p class="text-center text-navy font-heading text-2xl font-bold mb-8">{amount} €</p>
+        {amountLabel && (
+          <p class="text-center text-navy font-heading text-2xl font-bold mb-8">{amountLabel}</p>
         )}
 
         <div class="bg-offwhite rounded-xl p-6 space-y-3 text-sm">

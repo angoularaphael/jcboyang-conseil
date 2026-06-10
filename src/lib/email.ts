@@ -240,7 +240,7 @@ function buildVirementHtml(payload: VirementPayload): string {
         <p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.7;">
           Merci pour votre réservation « <strong>${payload.sessionLabel}</strong> ».
           Pour confirmer définitivement votre séance, effectuez un virement de
-          <strong style="color:#0b1f3a;">${payload.amount.toFixed(2)} ${payload.currency.toUpperCase()}</strong>
+          <strong style="color:#0b1f3a;">${formatReservationMoney(payload.amount, payload.currency)}</strong>
           en indiquant impérativement la référence ci-dessous.
         </p>
         <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(212,167,98,0.08);border-radius:12px;border:1px solid rgba(212,167,98,0.25);margin-bottom:24px;">
@@ -275,7 +275,7 @@ export async function sendAdminVirementEmail(
     <h2 style="color:#0b1f3a;">Nouvelle réservation par virement</h2>
     <p><strong>${payload.customerName}</strong> (${payload.customerEmail}) a réservé « ${payload.sessionLabel} » par virement.</p>
     <ul>
-      <li>Montant : <strong>${payload.amount.toFixed(2)} ${payload.currency.toUpperCase()}</strong></li>
+      <li>Montant : <strong>${formatReservationMoney(payload.amount, payload.currency)}</strong></li>
       <li>Référence : <code>${payload.reference}</code></li>
       <li>Téléphone : ${payload.customerPhone || "—"}</li>
       <li>Entreprise : ${payload.company || "—"}</li>

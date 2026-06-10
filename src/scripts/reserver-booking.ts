@@ -130,11 +130,16 @@ export function initReserverBooking(): void {
 
     const defaultPayment =
       zone === 'afrique'
-        ? document.querySelector<HTMLInputElement>('input[name="payment"][value="mobile"]')
+        ? document.querySelector<HTMLInputElement>(
+            `input[name="payment"][value="${useInstallments ? 'virement' : 'mobile'}"]`
+          )
         : document.querySelector<HTMLInputElement>('input[name="payment"][value="card"]');
     defaultPayment?.click();
     if (virementInfo) {
-      virementInfo.classList.add('hidden');
+      const virementSelected =
+        document.querySelector<HTMLInputElement>('input[name="payment"][value="virement"]:checked') !=
+        null;
+      virementInfo.classList.toggle('hidden', !virementSelected);
     }
   }
 
@@ -261,19 +266,18 @@ export function initReserverBooking(): void {
     }
 
     const zone = zoneRadio.value;
-    const paymentMethod =
-      zone === 'afrique' ? 'mobile' : (paymentRadio?.value ?? 'card');
+    const paymentMethod = paymentRadio?.value ?? (zone === 'afrique' ? 'virement' : 'card');
     const isMobileMoney = paymentMethod === 'mobile';
     const isVirement = paymentMethod === 'virement';
 
-    if (zone === 'afrique' && !isValidAfricanPhone(phoneInput.value.trim())) {
+    if (zone === 'afrique' && isMobileMoney && !isValidAfricanPhone(phoneInput.value.trim())) {
       alert(
         'Renseignez un numéro Mobile Money africain valide avec l\'indicatif pays avant de payer (ex. +237 6XX XXX XXX).'
       );
       return;
     }
-    if (zone === 'afrique' && !isMobileMoney) {
-      alert('Pour la zone Afrique, choisissez le paiement Mobile Money.');
+    if (zone === 'afrique' && !isMobileMoney && !isVirement) {
+      alert('Choisissez le virement bancaire ou le Mobile Money.');
       return;
     }
     const endpoint = isMobileMoney
@@ -292,6 +296,7 @@ export function initReserverBooking(): void {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: sessionRadio.value,
+          zone,
           name: nameInput.value.trim(),
           email: emailInput.value.trim(),
           phone: phoneInput.value.trim(),

@@ -42,6 +42,21 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
 
             <div id="plan-next-block">
               <p class="text-sm text-gray-600 mb-4" id="plan-next-text"></p>
+              <div class="mb-4">
+                <label for="plan-phone" class="block text-sm font-semibold text-navy mb-1.5">
+                  Mobile Money <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  id="plan-phone"
+                  required
+                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gold focus:ring-1 focus:ring-gold/30 outline-none transition-all text-sm"
+                  placeholder="+237 6XX XXX XXX"
+                />
+                <p class="text-xs text-gray-400 mt-1.5">
+                  Numéro qui recevra la demande de paiement pour cette échéance.
+                </p>
+              </div>
               <button
                 type="button"
                 id="plan-pay-btn"
@@ -83,6 +98,16 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
       return `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
     }
 
+    function normalizePhone(phone) {
+      const cleaned = phone.replace(/[\s\-().]/g, "");
+      if (!cleaned) return "";
+      return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
+    }
+
+    function isValidAfricanPhone(phone) {
+      return /^\+[1-9]\d{8,14}$/.test(normalizePhone(phone));
+    }
+
     async function loadPlan() {
       try {
         const res = await fetch(`/api/installment-plan?plan=${encodeURIComponent(planId)}`, {
@@ -107,6 +132,11 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
         if (progressEl) progressEl.textContent = `${data.paidCount} / ${data.totalInstallments}`;
         if (barEl) barEl.style.width = `${(data.paidCount / data.totalInstallments) * 100}%`;
         if (totalEl) totalEl.textContent = `Montant total : ${formatXaf(data.totalXaf)}`;
+
+        const phoneInput = document.getElementById("plan-phone");
+        if (phoneInput instanceof HTMLInputElement && data.customerPhone) {
+          phoneInput.value = data.customerPhone;
+        }
 
         if (data.complete) {
           nextBlock?.classList.add("hidden");
@@ -133,6 +163,14 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
         return;
       }
 
+      const phoneInput = document.getElementById("plan-phone");
+      const rawPhone = phoneInput instanceof HTMLInputElement ? phoneInput.value.trim() : "";
+      const phone = normalizePhone(rawPhone);
+      if (!isValidAfricanPhone(phone)) {
+        alert("Renseignez un numéro Mobile Money valide avec indicatif pays (ex. +237670000000).");
+        return;
+      }
+
       if (!(payBtn instanceof HTMLButtonElement)) return;
       payBtn.disabled = true;
       payBtn.textContent = "Redirection vers NotchPay…";
@@ -146,7 +184,7 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
             sessionId: planData.sessionId,
             name: planData.customerName,
             email,
-            phone: planData.customerPhone,
+            phone,
           }),
         });
         const data = await res.json();

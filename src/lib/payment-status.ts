@@ -93,6 +93,8 @@ export function resolveStripeCheckoutStatus(session: Stripe.Checkout.Session): {
 export function getNotchpayFailureReason(tx: Record<string, unknown>): string | undefined {
   const nestedError = tx.error as Record<string, unknown> | undefined;
   const lastError = tx.last_error as Record<string, unknown> | undefined;
+  const channelResponse = tx.channel_response as Record<string, unknown> | undefined;
+  const gatewayResponse = tx.gateway_response as Record<string, unknown> | undefined;
   const raw =
     tx.failure_reason ??
     tx.failureReason ??
@@ -100,6 +102,9 @@ export function getNotchpayFailureReason(tx: Record<string, unknown>): string | 
     tx.decline_reason ??
     tx.reason ??
     tx.message ??
+    channelResponse?.message ??
+    channelResponse?.description ??
+    gatewayResponse?.message ??
     nestedError?.message ??
     nestedError?.description ??
     lastError?.message;

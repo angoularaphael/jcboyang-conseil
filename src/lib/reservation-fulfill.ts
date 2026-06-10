@@ -221,12 +221,17 @@ async function resolveInstallmentFulfillIfPaid(
   reference: string,
   tx?: Record<string, unknown> | null
 ): Promise<FulfillResult | null> {
+  if (!tx) return null;
+
+  const paymentStatus = resolveNotchpayPaymentStatus(tx);
+  if (!isSuccessfulPaymentStatus(paymentStatus)) return null;
+
   if (await isInstallmentReferenceHandled(planId, reference, tx)) {
     return { ...(await buildInstallmentFulfillResult(planId, true)), fulfilled: true };
   }
 
   const plan = await getInstallmentPlan(planId);
-  if (!plan || !tx) return null;
+  if (!plan) return null;
 
   const meta = (tx.metadata ?? {}) as Record<string, string>;
   const installmentNumber = Number(meta.installmentNumber ?? 0);
@@ -751,6 +756,15 @@ export async function fulfillNotchpayReservation(
         statusMessage: "Cette échéance ne correspond pas à l'étape attendue du plan.",
         error: "Échéance invalide",
       };
+    }
+
+    const freshTx = await fetchNotchpayTransaction(canonicalRef, alternateReference);
+    if (freshTx) {
+      tx = freshTx;
+      const freshStatus = getNotchpayPaymentStatus(freshTx);
+      if (!isSuccessfulPaymentStatus(freshStatus)) {
+        return rejectNotchpayPayment(freshTx);
+      }
     }
 
     const updatedPlan = await recordInstallmentPayment(planId, canonicalRef, installmentNumber);

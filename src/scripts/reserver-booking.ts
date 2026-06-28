@@ -1,35 +1,28 @@
-type SessionId = 'diagnostic' | 'coaching' | 'pack3' | 'premium';
-
-const sessionLabels: Record<SessionId, string> = {
-  diagnostic: 'Diagnostic Stratégique',
-  coaching: 'Coaching Stratégique',
-  pack3: 'Pack 3 séances',
-  premium: 'Accompagnement Premium',
+type SessionCatalogItem = {
+  id: string;
+  title: string;
+  duration: string;
+  priceEur: number;
+  priceCfa: string;
+  isTest?: boolean;
 };
 
-const pricesEur: Record<SessionId, number> = {
-  diagnostic: 490,
-  coaching: 250,
-  pack3: 650,
-  premium: 2400,
-};
+function buildSessionMaps(catalog: SessionCatalogItem[]) {
+  const sessionLabels: Record<string, string> = {};
+  const pricesEur: Record<string, number> = {};
+  const pricesXaf: Record<string, number> = {};
+  const pricesCfa: Record<string, string> = {};
+  for (const s of catalog) {
+    sessionLabels[s.id] = s.title;
+    pricesEur[s.id] = s.priceEur;
+    pricesCfa[s.id] = s.priceCfa;
+    pricesXaf[s.id] = Number(String(s.priceCfa).replace(/\s/g, "")) || 0;
+  }
+  return { sessionLabels, pricesEur, pricesXaf, pricesCfa };
+}
 
-const pricesXaf: Record<SessionId, number> = {
-  diagnostic: 320_000,
-  coaching: 150_000,
-  pack3: 420_000,
-  premium: 1_500_000,
-};
-
-const pricesCfa: Record<SessionId, string> = {
-  diagnostic: '320 000',
-  coaching: '150 000',
-  pack3: '420 000',
-  premium: '1 500 000',
-};
-
-function formatCfaPrice(sessionId: SessionId): string {
-  return `${pricesCfa[sessionId]} FCFA`;
+function formatCfaPrice(sessionId: string, pricesCfa: Record<string, string>): string {
+  return `${pricesCfa[sessionId] ?? "0"} FCFA`;
 }
 
 function normalizePhone(phone: string): string {
@@ -52,7 +45,29 @@ function getCheckedRadio(name: string): HTMLInputElement | null {
   return el instanceof HTMLInputElement ? el : null;
 }
 
-export function initReserverBooking(): void {
+export function initReserverBooking(
+  catalog: SessionCatalogItem[] = [],
+  options: { stripeEurOnly?: boolean; devBypass?: boolean } = {}
+): void {
+  const stripeEurOnly = options.stripeEurOnly === true;
+  const devActive = options.devBypass === true || !!document.getElementById('dev-mode-banner');
+
+  const TEST_ITEM: SessionCatalogItem = {
+    id: 'test1e',
+    title: 'Test paiement live 1 €',
+    duration: 'Test',
+    priceEur: 1,
+    priceCfa: '655',
+    isTest: true,
+  };
+
+  let mergedCatalog = catalog;
+  if (devActive && !catalog.some((s) => s.id === 'test1e')) {
+    mergedCatalog = [TEST_ITEM, ...catalog];
+    injectDevTestOption(TEST_ITEM, stripeEurOnly);
+  }
+
+  const { sessionLabels, pricesEur, pricesCfa } = buildSessionMaps(mergedCatalog);
   const step1 = document.getElementById('step1');
   const step2 = document.getElementById('step2');
   const step3 = document.getElementById('step3');
@@ -82,6 +97,7 @@ export function initReserverBooking(): void {
   const virementInfo = document.getElementById('virement-info');
 
   function getSelectedZone(): string {
+    if (stripeEurOnly) return 'euro';
     return getCheckedRadio('zone')?.value ?? 'euro';
   }
 
@@ -98,7 +114,7 @@ export function initReserverBooking(): void {
     }
   }
 
-  function updatePaymentOptionsForZone(zone: string, _sessionId?: SessionId): void {
+  function updatePaymentOptionsForZone(zone: string, _sessionId?: string): void {
     document.querySelectorAll<HTMLElement>('[data-payment-zone]').forEach((el) => {
       const allowed = el.dataset.paymentZone;
       const visible = allowed === 'all' || allowed === zone;
@@ -128,14 +144,22 @@ export function initReserverBooking(): void {
   });
   updatePhoneHint();
 
-  document.querySelectorAll<HTMLInputElement>('input[name="session"]').forEach((radio) => {
-    radio.addEventListener('change', () => {
-      toStep2Btn.disabled = false;
-      toStep2Btn.classList.remove('opacity-50', 'cursor-not-allowed');
-      document.querySelectorAll('.session-option').forEach((o) => o.classList.remove('border-gold'));
-      radio.closest('.session-option')?.classList.add('border-gold');
+  function onSessionChange(this: HTMLInputElement): void {
+    toStep2Btn.disabled = false;
+    toStep2Btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    document.querySelectorAll('.session-option').forEach((o) => o.classList.remove('border-gold'));
+    this.closest('.session-option')?.classList.add('border-gold');
+  }
+
+  function bindSessionRadios(): void {
+    document.querySelectorAll<HTMLInputElement>('input[name="session"]').forEach((radio) => {
+      if (radio.dataset.listenerBound === '1') return;
+      radio.dataset.listenerBound = '1';
+      radio.addEventListener('change', onSessionChange);
     });
-  });
+  }
+
+  bindSessionRadios();
 
   function showStep(n: number): void {
     steps.forEach((s) => s.classList.add('hidden'));
@@ -164,24 +188,24 @@ export function initReserverBooking(): void {
     const sessionRadio = getCheckedRadio('session');
     const zoneRadio = getCheckedRadio('zone');
 
-    if (!nameInput || !emailInput || !phoneInput || !sessionRadio || !zoneRadio) return;
+    if (!nameInput || !emailInput || !phoneInput || !sessionRadio || (!stripeEurOnly && !zoneRadio)) return;
 
     const name = nameInput.value.trim();
     const email = emailInput.value.trim();
     const phone = phoneInput.value.trim();
-    const zone = zoneRadio.value;
+    const zone = getSelectedZone();
     if (!name || !email || !phone) {
       alert('Veuillez remplir les champs obligatoires.');
       return;
     }
-    if (zone === 'afrique' && !isValidPhoneWithCountryCode(phone)) {
+    if (zone === 'afrique' && !stripeEurOnly && !isValidPhoneWithCountryCode(phone)) {
       alert(
         'Pour la zone Afrique, renseignez un numéro valide avec l\'indicatif pays (ex. +237 6XX XXX XXX pour le Cameroun, +225 XX XX XX XX pour la Côte d\'Ivoire).'
       );
       return;
     }
 
-    const sel = sessionRadio.value as SessionId;
+    const sel = sessionRadio.value;
     const summarySession = document.getElementById('summary-session');
     const summaryPrice = document.getElementById('summary-price');
     const summaryName = document.getElementById('summary-name');
@@ -201,13 +225,11 @@ export function initReserverBooking(): void {
     }
 
     summarySession.textContent = sessionLabels[sel] ?? sel;
-    summaryPrice.textContent =
-      zone === 'euro' ? `${pricesEur[sel]} €` : formatCfaPrice(sel);
+    summaryPrice.textContent = `${pricesEur[sel] ?? 0} €`;
     summaryName.textContent = name;
     summaryEmail.textContent = email;
     summaryDate.textContent = dateInput?.value || 'À convenir';
-    payAmount.textContent =
-      zone === 'euro' ? `${pricesEur[sel]} €` : formatCfaPrice(sel);
+    payAmount.textContent = `${pricesEur[sel] ?? 0} €`;
     updatePaymentOptionsForZone(zone, sel);
     showStep(3);
   });
@@ -240,16 +262,16 @@ export function initReserverBooking(): void {
     const messageVal =
       messageInput instanceof HTMLTextAreaElement ? messageInput.value : '';
 
-    if (!sessionRadio || !zoneRadio || !nameInput || !emailInput || !phoneInput) {
+    if (!sessionRadio || (!stripeEurOnly && !zoneRadio) || !nameInput || !emailInput || !phoneInput) {
       alert('Informations incomplètes.');
       return;
     }
 
-    const zone = zoneRadio.value;
+    const zone = stripeEurOnly ? 'euro' : zoneRadio.value;
     const paymentMethod = paymentRadio?.value ?? 'card';
-    const isVirement = paymentMethod === 'virement';
+    const isVirement = !stripeEurOnly && paymentMethod === 'virement';
 
-    if (zone === 'afrique' && !isValidPhoneWithCountryCode(phoneInput.value.trim())) {
+    if (!stripeEurOnly && zone === 'afrique' && !isValidPhoneWithCountryCode(phoneInput.value.trim())) {
       alert(
         'Renseignez un numéro valide avec l\'indicatif pays avant de payer (ex. +237 6XX XXX XXX).'
       );
@@ -267,7 +289,7 @@ export function initReserverBooking(): void {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: sessionRadio.value,
-          zone,
+          zone: stripeEurOnly ? 'euro' : zone,
           name: nameInput.value.trim(),
           email: emailInput.value.trim(),
           phone: phoneInput.value.trim(),
@@ -316,4 +338,31 @@ export function initReserverBooking(): void {
   });
 }
 
-document.addEventListener('DOMContentLoaded', initReserverBooking);
+function injectDevTestOption(item: SessionCatalogItem, hideCfa: boolean): void {
+  const container = document.querySelector('#step1 .space-y-4');
+  if (!container || container.querySelector('[data-session-id="test1e"]')) return;
+
+  const label = document.createElement('label');
+  label.className =
+    'session-option flex items-center justify-between bg-amber-50/50 rounded-xl px-5 py-4 cursor-pointer border-2 border-amber-300 hover:border-gold/30 transition-all';
+  label.dataset.sessionId = 'test1e';
+  label.innerHTML = `
+    <div class="flex items-center gap-4">
+      <input type="radio" name="session" value="test1e" class="w-5 h-5 accent-[#d4a762]" />
+      <div>
+        <p class="font-semibold text-navy">${item.title}</p>
+        <p class="text-gray-400 text-sm">${item.duration} — remboursable après test</p>
+      </div>
+    </div>
+    <div class="text-right">
+      <p class="font-heading font-bold text-navy">${item.priceEur} €</p>
+      ${hideCfa ? '' : `<p class="text-gray-400 text-xs">${item.priceCfa} FCFA</p>`}
+    </div>
+  `;
+  container.prepend(label);
+}
+
+// Fallback si le script est importé sans catalogue (tests unitaires, etc.)
+document.addEventListener('DOMContentLoaded', () => {
+  if (!document.getElementById('step1')) return;
+});

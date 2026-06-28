@@ -4,13 +4,13 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PageHero from '../components/PageHero.astro';
 import { heroMedia } from '../data/hero-media';
+import { getReserverSessions } from '../lib/session-catalog';
+import { hasDevBypass } from '../lib/dev-bypass';
+import { PAYMENT_STRIPE_EUR_ONLY } from '../lib/payment-display';
 
-const sessions = [
-  { id: 'diagnostic', title: 'Diagnostic Stratégique', duration: '2h', priceEur: 490, priceCfa: '320 000' },
-  { id: 'coaching', title: 'Coaching Stratégique', duration: '1h30', priceEur: 250, priceCfa: '150 000' },
-  { id: 'pack3', title: 'Pack 3 séances Coaching', duration: '3 x 1h30', priceEur: 650, priceCfa: '420 000' },
-  { id: 'premium', title: 'Accompagnement Premium 3 mois', duration: '6 séances', priceEur: 2400, priceCfa: '1 500 000' },
-];
+const devBypass = hasDevBypass(Astro.request.headers.get('cookie'));
+const stripeEurOnly = PAYMENT_STRIPE_EUR_ONLY;
+const sessions = getReserverSessions({ devBypass });
 ---
 <Layout title="Réserver une Séance — JCBO Conseil | Paiement en Ligne" description="Réservez et payez votre séance de coaching stratégique en ligne. Parcours simple, rapide et sécurisé.">
   <Header />
@@ -52,36 +52,48 @@ const sessions = [
         <h2 class="font-heading text-xl font-bold text-navy mb-6">Choisissez votre prestation</h2>
         <div class="space-y-4">
           {sessions.map(s => (
-            <label class="session-option flex items-center justify-between bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all" data-session-id={s.id}>
+            <label class:list={["session-option flex items-center justify-between bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all", s.isTest && "border-amber-300 bg-amber-50/50"]} data-session-id={s.id}>
               <div class="flex items-center gap-4">
                 <input type="radio" name="session" value={s.id} class="w-5 h-5 accent-[#d4a762]" />
                 <div>
                   <p class="font-semibold text-navy">{s.title}</p>
-                  <p class="text-gray-400 text-sm">{s.duration}</p>
+                  <p class="text-gray-400 text-sm">{s.duration}{s.isTest ? " — remboursable après test" : ""}</p>
                 </div>
               </div>
               <div class="text-right">
                 <p class="font-heading font-bold text-navy">{s.priceEur} &euro;</p>
-                <p class="text-gray-400 text-xs">{s.priceCfa} FCFA</p>
+                {!stripeEurOnly && (
+                  <p class="text-gray-400 text-xs">{s.priceCfa} FCFA</p>
+                )}
               </div>
             </label>
           ))}
         </div>
 
-        <!-- Zone selection -->
-        <div class="mt-6 p-4 bg-navy/5 rounded-xl">
-          <p class="text-sm font-semibold text-navy mb-3">Votre zone de paiement :</p>
-          <div class="flex gap-4">
-            <label class="flex-1 flex items-center gap-2 bg-white rounded-lg px-4 py-3 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
-              <input type="radio" name="zone" value="euro" checked class="w-4 h-4 accent-[#d4a762]" />
-              <span class="text-sm font-medium">Zone Euro (&euro;)</span>
-            </label>
-            <label class="flex-1 flex items-center gap-2 bg-white rounded-lg px-4 py-3 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
-              <input type="radio" name="zone" value="afrique" class="w-4 h-4 accent-[#d4a762]" />
-              <span class="text-sm font-medium">Zone Afrique (FCFA)</span>
-            </label>
+        {devBypass && !sessions.some((s) => s.id === "test1e") && (
+          <p class="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            Mode développeur actif — rechargez la page après déploiement pour voir « Test paiement live 1 € ».
+          </p>
+        )}
+
+        <!-- Zone de paiement (masquée si Stripe EUR seul) -->
+        {stripeEurOnly ? (
+          <input type="hidden" name="zone" value="euro" />
+        ) : (
+          <div class="mt-6 p-4 bg-navy/5 rounded-xl">
+            <p class="text-sm font-semibold text-navy mb-3">Votre zone de paiement :</p>
+            <div class="flex gap-4">
+              <label class="flex-1 flex items-center gap-2 bg-white rounded-lg px-4 py-3 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
+                <input type="radio" name="zone" value="euro" checked class="w-4 h-4 accent-[#d4a762]" />
+                <span class="text-sm font-medium">Zone Euro (&euro;)</span>
+              </label>
+              <label class="flex-1 flex items-center gap-2 bg-white rounded-lg px-4 py-3 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
+                <input type="radio" name="zone" value="afrique" class="w-4 h-4 accent-[#d4a762]" />
+                <span class="text-sm font-medium">Zone Afrique (FCFA)</span>
+              </label>
+            </div>
           </div>
-        </div>
+        )}
 
         <button id="toStep2" class="w-full mt-6 bg-gold text-navy font-bold py-3.5 rounded-full hover:bg-gold-light transition-all opacity-50 cursor-not-allowed" disabled>Continuer</button>
       </div>
@@ -150,20 +162,24 @@ const sessions = [
               <span class="text-sm font-medium">Carte bancaire (Stripe)</span>
             </div>
           </label>
-          <label data-payment-zone="all" class="flex items-center gap-3 bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
-            <input type="radio" name="payment" value="virement" class="w-4 h-4 accent-[#d4a762]" />
-            <div class="flex items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1m-7 5h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2z"/></svg>
-              <span class="text-sm font-medium">Virement bancaire</span>
-            </div>
-          </label>
+          {!stripeEurOnly && (
+            <label data-payment-zone="all" class="flex items-center gap-3 bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all">
+              <input type="radio" name="payment" value="virement" class="w-4 h-4 accent-[#d4a762]" />
+              <div class="flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1m-7 5h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2z"/></svg>
+                <span class="text-sm font-medium">Virement bancaire</span>
+              </div>
+            </label>
+          )}
         </div>
 
+        {!stripeEurOnly && (
         <div id="virement-info" class="hidden bg-navy/5 border border-gold/20 rounded-xl p-5 mb-6 text-sm text-gray-600">
           <p class="font-semibold text-navy mb-2">Paiement par virement bancaire</p>
           <p class="mb-2">Après validation, vous recevrez par e-mail les coordonnées bancaires (IBAN) et une référence unique à indiquer lors du virement.</p>
           <p class="text-xs text-gray-400">Titulaire : Jean-Christophe BOYANG-TSANG — IBAN FR76 1695 8000 0107 9747 1536 990</p>
         </div>
+        )}
 
         <div class="flex items-start gap-3 mb-6">
           <input type="checkbox" id="bk-consent" class="w-5 h-5 mt-0.5 accent-[#d4a762]" />
@@ -191,6 +207,7 @@ const sessions = [
   <Footer />
 </Layout>
 
-<script>
-  import '../scripts/reserver-booking.ts';
+<script define:vars={{ sessionsCatalog: sessions, stripeEurOnly, devBypass }}>
+  import { initReserverBooking } from '../scripts/reserver-booking.ts';
+  initReserverBooking(sessionsCatalog, { stripeEurOnly, devBypass });
 </script>

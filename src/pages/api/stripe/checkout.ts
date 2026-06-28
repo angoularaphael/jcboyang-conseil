@@ -1,28 +1,28 @@
 import type { APIRoute } from "astro";
 import Stripe from "stripe";
 import { z } from "zod";
-
-const SESSION_CATALOG = {
-  diagnostic: { label: "Diagnostic Stratégique", priceEur: 490 },
-  coaching: { label: "Coaching Stratégique", priceEur: 250 },
-  pack3: { label: "Pack 3 séances Coaching", priceEur: 650 },
-  premium: { label: "Accompagnement Premium 3 mois", priceEur: 2400 },
-} as const;
-
-type SessionKey = keyof typeof SESSION_CATALOG;
-
-const bodySchema = z.object({
-  sessionId: z.enum(["diagnostic", "coaching", "pack3", "premium"]),
-  zone: z.enum(["euro", "afrique"]).optional().default("euro"),
-  name: z.string().min(2).max(120).trim(),
-  email: z.string().email().max(200).trim().toLowerCase(),
-  phone: z.string().min(4).max(40).trim(),
-  company: z.string().max(120).trim().optional().default(""),
-  date: z.string().max(40).trim().optional().default(""),
-  message: z.string().max(2000).trim().optional().default(""),
-});
+import { getSessionCatalog } from "../../../lib/session-catalog";
+import { hasDevBypass } from "../../../lib/dev-bypass";
+import { PAYMENT_STRIPE_EUR_ONLY } from "../../../lib/payment-display";
 
 export const POST: APIRoute = async ({ request }) => {
+  const devBypass = hasDevBypass(request.headers.get("cookie"));
+  const sessionCatalog = getSessionCatalog({ devBypass });
+
+  const bodySchema = z.object({
+    sessionId: z
+      .string()
+      .trim()
+      .refine((id) => id in sessionCatalog, { message: "Prestation inconnue" }),
+    zone: z.enum(["euro", "afrique"]).optional().default("euro"),
+    name: z.string().min(2).max(120).trim(),
+    email: z.string().email().max(200).trim().toLowerCase(),
+    phone: z.string().min(4).max(40).trim(),
+    company: z.string().max(120).trim().optional().default(""),
+    date: z.string().max(40).trim().optional().default(""),
+    message: z.string().max(2000).trim().optional().default(""),
+  });
+
   const stripeKey = import.meta.env.STRIPE_SECRET_KEY;
   if (!stripeKey || stripeKey.includes("REMPLACER")) {
     return new Response(
@@ -47,14 +47,18 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const data = parsed.data;
-  const sessionInfo = SESSION_CATALOG[data.sessionId as SessionKey];
+  const zone = PAYMENT_STRIPE_EUR_ONLY ? "euro" : data.zone;
+  const sessionInfo = sessionCatalog[data.sessionId as keyof typeof sessionCatalog];
+  if (!sessionInfo) {
+    return new Response(JSON.stringify({ error: "Prestation inconnue" }), { status: 400 });
+  }
 
   const stripe = new Stripe(stripeKey);
   const origin = new URL(request.url).origin;
 
-  // Stripe Connect : 80 % JCBO (plateforme), 20 % compte connecté
   const connectedAccountId = import.meta.env.STRIPE_CONNECTED_ACCOUNT_ID;
   const platformFee = Math.round(sessionInfo.priceEur * 100 * 0.8);
+  const isTestLive = data.sessionId === "test1e";
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
@@ -63,10 +67,13 @@ export const POST: APIRoute = async ({ request }) => {
     invoice_creation: {
       enabled: true,
       invoice_data: {
-        description: `Réservation — ${sessionInfo.label}`,
+        description: isTestLive
+          ? "Test paiement live JCBO — remboursable"
+          : `Réservation — ${sessionInfo.label}`,
         metadata: {
           source: "vitrine",
           customerName: data.name,
+          ...(isTestLive ? { testLive: "true" } : {}),
         },
       },
     },
@@ -76,7 +83,9 @@ export const POST: APIRoute = async ({ request }) => {
           currency: "eur",
           product_data: {
             name: sessionInfo.label,
-            description: "JCBO Conseil — Réservation en ligne",
+            description: isTestLive
+              ? "Vérification du split 80/20 — montant remboursable"
+              : "JCBO Conseil — Réservation en ligne",
           },
           unit_amount: sessionInfo.priceEur * 100,
         },
@@ -85,7 +94,7 @@ export const POST: APIRoute = async ({ request }) => {
     ],
     metadata: {
       source: "vitrine",
-      zone: data.zone,
+      zone: zone,
       sessionKey: data.sessionId,
       sessionLabel: sessionInfo.label,
       customerName: data.name,
@@ -94,6 +103,7 @@ export const POST: APIRoute = async ({ request }) => {
       customerCompany: data.company,
       desiredDate: data.date,
       customerMessage: data.message,
+      ...(isTestLive ? { testLive: "true" } : {}),
     },
     success_url: `${origin}/reservation/succes?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/reservation/echec?provider=stripe&status=canceled`,

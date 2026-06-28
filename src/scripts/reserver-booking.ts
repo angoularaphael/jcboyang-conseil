@@ -4,7 +4,6 @@ type SessionCatalogItem = {
   duration: string;
   priceEur: number;
   priceCfa: string;
-  isTest?: boolean;
 };
 
 function buildSessionMaps(catalog: SessionCatalogItem[]) {
@@ -19,10 +18,6 @@ function buildSessionMaps(catalog: SessionCatalogItem[]) {
     pricesXaf[s.id] = Number(String(s.priceCfa).replace(/\s/g, "")) || 0;
   }
   return { sessionLabels, pricesEur, pricesXaf, pricesCfa };
-}
-
-function formatCfaPrice(sessionId: string, pricesCfa: Record<string, string>): string {
-  return `${pricesCfa[sessionId] ?? "0"} FCFA`;
 }
 
 function normalizePhone(phone: string): string {
@@ -47,26 +42,11 @@ function getCheckedRadio(name: string): HTMLInputElement | null {
 
 export function initReserverBooking(
   catalog: SessionCatalogItem[] = [],
-  options: { stripeEurOnly?: boolean; devBypass?: boolean } = {}
+  options: { stripeEurOnly?: boolean } = {}
 ): void {
   const stripeEurOnly = options.stripeEurOnly === true;
-  const devActive = options.devBypass === true || !!document.getElementById('dev-mode-banner');
 
-  const TEST_ITEM: SessionCatalogItem = {
-    id: 'test1e',
-    title: 'Test paiement live 1 €',
-    duration: 'Test',
-    priceEur: 1,
-    priceCfa: '655',
-    isTest: true,
-  };
-
-  let mergedCatalog = catalog;
-  if (devActive && !catalog.some((s) => s.id === 'test1e')) {
-    mergedCatalog = [TEST_ITEM, ...catalog];
-  }
-
-  const { sessionLabels, pricesEur, pricesCfa } = buildSessionMaps(mergedCatalog);
+  const { sessionLabels, pricesEur } = buildSessionMaps(catalog);
   const step1 = document.getElementById('step1');
   const step2 = document.getElementById('step2');
   const step3 = document.getElementById('step3');
@@ -95,10 +75,6 @@ export function initReserverBooking(
   const phoneInput = getInput('bk-phone');
   const virementInfo = document.getElementById('virement-info');
   const step1Hint = document.getElementById('step1-hint');
-
-  if (devActive && !catalog.some((s) => s.id === 'test1e')) {
-    injectDevTestOption(TEST_ITEM, stripeEurOnly);
-  }
 
   function updateContinueButton(): void {
     const selected = getCheckedRadio('session');
@@ -383,32 +359,3 @@ export function initReserverBooking(
     }
   });
 }
-
-function injectDevTestOption(item: SessionCatalogItem, hideCfa: boolean): void {
-  const container = document.querySelector('#step1 .space-y-4');
-  if (!container || container.querySelector('[data-session-id="test1e"]')) return;
-
-  const label = document.createElement('label');
-  label.className =
-    'session-option flex items-center justify-between bg-amber-50/50 rounded-xl px-5 py-4 cursor-pointer border-2 border-amber-300 hover:border-gold/30 transition-all';
-  label.dataset.sessionId = 'test1e';
-  label.innerHTML = `
-    <div class="flex items-center gap-4">
-      <input type="radio" name="session" value="test1e" class="w-5 h-5 accent-[#d4a762]" />
-      <div>
-        <p class="font-semibold text-navy">${item.title}</p>
-        <p class="text-gray-400 text-sm">${item.duration} — remboursable après test</p>
-      </div>
-    </div>
-    <div class="text-right">
-      <p class="font-heading font-bold text-navy">${item.priceEur} €</p>
-      ${hideCfa ? '' : `<p class="text-gray-400 text-xs">${item.priceCfa} FCFA</p>`}
-    </div>
-  `;
-  container.prepend(label);
-}
-
-// Fallback si le script est importé sans catalogue (tests unitaires, etc.)
-document.addEventListener('DOMContentLoaded', () => {
-  if (!document.getElementById('step1')) return;
-});

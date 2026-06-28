@@ -5,12 +5,10 @@ import Footer from '../components/Footer.astro';
 import PageHero from '../components/PageHero.astro';
 import { heroMedia } from '../data/hero-media';
 import { getReserverSessions } from '../lib/session-catalog';
-import { hasDevBypass } from '../lib/dev-bypass';
 import { PAYMENT_STRIPE_EUR_ONLY } from '../lib/payment-display';
 
-const devBypass = hasDevBypass(Astro.request.headers.get('cookie'));
 const stripeEurOnly = PAYMENT_STRIPE_EUR_ONLY;
-const sessions = getReserverSessions({ devBypass });
+const sessions = getReserverSessions();
 ---
 <Layout title="Réserver une Séance — JCBO Conseil | Paiement en Ligne" description="Réservez et payez votre séance de coaching stratégique en ligne. Parcours simple, rapide et sécurisé.">
   <Header />
@@ -52,12 +50,12 @@ const sessions = getReserverSessions({ devBypass });
         <h2 class="font-heading text-xl font-bold text-navy mb-6">Choisissez votre prestation</h2>
         <div class="space-y-4">
           {sessions.map(s => (
-            <label class:list={["session-option flex items-center justify-between bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all", s.isTest && "border-amber-300 bg-amber-50/50"]} data-session-id={s.id}>
+            <label class="session-option flex items-center justify-between bg-offwhite rounded-xl px-5 py-4 cursor-pointer border-2 border-transparent hover:border-gold/30 transition-all" data-session-id={s.id}>
               <div class="flex items-center gap-4">
                 <input type="radio" name="session" value={s.id} class="w-5 h-5 accent-[#d4a762]" />
                 <div>
                   <p class="font-semibold text-navy">{s.title}</p>
-                  <p class="text-gray-400 text-sm">{s.duration}{s.isTest ? " — remboursable après test" : ""}</p>
+                  <p class="text-gray-400 text-sm">{s.duration}</p>
                 </div>
               </div>
               <div class="text-right">
@@ -69,12 +67,6 @@ const sessions = getReserverSessions({ devBypass });
             </label>
           ))}
         </div>
-
-        {devBypass && !sessions.some((s) => s.id === "test1e") && (
-          <p class="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            Mode développeur actif — rechargez la page après déploiement pour voir « Test paiement live 1 € ».
-          </p>
-        )}
 
         <!-- Zone de paiement (masquée si Stripe EUR seul) -->
         {stripeEurOnly ? (
@@ -212,7 +204,6 @@ const sessions = getReserverSessions({ devBypass });
     hidden
     data-sessions={JSON.stringify(sessions)}
     data-stripe-eur-only={stripeEurOnly ? "1" : "0"}
-    data-dev-bypass={devBypass ? "1" : "0"}
   ></div>
 
   <script>
@@ -229,7 +220,6 @@ const sessions = getReserverSessions({ devBypass });
       }
       initReserverBooking(catalog, {
         stripeEurOnly: cfg.dataset.stripeEurOnly === '1',
-        devBypass: cfg.dataset.devBypass === '1',
       });
     }
 

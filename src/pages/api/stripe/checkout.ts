@@ -2,7 +2,6 @@ import type { APIRoute } from "astro";
 import Stripe from "stripe";
 import { z } from "zod";
 import { getSessionCatalog } from "../../../lib/session-catalog";
-import { hasDevBypass } from "../../../lib/dev-bypass";
 import { PAYMENT_STRIPE_EUR_ONLY } from "../../../lib/payment-display";
 import { splitPaymentAmount } from "../../../lib/payment-split";
 
@@ -14,8 +13,7 @@ function jsonResponse(body: Record<string, unknown>, status: number): Response {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const devBypass = hasDevBypass(request.headers.get("cookie"));
-  const sessionCatalog = getSessionCatalog({ devBypass });
+  const sessionCatalog = getSessionCatalog();
 
   const bodySchema = z.object({
     sessionId: z
@@ -61,7 +59,6 @@ export const POST: APIRoute = async ({ request }) => {
   const connectedAccountId = import.meta.env.STRIPE_CONNECTED_ACCOUNT_ID?.trim();
   const amountCents = sessionInfo.priceEur * 100;
   const { platformAmount: platformFee } = splitPaymentAmount(amountCents);
-  const isTestLive = data.sessionId === "test1e";
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
@@ -73,9 +70,7 @@ export const POST: APIRoute = async ({ request }) => {
           currency: "eur",
           product_data: {
             name: sessionInfo.label,
-            description: isTestLive
-              ? "Vérification du split 80/20 — montant remboursable"
-              : "JCBO Conseil — Réservation en ligne",
+            description: "JCBO Conseil — Réservation en ligne",
           },
           unit_amount: amountCents,
         },
@@ -93,14 +88,13 @@ export const POST: APIRoute = async ({ request }) => {
       customerCompany: data.company,
       desiredDate: data.date,
       customerMessage: data.message,
-      ...(isTestLive ? { testLive: "true" } : {}),
     },
     success_url: `${origin}/reservation/succes?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/reservation/echec?provider=stripe&status=canceled`,
   };
 
   // Facture Stripe : uniquement sans Connect (évite conflits destination charge).
-  if (!connectedAccountId && !isTestLive) {
+  if (!connectedAccountId) {
     sessionParams.invoice_creation = {
       enabled: true,
       invoice_data: {

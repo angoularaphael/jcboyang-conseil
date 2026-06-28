@@ -5,49 +5,24 @@ export const BASE_SESSION_CATALOG = {
   premium: { label: "Accompagnement Premium 3 mois", priceEur: 2400, duration: "6 séances", priceCfa: "1 500 000" },
 } as const;
 
-export const TEST_SESSION = {
-  test1e: { label: "Test paiement live 1 €", priceEur: 1, duration: "Test", priceCfa: "655" },
-} as const;
+export type SessionKey = keyof typeof BASE_SESSION_CATALOG;
 
-export type BaseSessionKey = keyof typeof BASE_SESSION_CATALOG;
-export type TestSessionKey = keyof typeof TEST_SESSION;
-export type SessionKey = BaseSessionKey | TestSessionKey;
-
-export type TestCheckoutOptions = {
-  /** Cookie mode développeur (bypass maintenance vitrine). */
-  devBypass?: boolean;
-};
-
-export function isTestCheckoutEnabled(options: TestCheckoutOptions = {}): boolean {
-  return options.devBypass === true;
+export function getSessionCatalog() {
+  return BASE_SESSION_CATALOG;
 }
 
-export function getSessionCatalog(options: TestCheckoutOptions = {}) {
-  if (!isTestCheckoutEnabled(options)) return BASE_SESSION_CATALOG;
-  return { ...BASE_SESSION_CATALOG, ...TEST_SESSION };
+export function getSessionKeys(): SessionKey[] {
+  return Object.keys(BASE_SESSION_CATALOG) as SessionKey[];
 }
 
-export function getSessionKeys(options: TestCheckoutOptions = {}): SessionKey[] {
-  return Object.keys(getSessionCatalog(options)) as SessionKey[];
-}
-
-export function getReserverSessions(options: TestCheckoutOptions = {}) {
-  const catalog = getSessionCatalog(options);
-  const entries = Object.entries(catalog) as [SessionKey, (typeof catalog)[SessionKey]][];
-  const sorted = isTestCheckoutEnabled(options)
-    ? [...entries].sort(([a], [b]) => {
-        if (a === "test1e") return -1;
-        if (b === "test1e") return 1;
-        return 0;
-      })
-    : entries;
-
-  return sorted.map(([id, info]) => ({
-    id,
-    title: info.label,
-    duration: info.duration,
-    priceEur: info.priceEur,
-    priceCfa: info.priceCfa,
-    isTest: id === "test1e",
-  }));
+export function getReserverSessions() {
+  return (Object.entries(BASE_SESSION_CATALOG) as [SessionKey, (typeof BASE_SESSION_CATALOG)[SessionKey]][]).map(
+    ([id, info]) => ({
+      id,
+      title: info.label,
+      duration: info.duration,
+      priceEur: info.priceEur,
+      priceCfa: info.priceCfa,
+    })
+  );
 }

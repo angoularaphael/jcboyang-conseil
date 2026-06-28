@@ -135,16 +135,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* --- Contact Form --- */
   const form = document.getElementById('contactForm');
-  if (form) form.addEventListener('submit', e => {
+  if (form) form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = form.querySelector('#name').value.trim();
-    const email = form.querySelector('#email').value.trim();
-    const phone = form.querySelector('#phone').value.trim();
+    const fd = new FormData(form);
+    const name = String(fd.get('name') ?? '').trim();
+    const email = String(fd.get('email') ?? '').trim();
+    const phone = String(fd.get('phone') ?? '').trim();
     if (!name || !email || !phone) { alert('Veuillez remplir les champs obligatoires.'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Email invalide.'); return; }
+
     const btn = form.querySelector('button[type="submit"]');
-    btn.innerHTML = '<span>Demande envoyée !</span>'; btn.style.background = '#22c55e';
-    setTimeout(() => { btn.innerHTML = '<span>Réserver mon audit gratuit</span>'; btn.style.background = ''; form.reset(); }, 3500);
+    if (!(btn instanceof HTMLButtonElement)) return;
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span>Envoi en cours…</span>';
+
+    const body = Object.fromEntries(fd.entries());
+    body.source = window.location.pathname.includes('/contact') ? 'contact' : 'audit';
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || 'Erreur lors de l\'envoi. Réessayez ou contactez-nous par téléphone.');
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        return;
+      }
+      btn.innerHTML = '<span>Demande envoyée !</span>';
+      btn.style.background = '#22c55e';
+      form.reset();
+      setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = ''; btn.disabled = false; }, 4000);
+    } catch {
+      alert('Connexion impossible. Réessayez dans un instant.');
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
   });
 
   /* --- Smooth scroll --- */

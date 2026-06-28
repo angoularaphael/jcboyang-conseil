@@ -435,3 +435,84 @@ export async function sendCustomerReservationEmail(
     return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
   }
 }
+
+export type LeadFormPayload = {
+  name: string;
+  email: string;
+  phone: string;
+  company?: string;
+  need?: string;
+  message?: string;
+  source: "audit" | "contact";
+  fields?: Record<string, string>;
+};
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildLeadDetailsHtml(payload: LeadFormPayload): string {
+  const rows: [string, string][] = [
+    ["Nom", payload.name],
+    ["E-mail", payload.email],
+    ["Téléphone", payload.phone],
+    ["Entreprise", payload.company || "—"],
+    ["Besoin", payload.need || "—"],
+  ];
+  if (payload.fields) {
+    for (const [key, value] of Object.entries(payload.fields)) {
+      if (!value.trim()) continue;
+      rows.push([key, value]);
+    }
+  }
+  return rows
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:6px 0;font-size:13px;color:#6b7280;width:38%;">${escapeHtml(label)}</td>` +
+        `<td style="padding:6px 0;font-size:13px;color:#0b1f3a;">${escapeHtml(value)}</td></tr>`
+    )
+    .join("");
+}
+
+export async function sendLeadEmails(
+  payload: LeadFormPayload
+): Promise<{ ok: boolean; error?: string }> {
+  if (!isSmtpConfigured()) return { ok: false, error: "SMTP non configuré" };
+
+  const label = payload.source === "audit" ? "Demande d'audit gratuit" : "Formulaire de contact";
+  const adminHtml = `<!DOCTYPE html><html lang="fr"><body style="font-family:Georgia,serif;padding:24px;color:#374151;">
+    <h2 style="color:#0b1f3a;">${escapeHtml(label)}</h2>
+    <table>${buildLeadDetailsHtml(payload)}</table>
+    ${payload.message ? `<p style="margin-top:16px;"><strong>Message :</strong><br>${escapeHtml(payload.message).replace(/\n/g, "<br>")}</p>` : ""}
+  </body></html>`;
+
+  const customerHtml = `<!DOCTYPE html><html lang="fr"><body style="font-family:Georgia,serif;padding:24px;color:#374151;">
+    <h2 style="color:#0b1f3a;">Merci ${escapeHtml(payload.name)}</h2>
+    <p>Nous avons bien reçu votre demande. L'équipe JCBO Conseil vous recontactera sous 24 h ouvrées.</p>
+    <p style="color:#6b7280;font-size:14px;">JCBO Conseil — ${getContactEmail()}</p>
+  </body></html>`;
+
+  try {
+    await createTransport().sendMail({
+      from: getFromEmail(),
+      replyTo: payload.email,
+      to: getNotifyEmail(),
+      subject: `[JCBO] ${label} — ${payload.name}`,
+      html: adminHtml,
+    });
+    await createTransport().sendMail({
+      from: getFromEmail(),
+      replyTo: getReplyToEmail(),
+      to: payload.email,
+      subject: `Demande reçue — JCBO Conseil`,
+      html: customerHtml,
+    });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur d'envoi" };
+  }
+}

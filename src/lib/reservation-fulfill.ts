@@ -455,6 +455,7 @@ async function isAlreadyFulfilled(stripeSessionId: string): Promise<boolean> {
       .select("id")
       .eq("type", "paiement_vitrine")
       .filter("metadata->>stripeSessionId", "eq", stripeSessionId)
+      .filter("metadata->>customerEmailSent", "eq", "true")
       .limit(1);
     return (data?.length ?? 0) > 0;
   } catch {
@@ -474,6 +475,7 @@ async function saveNotification(payload: ReservationPayload): Promise<void> {
       `${payload.currency.toUpperCase()} pour « ${payload.sessionLabel} ».`,
     metadata: {
       stripeSessionId: payload.stripeSessionId,
+      customerEmailSent: "true",
       invoiceNumber: payload.invoiceNumber,
       amount: payload.amount,
       currency: payload.currency,

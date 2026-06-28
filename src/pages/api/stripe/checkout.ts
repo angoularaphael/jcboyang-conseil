@@ -115,8 +115,13 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (connectedAccountId) {
     sessionParams.payment_intent_data = {
+      receipt_email: data.email,
       application_fee_amount: platformFee,
       transfer_data: { destination: connectedAccountId },
+    };
+  } else {
+    sessionParams.payment_intent_data = {
+      receipt_email: data.email,
     };
   }
 

@@ -95,7 +95,8 @@ const sessions = getReserverSessions({ devBypass });
           </div>
         )}
 
-        <button id="toStep2" class="w-full mt-6 bg-gold text-navy font-bold py-3.5 rounded-full hover:bg-gold-light transition-all opacity-50 cursor-not-allowed" disabled>Continuer</button>
+        <button id="toStep2" type="button" class="w-full mt-6 bg-gold text-navy font-bold py-3.5 rounded-full hover:bg-gold-light transition-all opacity-50 cursor-not-allowed" disabled aria-disabled="true">Continuer</button>
+        <p id="step1-hint" class="mt-2 text-center text-sm text-gray-400">Sélectionnez une prestation pour continuer.</p>
       </div>
 
       <!-- Step 2: Info -->
@@ -205,9 +206,37 @@ const sessions = getReserverSessions({ devBypass });
   </section>
 
   <Footer />
-</Layout>
 
-<script define:vars={{ sessionsCatalog: sessions, stripeEurOnly, devBypass }}>
-  import { initReserverBooking } from '../scripts/reserver-booking.ts';
-  initReserverBooking(sessionsCatalog, { stripeEurOnly, devBypass });
-</script>
+  <div
+    id="booking-config"
+    hidden
+    data-sessions={JSON.stringify(sessions)}
+    data-stripe-eur-only={stripeEurOnly ? "1" : "0"}
+    data-dev-bypass={devBypass ? "1" : "0"}
+  ></div>
+
+  <script>
+    import { initReserverBooking } from '../scripts/reserver-booking.ts';
+
+    function bootReserverBooking() {
+      const cfg = document.getElementById('booking-config');
+      if (!(cfg instanceof HTMLElement)) return;
+      let catalog = [];
+      try {
+        catalog = JSON.parse(cfg.dataset.sessions || '[]');
+      } catch {
+        catalog = [];
+      }
+      initReserverBooking(catalog, {
+        stripeEurOnly: cfg.dataset.stripeEurOnly === '1',
+        devBypass: cfg.dataset.devBypass === '1',
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootReserverBooking, { once: true });
+    } else {
+      bootReserverBooking();
+    }
+  </script>
+</Layout>

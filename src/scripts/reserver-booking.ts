@@ -64,7 +64,6 @@ export function initReserverBooking(
   let mergedCatalog = catalog;
   if (devActive && !catalog.some((s) => s.id === 'test1e')) {
     mergedCatalog = [TEST_ITEM, ...catalog];
-    injectDevTestOption(TEST_ITEM, stripeEurOnly);
   }
 
   const { sessionLabels, pricesEur, pricesCfa } = buildSessionMaps(mergedCatalog);
@@ -95,6 +94,33 @@ export function initReserverBooking(
   const phoneHintAfrique = document.getElementById('phone-hint-afrique');
   const phoneInput = getInput('bk-phone');
   const virementInfo = document.getElementById('virement-info');
+  const step1Hint = document.getElementById('step1-hint');
+
+  if (devActive && !catalog.some((s) => s.id === 'test1e')) {
+    injectDevTestOption(TEST_ITEM, stripeEurOnly);
+  }
+
+  function updateContinueButton(): void {
+    const selected = getCheckedRadio('session');
+    const enabled = !!selected;
+    toStep2Btn.disabled = !enabled;
+    toStep2Btn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    toStep2Btn.classList.toggle('opacity-50', !enabled);
+    toStep2Btn.classList.toggle('cursor-not-allowed', !enabled);
+    if (step1Hint) {
+      step1Hint.classList.toggle('hidden', enabled);
+    }
+  }
+
+  function highlightSessionOption(radio: HTMLInputElement): void {
+    document.querySelectorAll('.session-option').forEach((o) => o.classList.remove('border-gold'));
+    radio.closest('.session-option')?.classList.add('border-gold');
+  }
+
+  function onSessionSelected(radio: HTMLInputElement): void {
+    highlightSessionOption(radio);
+    updateContinueButton();
+  }
 
   function getSelectedZone(): string {
     if (stripeEurOnly) return 'euro';
@@ -145,10 +171,7 @@ export function initReserverBooking(
   updatePhoneHint();
 
   function onSessionChange(this: HTMLInputElement): void {
-    toStep2Btn.disabled = false;
-    toStep2Btn.classList.remove('opacity-50', 'cursor-not-allowed');
-    document.querySelectorAll('.session-option').forEach((o) => o.classList.remove('border-gold'));
-    this.closest('.session-option')?.classList.add('border-gold');
+    onSessionSelected(this);
   }
 
   function bindSessionRadios(): void {
@@ -156,10 +179,19 @@ export function initReserverBooking(
       if (radio.dataset.listenerBound === '1') return;
       radio.dataset.listenerBound = '1';
       radio.addEventListener('change', onSessionChange);
+      radio.addEventListener('click', onSessionChange);
     });
   }
 
+  step1.addEventListener('change', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLInputElement && target.name === 'session') {
+      onSessionSelected(target);
+    }
+  });
+
   bindSessionRadios();
+  updateContinueButton();
 
   function showStep(n: number): void {
     steps.forEach((s) => s.classList.add('hidden'));
@@ -177,7 +209,14 @@ export function initReserverBooking(
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  toStep2Btn.addEventListener('click', () => showStep(2));
+  toStep2Btn.addEventListener('click', () => {
+    if (!getCheckedRadio('session')) {
+      alert('Veuillez choisir une prestation.');
+      updateContinueButton();
+      return;
+    }
+    showStep(2);
+  });
   backStep1Btn.addEventListener('click', () => showStep(1));
 
   toStep3Btn.addEventListener('click', () => {

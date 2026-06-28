@@ -4,6 +4,14 @@ import { z } from "zod";
 import { getSessionCatalog } from "../../../lib/session-catalog";
 import { hasDevBypass } from "../../../lib/dev-bypass";
 import { PAYMENT_STRIPE_EUR_ONLY } from "../../../lib/payment-display";
+import { splitPaymentAmount } from "../../../lib/payment-split";
+
+function jsonResponse(body: Record<string, unknown>, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
 
 export const POST: APIRoute = async ({ request }) => {
   const devBypass = hasDevBypass(request.headers.get("cookie"));
@@ -25,58 +33,40 @@ export const POST: APIRoute = async ({ request }) => {
 
   const stripeKey = import.meta.env.STRIPE_SECRET_KEY;
   if (!stripeKey || stripeKey.includes("REMPLACER")) {
-    return new Response(
-      JSON.stringify({ error: "Paiement non configuré (clé Stripe absente)." }),
-      { status: 503, headers: { "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ error: "Paiement non configuré (clé Stripe absente)." }, 503);
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Corps invalide" }), { status: 400 });
+    return jsonResponse({ error: "Corps invalide" }, 400);
   }
 
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return new Response(
-      JSON.stringify({ error: parsed.error.issues[0].message }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ error: parsed.error.issues[0].message }, 400);
   }
 
   const data = parsed.data;
   const zone = PAYMENT_STRIPE_EUR_ONLY ? "euro" : data.zone;
   const sessionInfo = sessionCatalog[data.sessionId as keyof typeof sessionCatalog];
   if (!sessionInfo) {
-    return new Response(JSON.stringify({ error: "Prestation inconnue" }), { status: 400 });
+    return jsonResponse({ error: "Prestation inconnue" }, 400);
   }
 
   const stripe = new Stripe(stripeKey);
   const origin = new URL(request.url).origin;
 
-  const connectedAccountId = import.meta.env.STRIPE_CONNECTED_ACCOUNT_ID;
-  const platformFee = Math.round(sessionInfo.priceEur * 100 * 0.8);
+  const connectedAccountId = import.meta.env.STRIPE_CONNECTED_ACCOUNT_ID?.trim();
+  const amountCents = sessionInfo.priceEur * 100;
+  const { platformAmount: platformFee } = splitPaymentAmount(amountCents);
   const isTestLive = data.sessionId === "test1e";
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
     payment_method_types: ["card"],
     customer_email: data.email,
-    invoice_creation: {
-      enabled: true,
-      invoice_data: {
-        description: isTestLive
-          ? "Test paiement live JCBO — remboursable"
-          : `Réservation — ${sessionInfo.label}`,
-        metadata: {
-          source: "vitrine",
-          customerName: data.name,
-          ...(isTestLive ? { testLive: "true" } : {}),
-        },
-      },
-    },
     line_items: [
       {
         price_data: {
@@ -87,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
               ? "Vérification du split 80/20 — montant remboursable"
               : "JCBO Conseil — Réservation en ligne",
           },
-          unit_amount: sessionInfo.priceEur * 100,
+          unit_amount: amountCents,
         },
         quantity: 1,
       },
@@ -109,19 +99,41 @@ export const POST: APIRoute = async ({ request }) => {
     cancel_url: `${origin}/reservation/echec?provider=stripe&status=canceled`,
   };
 
-  const paymentIntentData: Stripe.Checkout.SessionCreateParams.PaymentIntentData = {
-    receipt_email: data.email,
-  };
-  if (connectedAccountId) {
-    paymentIntentData.application_fee_amount = platformFee;
-    paymentIntentData.transfer_data = { destination: connectedAccountId };
+  // Facture Stripe : uniquement sans Connect (évite conflits destination charge).
+  if (!connectedAccountId && !isTestLive) {
+    sessionParams.invoice_creation = {
+      enabled: true,
+      invoice_data: {
+        description: `Réservation — ${sessionInfo.label}`,
+        metadata: {
+          source: "vitrine",
+          customerName: data.name,
+        },
+      },
+    };
   }
-  sessionParams.payment_intent_data = paymentIntentData;
 
-  const checkout = await stripe.checkout.sessions.create(sessionParams);
+  if (connectedAccountId) {
+    sessionParams.payment_intent_data = {
+      application_fee_amount: platformFee,
+      transfer_data: { destination: connectedAccountId },
+    };
+  }
 
-  return new Response(JSON.stringify({ url: checkout.url }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  try {
+    const checkout = await stripe.checkout.sessions.create(sessionParams);
+    return jsonResponse({ url: checkout.url }, 200);
+  } catch (err) {
+    const detail =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Erreur Stripe inconnue";
+    console.error("[stripe/checkout]", detail);
+    return jsonResponse(
+      { error: "Impossible de créer le paiement Stripe.", detail },
+      502
+    );
+  }
 };

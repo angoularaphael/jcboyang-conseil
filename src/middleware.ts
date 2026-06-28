@@ -42,6 +42,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
+  const isApi = path.startsWith("/api/");
+
+  // Les appels fetch API ne doivent jamais recevoir une page HTML (maintenance).
+  if (isApi && inMaintenance && !devBypass) {
+    return new Response(
+      JSON.stringify({ error: "Site en maintenance. Réessayez plus tard." }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   if (inMaintenance && !devBypass) {
     return context.redirect("/maintenance");
   }

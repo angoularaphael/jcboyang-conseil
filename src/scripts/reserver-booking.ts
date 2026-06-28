@@ -325,6 +325,7 @@ export function initReserverBooking(
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: sessionRadio.value,
@@ -338,10 +339,16 @@ export function initReserverBooking(
         }),
       });
       let data: { url?: string; redirectUrl?: string; error?: string; detail?: string } = {};
+      const raw = await res.text();
       try {
-        data = await res.json();
+        data = raw ? JSON.parse(raw) : {};
       } catch {
-        alert('Réponse serveur invalide. Vérifiez votre connexion ou réessayez.');
+        const hint = raw.trim().startsWith('<')
+          ? 'Le serveur a renvoyé une page HTML (maintenance ou erreur interne).'
+          : raw.slice(0, 160);
+        alert(
+          `Réponse serveur invalide (${res.status}).\n\n${hint || 'Vérifiez votre connexion et réessayez.'}`
+        );
         payBtn.disabled = false;
         payBtn.innerHTML = originalText;
         return;

@@ -9,9 +9,9 @@ export function getSiteJsonLd() {
         "@type": ["ProfessionalService", "LocalBusiness"],
         "@id": `${SITE_URL}/#organization`,
         name: "JCBO Conseil",
-        alternateName: "JCBO-CONSEIL",
+        alternateName: "JCBO-CONSEIL®",
         description:
-          "Expert en stratégie commerciale et business development à Toulouse. Conseil, formations et coaching pour dirigeants et PME/TPE.",
+          "Fondateur de JCBO-CONSEIL®. Consultant en Business Development & Transformation des Organisations à Toulouse. Conseil, formations et coaching pour dirigeants et PME/TPE.",
         url: SITE_URL,
         logo: `${SITE_URL}/images/logo.png`,
         image: `${SITE_URL}/images/2022/IMG-20240503-WA0065.jpg`,
@@ -21,7 +21,8 @@ export function getSiteJsonLd() {
         founder: {
           "@type": "Person",
           name: "Jean-Christophe Boyang-Tsang",
-          jobTitle: "Consultant Expert en Business Development",
+          jobTitle: "Consultant en Business Development & Transformation des Organisations",
+          description: "Fondateur de JCBO-CONSEIL®. Auteur du Guide du Pouvoir Transformationnel Personnel.",
         },
         address: {
           "@type": "PostalAddress",
@@ -55,10 +56,12 @@ export function getSiteJsonLd() {
         ],
         knowsAbout: [
           "Business Development",
+          "Transformation des Organisations",
           "Stratégie commerciale",
           "Formation vente",
           "Coaching dirigeant",
           "Mindset entrepreneurial",
+          "Guide du Pouvoir Transformationnel Personnel",
         ],
       },
       {

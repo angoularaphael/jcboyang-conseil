@@ -159,6 +159,16 @@
       "permanent": true
     },
     {
+      "source": "/livre",
+      "destination": "/livres",
+      "permanent": false
+    },
+    {
+      "source": "/Livre",
+      "destination": "/livres",
+      "permanent": false
+    },
+    {
       "source": "/wp-admin/:path*",
       "destination": "/",
       "permanent": true

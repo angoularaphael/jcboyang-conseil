@@ -12,6 +12,7 @@ const STATIC_PATHS = [
   "/seminaires",
   "/reserver",
   "/actualites",
+  "/livres",
   "/ressources",
   "/contact",
   "/faq",

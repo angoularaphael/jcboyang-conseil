@@ -32,4 +32,8 @@ export const heroMedia = {
     image: '/images/dec2025/P1170240.JPG',
     alt: 'Jean-Christophe Boyang-Tsang, JCBO Conseil',
   },
+  livres: {
+    image: '/images/2022/IMG-20240503-WA0065.jpg',
+    alt: 'Livres de Jean-Christophe Boyang-Tsang, JCBO-CONSEIL®',
+  },
 } as const;

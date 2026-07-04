@@ -7,6 +7,7 @@ import PainPoints from '../components/PainPoints.astro';
 import About from '../components/About.astro';
 import Testimonials from '../components/Testimonials.astro';
 import Footer from '../components/Footer.astro';
+import { founderProfile } from '../data/founder-profile';
 
 const problematiques = [
   {
@@ -48,7 +49,7 @@ const galeryImages = [
   { src: '/images/dec2025/P1170240.JPG', alt: 'Networking décembre 2025', label: 'Networking' },
 ];
 ---
-<Layout title="JCBO Conseil — Expert Business Development Toulouse | Consultant Stratégie Commerciale" description="Jean-Christophe Boyang-Tsang, consultant expert en développement commercial à Toulouse. Conseil stratégique, formation et coaching pour PME/TPE.">
+<Layout title={founderProfile.seoTitle} description={founderProfile.seoDescription}>
   <DidYouKnowLoader />
   <Header />
   <Hero />
@@ -194,7 +195,9 @@ const galeryImages = [
         <div data-animate="fade-left">
           <span class="inline-block font-accent italic text-gold text-sm uppercase tracking-[0.1em] mb-2">Qui vous accompagne</span>
           <h2 class="font-heading text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-navy mb-1">Jean-Christophe <span class="text-gold">Boyang-Tsang</span></h2>
-          <p class="text-gold font-accent italic text-lg mb-6">Consultant Expert en Business Development</p>
+          <p class="text-gold font-accent italic text-base mb-0.5">{founderProfile.line1}</p>
+          <p class="text-gold font-accent italic text-base mb-0.5">{founderProfile.line2}</p>
+          <p class="text-gold font-accent italic text-base mb-6">{founderProfile.line3}</p>
 
           <p class="text-gray-500 mb-4 leading-relaxed">
             <strong class="text-gray-700">JCBo</strong>, ce sont les initiales de Jean-Christophe Boyang-Tsang, fondateur et unique force motrice derrière notre entreprise. Pas un théoricien — <strong class="text-gray-700">un homme de terrain</strong>.
@@ -208,7 +211,7 @@ const galeryImages = [
 
           <!-- Credentials -->
           <div class="flex flex-wrap gap-2 mb-8">
-            {['Consultant certifié', 'Formateur en ESC', 'Coach professionnel', 'Partenaire AKOMCA', 'International'].map(c => (
+            {['Fondateur JCBO-CONSEIL®', 'Consultant certifié', 'Formateur en ESC', 'Coach professionnel', 'Auteur', 'Partenaire AKOMCA', 'International'].map(c => (
               <div class="flex items-center gap-2 bg-offwhite border border-gold/10 rounded-lg px-4 py-2.5 text-sm hover:border-gold/30 transition-colors">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a762" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 <span class="text-navy font-medium">{c}</span>

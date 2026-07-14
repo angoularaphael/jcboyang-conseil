@@ -26,6 +26,9 @@ const bodySchema = z.object({
   need: z.string().max(120).trim().optional().default(""),
   message: z.string().max(3000).trim().optional().default(""),
   source: z.enum(["audit", "contact"]).optional().default("audit"),
+  consent: z
+    .union([z.boolean(), z.literal("on"), z.literal("true"), z.literal("1")])
+    .optional(),
 });
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
@@ -52,6 +55,18 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const parsed = bodySchema.safeParse(raw);
   if (!parsed.success) {
     return new Response(JSON.stringify({ error: parsed.error.issues[0].message }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const hasConsent =
+    parsed.data.consent === true ||
+    parsed.data.consent === "on" ||
+    parsed.data.consent === "true" ||
+    parsed.data.consent === "1";
+  if (parsed.data.source === "contact" && !hasConsent) {
+    return new Response(JSON.stringify({ error: "Consentement requis." }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });

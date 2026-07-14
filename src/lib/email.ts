@@ -2,6 +2,18 @@ import { bankDetails } from "../data/bank-details";
 import { getContactEmail, getFromEmail, getNotifyEmail, getReplyToEmail } from "./email-config";
 import { createSmtpTransport, isSmtpConfigured } from "./smtp";
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function sanitizeEmailHeader(value: string): string {
+  return value.replace(/[\r\n]/g, "").slice(0, 120);
+}
+
 export type VirementPayload = {
   customerName: string;
   customerEmail: string;
@@ -94,10 +106,10 @@ export function buildFactureHtml(payload: ReservationPayload): string {
             <td style="vertical-align:top;width:50%;padding-left:12px;">
               <p style="margin:0 0 6px;font-size:10px;font-weight:700;letter-spacing:0.15em;color:#d4a762;text-transform:uppercase;">Client</p>
               <p style="margin:0;font-size:13px;color:#374151;line-height:1.6;">
-                <strong>${payload.customerName}</strong><br/>
-                ${payload.company ? `${payload.company}<br/>` : ""}
-                ${payload.customerEmail}<br/>
-                ${payload.customerPhone || ""}
+                <strong>${escapeHtml(payload.customerName)}</strong><br/>
+                ${payload.company ? `${escapeHtml(payload.company)}<br/>` : ""}
+                ${escapeHtml(payload.customerEmail)}<br/>
+                ${escapeHtml(payload.customerPhone || "")}
               </p>
             </td>
           </tr>
@@ -108,7 +120,7 @@ export function buildFactureHtml(payload: ReservationPayload): string {
             <th align="right" style="padding:10px 12px;font-size:11px;color:#0b1f3a;text-transform:uppercase;">Montant HT</th>
           </tr>
           <tr>
-            <td style="padding:12px;border-bottom:1px solid #eee;font-size:14px;color:#374151;">${payload.sessionLabel}</td>
+            <td style="padding:12px;border-bottom:1px solid #eee;font-size:14px;color:#374151;">${escapeHtml(payload.sessionLabel)}</td>
             <td align="right" style="padding:12px;border-bottom:1px solid #eee;font-size:14px;color:#374151;">${formatMoney(ht, payload.currency)}</td>
           </tr>
         </table>
@@ -117,10 +129,10 @@ export function buildFactureHtml(payload: ReservationPayload): string {
           <tr><td align="right" style="padding:4px 0;font-size:15px;font-weight:700;color:#0b1f3a;">Total TTC payé</td><td align="right" style="padding:4px 0;font-size:15px;font-weight:700;color:#16a34a;width:120px;">${formatMoney(ttc, payload.currency)}</td></tr>
           <tr><td align="right" style="padding:4px 0;font-size:12px;color:#6b7280;">Mode de paiement</td><td align="right" style="padding:4px 0;font-size:12px;color:#374151;width:120px;">${paymentMethodLabel(payload.paymentProvider)}</td></tr>
         </table>
-        <p style="margin:0 0 8px;font-size:13px;color:#374151;">Bonjour <strong>${payload.customerName}</strong>,</p>
+        <p style="margin:0 0 8px;font-size:13px;color:#374151;">Bonjour <strong>${escapeHtml(payload.customerName)}</strong>,</p>
         <p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.7;">
           Merci pour votre confiance. Votre paiement a bien été enregistré.
-          ${payload.date ? ` Date souhaitée pour la séance : <strong>${payload.date}</strong>.` : ""}
+          ${payload.date ? ` Date souhaitée pour la séance : <strong>${escapeHtml(payload.date)}</strong>.` : ""}
           Notre équipe vous recontactera très rapidement pour planifier votre séance.
         </p>
         ${
@@ -236,9 +248,9 @@ function buildVirementHtml(payload: VirementPayload): string {
         <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.75);">Référence : ${payload.reference}</p>
       </td></tr>
       <tr><td style="padding:32px 36px;">
-        <p style="margin:0 0 16px;font-size:14px;color:#374151;">Bonjour <strong>${payload.customerName}</strong>,</p>
+        <p style="margin:0 0 16px;font-size:14px;color:#374151;">Bonjour <strong>${escapeHtml(payload.customerName)}</strong>,</p>
         <p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.7;">
-          Merci pour votre réservation « <strong>${payload.sessionLabel}</strong> ».
+          Merci pour votre réservation « <strong>${escapeHtml(payload.sessionLabel)}</strong> ».
           Pour confirmer définitivement votre séance, effectuez un virement de
           <strong style="color:#0b1f3a;">${formatReservationMoney(payload.amount, payload.currency)}</strong>
           en indiquant impérativement la référence ci-dessous.
@@ -257,7 +269,7 @@ function buildVirementHtml(payload: VirementPayload): string {
         </table>
         <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6;">
           Dès réception du virement, notre équipe vous recontactera pour planifier votre séance.
-          ${payload.date ? ` Date souhaitée : ${payload.date}.` : ""}
+          ${payload.date ? ` Date souhaitée : ${escapeHtml(payload.date)}.` : ""}
         </p>
       </td></tr>
     </table>
@@ -273,15 +285,15 @@ export async function sendAdminVirementEmail(
 
   const html = `<!DOCTYPE html><html lang="fr"><body style="font-family:Georgia,serif;padding:24px;color:#374151;">
     <h2 style="color:#0b1f3a;">Nouvelle réservation par virement</h2>
-    <p><strong>${payload.customerName}</strong> (${payload.customerEmail}) a réservé « ${payload.sessionLabel} » par virement.</p>
+    <p><strong>${escapeHtml(payload.customerName)}</strong> (${escapeHtml(payload.customerEmail)}) a réservé « ${escapeHtml(payload.sessionLabel)} » par virement.</p>
     <ul>
       <li>Montant : <strong>${formatReservationMoney(payload.amount, payload.currency)}</strong></li>
-      <li>Référence : <code>${payload.reference}</code></li>
-      <li>Téléphone : ${payload.customerPhone || "—"}</li>
-      <li>Entreprise : ${payload.company || "—"}</li>
-      <li>Date souhaitée : ${payload.date || "À convenir"}</li>
+      <li>Référence : <code>${escapeHtml(payload.reference)}</code></li>
+      <li>Téléphone : ${escapeHtml(payload.customerPhone || "—")}</li>
+      <li>Entreprise : ${escapeHtml(payload.company || "—")}</li>
+      <li>Date souhaitée : ${escapeHtml(payload.date || "À convenir")}</li>
     </ul>
-    ${payload.message ? `<p><strong>Message :</strong> ${payload.message}</p>` : ""}
+    ${payload.message ? `<p><strong>Message :</strong> ${escapeHtml(payload.message)}</p>` : ""}
   </body></html>`;
 
   try {
@@ -360,7 +372,7 @@ function buildInstallmentHtml(payload: InstallmentEmailPayload): string {
 <h1 style="margin:8px 0 0;font-size:20px;color:#fff;">Paiement en plusieurs fois</h1>
 </td></tr>
 <tr><td style="padding:32px;">
-<p style="margin:0 0 12px;font-size:14px;color:#374151;">Bonjour <strong>${payload.customerName}</strong>,</p>
+<p style="margin:0 0 12px;font-size:14px;color:#374151;">Bonjour <strong>${escapeHtml(payload.customerName)}</strong>,</p>
 <p style="margin:0 0 16px;font-size:14px;color:#6b7280;line-height:1.7;">
   Nous avons bien reçu votre échéance de <strong>${lastFormatted}</strong> pour « <strong>${payload.sessionLabel}</strong> ».
 </p>
@@ -447,14 +459,6 @@ export type LeadFormPayload = {
   fields?: Record<string, string>;
 };
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 function buildLeadDetailsHtml(payload: LeadFormPayload): string {
   const rows: [string, string][] = [
     ["Nom", payload.name],
@@ -501,7 +505,7 @@ export async function sendLeadEmails(
       from: getFromEmail(),
       replyTo: payload.email,
       to: getNotifyEmail(),
-      subject: `[JCBO] ${label} — ${payload.name}`,
+      subject: `[JCBO] ${label} — ${sanitizeEmailHeader(payload.name)}`,
       html: adminHtml,
     });
     await createTransport().sendMail({

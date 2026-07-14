@@ -7,6 +7,7 @@ import {
   sendCustomerVirementEmail,
   type VirementPayload,
 } from "../../../lib/email";
+import { checkRateLimit } from "../../../lib/rateLimit";
 import { getSupabase, isSupabaseConfigured } from "../../../lib/supabase";
 
 const bodySchema = z.object({
@@ -25,7 +26,17 @@ function makeReference(): string {
   return `JCBO-VIR-${stamp}`;
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
+  const ip = clientAddress || "unknown";
+  const { allowed, retryAfterMs } = checkRateLimit(`virement:${ip}`, 5, 60 * 60 * 1000);
+  if (!allowed) {
+    const minutes = Math.max(1, Math.ceil(retryAfterMs / 60000));
+    return new Response(
+      JSON.stringify({ error: `Trop de demandes. Réessayez dans ${minutes} minute(s).` }),
+      { status: 429, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

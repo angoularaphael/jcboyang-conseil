@@ -4,7 +4,9 @@ import {
   DEV_BYPASS_COOKIE,
   getDevBypassPassword,
   hasDevBypass,
+  isDevBypassConfigured,
 } from "../../lib/dev-bypass";
+import { checkRateLimit } from "../../lib/rateLimit";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
@@ -20,7 +22,23 @@ export const GET: APIRoute = async ({ request }) => {
   });
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
+  if (!isDevBypassConfigured()) {
+    return new Response(JSON.stringify({ error: "Non disponible" }), {
+      status: 503,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  const ip = clientAddress || "unknown";
+  const { allowed } = checkRateLimit(`dev-bypass:${ip}`, 5, 15 * 60 * 1000);
+  if (!allowed) {
+    return new Response(JSON.stringify({ error: "Trop de tentatives. Réessayez plus tard." }), {
+      status: 429,
+      headers: JSON_HEADERS,
+    });
+  }
+
   let body: { password?: string };
   try {
     body = await request.json();
@@ -32,7 +50,8 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const password = String(body.password ?? "").trim();
-  if (password !== getDevBypassPassword()) {
+  const expected = getDevBypassPassword();
+  if (!expected || password !== expected) {
     return new Response(JSON.stringify({ error: "Mot de passe incorrect" }), {
       status: 401,
       headers: JSON_HEADERS,

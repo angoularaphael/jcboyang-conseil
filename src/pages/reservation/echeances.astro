@@ -5,6 +5,7 @@ import Footer from '../../components/Footer.astro';
 import { bankDetails, formatIbanDisplay } from '../../data/bank-details';
 
 const planId = Astro.url.searchParams.get('plan') ?? '';
+const planToken = Astro.url.searchParams.get('token') ?? '';
 ---
 <Layout
   title="Paiement en plusieurs fois — JCBO Conseil"
@@ -80,7 +81,7 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
 </Layout>
 
 {planId && (
-  <script define:vars={{ planId }}>
+  <script define:vars={{ planId, planToken }}>
     const loadingEl = document.getElementById("plan-loading");
     const contentEl = document.getElementById("plan-content");
     const errorEl = document.getElementById("plan-error");
@@ -91,9 +92,10 @@ const planId = Astro.url.searchParams.get('plan') ?? '';
 
     async function loadPlan() {
       try {
-        const res = await fetch(`/api/installment-plan?plan=${encodeURIComponent(planId)}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/installment-plan?plan=${encodeURIComponent(planId)}&token=${encodeURIComponent(planToken)}`,
+          { cache: "no-store" }
+        );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Plan introuvable");
 

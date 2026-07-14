@@ -10,11 +10,13 @@ import { readServerEnv } from "../../../lib/supabase";
 export const POST: APIRoute = async ({ request }) => {
   const rawBody = await request.text();
   const webhookHash = readServerEnv("NOTCHPAY_WEBHOOK_SECRET");
-  if (webhookHash && !webhookHash.includes("REMPLACER")) {
-    const signature = request.headers.get("x-notch-signature");
-    if (!verifyNotchpayWebhookSignature(rawBody, signature, webhookHash)) {
-      return new Response("Signature webhook invalide", { status: 403 });
-    }
+  if (!webhookHash || webhookHash.includes("REMPLACER")) {
+    console.error("[notchpay webhook] NOTCHPAY_WEBHOOK_SECRET non configuré — requête rejetée");
+    return new Response("Webhook non configuré", { status: 503 });
+  }
+  const signature = request.headers.get("x-notch-signature");
+  if (!verifyNotchpayWebhookSignature(rawBody, signature, webhookHash)) {
+    return new Response("Signature webhook invalide", { status: 403 });
   }
 
   let payload: Record<string, unknown>;

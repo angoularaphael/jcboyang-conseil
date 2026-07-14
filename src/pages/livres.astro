@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 import PageHero from '../components/PageHero.astro';
 import { heroMedia } from '../data/hero-media';
 import { marked } from 'marked';
+import { sanitizeHtml } from '../lib/sanitize-html';
 
 import { apiUrl as API_URL } from '../data/site-config';
 
@@ -43,7 +44,7 @@ try {
     };
     livres = await Promise.all((data.livres ?? []).map(async (l) => ({
       ...l,
-      descHtml: l.description ? String(await marked.parse(l.description)) : '',
+      descHtml: l.description ? sanitizeHtml(String(await marked.parse(l.description))) : '',
     })));
   }
 } catch {

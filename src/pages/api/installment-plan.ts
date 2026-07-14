@@ -6,12 +6,22 @@ import {
   getNextInstallmentAmount,
   getNextInstallmentNumber,
 } from "../../lib/installment-plans";
+import { verifyInstallmentPlanToken } from "../../lib/installment-token";
 
 export const GET: APIRoute = async ({ url, request }) => {
   const planId = url.searchParams.get("plan")?.trim();
+  const token = url.searchParams.get("token")?.trim();
+
   if (!planId) {
     return new Response(JSON.stringify({ error: "plan manquant" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (!verifyInstallmentPlanToken(planId, token)) {
+    return new Response(JSON.stringify({ error: "Accès non autorisé" }), {
+      status: 403,
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -44,9 +54,6 @@ export const GET: APIRoute = async ({ url, request }) => {
       nextInstallmentNumber: nextNumber,
       nextInstallmentAmount: nextAmount,
       paymentUrl: getInstallmentPaymentUrl(plan.id, origin),
-      customerEmail: plan.customerEmail,
-      customerName: plan.customerName,
-      customerPhone: plan.customerPhone,
       sessionId: plan.sessionId,
     }),
     { status: 200, headers: { "Content-Type": "application/json" } }

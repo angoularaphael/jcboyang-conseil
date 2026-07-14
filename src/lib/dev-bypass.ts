@@ -2,19 +2,37 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const DEV_BYPASS_COOKIE = "jcbo_vitrine_dev";
 
-const BYPASS_SECRET =
-  import.meta.env.DEV_BYPASS_SECRET ?? "jcbo-vitrine-maintenance-bypass";
+export function isDevBypassConfigured(): boolean {
+  if (!import.meta.env.PROD) return true;
+  return Boolean(
+    import.meta.env.DEV_BYPASS_PASSWORD?.trim() &&
+      import.meta.env.DEV_BYPASS_SECRET?.trim()
+  );
+}
 
-export function getDevBypassPassword(): string {
-  return import.meta.env.DEV_BYPASS_PASSWORD?.trim() || "302006";
+function getBypassSecret(): string {
+  const secret = import.meta.env.DEV_BYPASS_SECRET?.trim();
+  if (secret) return secret;
+  if (import.meta.env.PROD) {
+    throw new Error("DEV_BYPASS_SECRET manquant en production.");
+  }
+  return "jcbo-vitrine-dev-local-only";
+}
+
+export function getDevBypassPassword(): string | null {
+  const password = import.meta.env.DEV_BYPASS_PASSWORD?.trim();
+  if (password) return password;
+  if (import.meta.env.PROD) return null;
+  return "dev-local-only";
 }
 
 export function createDevBypassToken(): string {
-  return createHmac("sha256", BYPASS_SECRET).update("granted").digest("hex");
+  return createHmac("sha256", getBypassSecret()).update("granted").digest("hex");
 }
 
 export function isValidDevBypassToken(token: string | undefined | null): boolean {
   if (!token?.trim()) return false;
+  if (import.meta.env.PROD && !isDevBypassConfigured()) return false;
   const expected = createDevBypassToken();
   try {
     return timingSafeEqual(Buffer.from(token.trim()), Buffer.from(expected));

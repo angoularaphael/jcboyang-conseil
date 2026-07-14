@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 import PageHero from '../components/PageHero.astro';
 import { heroMedia } from '../data/hero-media';
 import { marked } from 'marked';
+import { sanitizeHtml } from '../lib/sanitize-html';
 
 import { apiUrl as API_URL } from '../data/site-config';
 
@@ -62,7 +63,7 @@ try {
     };
     resources = await Promise.all((data.ressources ?? []).map(async (r) => {
       const rawDesc = r.description || 'Ressource gratuite JCBO Conseil.';
-      const descHtml = String(await marked.parse(rawDesc));
+      const descHtml = sanitizeHtml(String(await marked.parse(rawDesc)));
       return {
         id: r.id,
         title: r.titre,

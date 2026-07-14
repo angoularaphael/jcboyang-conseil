@@ -1,6 +1,7 @@
 import type { SessionId } from "../data/session-catalog";
 import { computeInstallmentAmounts } from "../data/session-catalog";
 import { normalizeInstallmentPlanId } from "./notchpay-reference";
+import { signInstallmentPlanToken } from "./installment-token";
 import { getSupabase, isSupabaseConfigured } from "./supabase";
 
 export type InstallmentPlanStatus = "pending" | "partial" | "complete";
@@ -65,7 +66,8 @@ function makePlanId(): string {
 export function getInstallmentPaymentUrl(planId: string, origin?: string): string {
   const normalized = normalizeInstallmentPlanId(planId) ?? planId.trim();
   const base = origin ?? import.meta.env.SITE ?? "https://www.jcbo-conseil.com";
-  return `${base}/reservation/echeances?plan=${encodeURIComponent(normalized)}`;
+  const token = signInstallmentPlanToken(normalized);
+  return `${base}/reservation/echeances?plan=${encodeURIComponent(normalized)}&token=${token}`;
 }
 
 function isMissingTableError(message: string): boolean {

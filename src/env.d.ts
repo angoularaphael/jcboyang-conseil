@@ -23,9 +23,11 @@ interface ImportMetaEnv {
   readonly NOTCHPAY_CONNECTED_ACCOUNT_ID?: string;
   readonly NOTCHPAY_WEBHOOK_SECRET?: string;
 
-  // Bypass maintenance (espace développeur)
+  // Bypass maintenance (espace développeur — obligatoire en production)
   readonly DEV_BYPASS_PASSWORD?: string;
   readonly DEV_BYPASS_SECRET?: string;
+  // Token signé pour accès aux plans d'échéances
+  readonly INSTALLMENT_PLAN_SECRET?: string;
 
   // Supabase (partage la même base que adhesion-jcbo)
   readonly SUPABASE_URL?: string;

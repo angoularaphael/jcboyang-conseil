@@ -2,15 +2,30 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import { marked } from 'marked';
+import { sanitizeHtml } from '../../lib/sanitize-html';
 
 const { slug } = Astro.params;
 import { apiUrl } from '../../data/site-config';
+
+marked.setOptions({ breaks: true });
+
+function stripMarkdown(md: string): string {
+  return md
+    .replace(/^#+\s+/gm, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
 
 let article: {
   title: string;
   category: string;
   date: string;
   content: string;
+  contentHtml: string;
   image: string | null;
 } | null = null;
 
@@ -18,11 +33,13 @@ try {
   const res = await fetch(`${apiUrl}/api/public/actualites/${slug}`);
   if (res.ok) {
     const a = await res.json();
+    const content = String(a.content ?? '');
     article = {
       title: a.title,
       category: a.category,
       date: new Date(a.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
-      content: a.content,
+      content,
+      contentHtml: content ? sanitizeHtml(String(await marked.parse(content))) : '',
       image: a.image,
     };
   }
@@ -32,7 +49,7 @@ try {
 
 if (!article) return Astro.redirect('/actualites');
 ---
-<Layout title={`${article.title} — JCBO Conseil`} description={article.content.slice(0, 160)}>
+<Layout title={`${article.title} — JCBO Conseil`} description={stripMarkdown(article.content).slice(0, 160)}>
   <Header />
   <div class="pt-24"></div>
   <article class="max-w-3xl mx-auto px-6 py-16">
@@ -41,7 +58,10 @@ if (!article) return Astro.redirect('/actualites');
     <p class="text-gray-400 text-sm mt-4">{article.date}</p>
     <h1 class="font-heading text-3xl font-bold text-navy mt-4 mb-8">{article.title}</h1>
     {article.image && <img src={article.image} alt="" class="w-full rounded-2xl mb-8" />}
-    <div class="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap">{article.content}</div>
+    <div
+      class="prose prose-lg prose-gray max-w-none text-gray-700 leading-relaxed [&_strong]:text-navy [&_h1]:text-navy [&_h2]:text-navy [&_h3]:text-navy [&_a]:text-gold [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6"
+      set:html={article.contentHtml}
+    ></div>
   </article>
   <Footer />
 </Layout>

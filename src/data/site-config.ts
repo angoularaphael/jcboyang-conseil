@@ -28,3 +28,11 @@ export const vitrineUrl = resolvePublicUrl(
 
 /** Lien marketplace adhérent */
 export const marketplaceUrl = `${adhesionUrl}/adherent/marketplace`;
+
+/**
+ * Notice blanche temporaire (defaut de paiement).
+ * L accueil et les pages publiques gardent leurs balises SEO, le sitemap et le contenu HTML.
+ * Pour retirer a tout moment : passer a false, puis supprimer
+ * src/components/NoticeDesactivation.astro et src/pages/site-desactive.astro.
+ */
+export const NOTICE_SITE_DESACTIVE = true;

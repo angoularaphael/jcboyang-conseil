@@ -1,6 +1,8 @@
 ---
 import CookieBanner from '../components/CookieBanner.astro';
 import DevModeBanner from '../components/DevModeBanner.astro';
+import NoticeDesactivation from '../components/NoticeDesactivation.astro';
+import { NOTICE_SITE_DESACTIVE } from '../data/site-config';
 import { getSiteJsonLd, SITE_URL } from '../lib/seo';
 
 interface Props {
@@ -64,6 +66,7 @@ const jsonLd = getSiteJsonLd();
 <body class="font-body text-gray-800 bg-white overflow-x-hidden">
   {devBypass && <DevModeBanner />}
   <slot />
+  {NOTICE_SITE_DESACTIVE && <NoticeDesactivation />}
   <CookieBanner />
 
   <script src="../scripts/main.js"></script>

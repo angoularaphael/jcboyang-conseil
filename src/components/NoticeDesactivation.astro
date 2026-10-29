@@ -1,0 +1,73 @@
+---
+/**
+ * Calque blanc temporaire. Ne remplace pas le HTML des pages (SEO conserve).
+ * Pour retirer : NOTICE_SITE_DESACTIVE = false dans src/data/site-config.ts
+ */
+---
+<div
+  id="notice-desactivation"
+  data-nosnippet
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="notice-desactivation-title"
+  aria-describedby="notice-desactivation-text"
+>
+  <div class="notice-desactivation__box">
+    <h1 id="notice-desactivation-title">Site désactivé</h1>
+    <div id="notice-desactivation-text">
+      <p>
+        Le présent site a été désactivé pour défaut de paiement des factures.
+      </p>
+      <p>
+        Pour toute demande de restauration, veuillez vous rapprocher du service OVH
+        et/ou de votre support afin de procéder au règlement.
+      </p>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  html:has(#notice-desactivation),
+  html:has(#notice-desactivation) body {
+    overflow: hidden;
+    height: 100%;
+  }
+
+  #notice-desactivation {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .notice-desactivation__box {
+    width: 100%;
+    max-width: 36rem;
+    text-align: center;
+  }
+
+  #notice-desactivation h1 {
+    margin: 0 0 1.25rem;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.35rem, 4vw, 1.85rem);
+    font-weight: 600;
+    line-height: 1.3;
+    color: #111111;
+  }
+
+  #notice-desactivation p {
+    margin: 0 0 1rem;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1rem, 2.6vw, 1.125rem);
+    line-height: 1.7;
+    color: #222222;
+  }
+
+  #notice-desactivation p:last-child {
+    margin-bottom: 0;
+  }
+</style>

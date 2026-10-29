@@ -1,0 +1,25 @@
+---
+import NoticeDesactivation from "../components/NoticeDesactivation.astro";
+import { NOTICE_SITE_DESACTIVE } from "../data/site-config";
+
+if (!NOTICE_SITE_DESACTIVE) {
+  return Astro.redirect("/", 302);
+}
+---
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="googlebot" content="noindex, nofollow" />
+    <title>Site désactivé</title>
+    <link rel="canonical" href="https://www.jcbo-conseil.com/" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="icon" href="/favicon-48x48.png" type="image/png" sizes="48x48" />
+  </head>
+  <body>
+    <NoticeDesactivation />
+  </body>
+</html>
